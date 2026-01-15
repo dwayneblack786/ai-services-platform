@@ -245,6 +245,38 @@ mvnw.cmd spring-boot:run  # Windows
 
 **Note:** MongoDB must be running. See [Developer Setup Guide](docs/DEVELOPER_SETUP.md) for details.
 
+### Eclipse IDE Setup (Java Services)
+
+For Java microservices development using Eclipse IDE:
+
+📘 **[Eclipse Setup Guide](docs/ECLIPSE_SETUP.md)** - Complete Eclipse IDE configuration
+
+The guide includes:
+- **Installation:** Download and install Eclipse IDE for Enterprise Java
+- **Workspace Setup:** Create and configure Eclipse workspace
+- **Project Import:** Import VA Service Maven project
+- **Run Configurations:** Pre-configured launch files for running and debugging
+- **Debugging:** Breakpoints, hot code replace, debug controls
+- **Troubleshooting:** Common issues and solutions
+
+**Pre-configured Run Configurations:**
+- `VA Service - Maven Run.launch` - Run with Maven Spring Boot plugin
+- `VA Service - Maven Debug.launch` - Run with remote debugging enabled (port 5005)
+- `VA Service - Java Application.launch` - Run as standard Java application
+- `VA Service - Remote Debug.launch` - Attach debugger to running process
+
+**Location:** `services-java/va-service/.eclipse/*.launch`
+
+**Quick Start with Eclipse:**
+1. Install Eclipse IDE for Enterprise Java and Web Developers
+2. Create workspace: `File → Switch Workspace → Other → [your-workspace]`
+3. Import project: `File → Import → Maven → Existing Maven Projects`
+4. Select: `services-java/va-service`
+5. Import launch configurations from `.eclipse` folder
+6. Run: `Run → Run Configurations → VA Service - Maven Run`
+
+See [Eclipse Setup Guide](docs/ECLIPSE_SETUP.md) for detailed instructions.
+
 ## API Documentation
 
 ### API Endpoints
