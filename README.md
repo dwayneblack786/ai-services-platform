@@ -792,6 +792,13 @@ Visit http://localhost:5000/api-docs and use the interactive interface to test e
 - [WebSocket Config Reference](docs/WEBSOCKET_CONFIG_REFERENCE.md) - Advanced configuration
 - [WebSocket Quick Start](docs/WEBSOCKET_QUICK_START.md) - Getting started with WebSocket
 
+#### 🔄 Communication Workflows & Integration
+- [WebSocket Detailed Flow](docs/WEBSOCKET_DETAILED_FLOW.md) - Complete WebSocket lifecycle, connection, rooms, bidirectional message flow, typing indicators, method reference tables (6000+ lines)
+- [gRPC Streaming Flow](docs/GRPC_STREAMING_FLOW.md) - Protocol Buffers definitions, Java gRPC server, Node.js client, streaming patterns, bidirectional voice streaming (4000+ lines)
+- [Method Handlers Reference](docs/METHOD_HANDLERS_REFERENCE.md) - Complete API reference for all methods: Frontend Socket, Backend Socket, gRPC Client, Java Server, Business Logic with code examples (7000+ lines)
+- [End-to-End Integration Guide](docs/END_TO_END_INTEGRATION_GUIDE.md) - Complete message journey walkthrough with 8-stage breakdown, timing analysis (3.15s total), optimization opportunities, debugging guide (5000+ lines)
+- [Error Handling Patterns](docs/ERROR_HANDLING_PATTERNS.md) - Circuit breaker implementation, retry logic with exponential backoff, fallback strategies, error classification, monitoring and observability (5000+ lines)
+
 #### API Schemas & Specifications
 - [Assistant Calls Schema](docs/assistant_calls.jsonc) - Assistant API call structure
 - [Assistant Settings Schema](docs/assistant_setting_schema.jsonc) - Settings configuration schema
