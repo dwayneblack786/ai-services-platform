@@ -1,0 +1,44 @@
+{
+  "_id": "call_001",
+  "customerId": "cust_123",
+  "assistantPhoneNumber": "+15551234567",
+  "callerNumber": "+15556667777",
+
+  "startTime": { "$date": "2025-01-01T14:00:00Z" },
+  "endTime":   { "$date": "2025-01-01T14:05:30Z" },
+  "durationSeconds": 330,
+
+  "status": "completed",   // completed | missed | forwarded | failed
+
+  "transcript": [
+    {
+      "speaker": "caller",
+      "text": "Hi, I need help with my appointment.",
+      "timestamp": 5
+    },
+    {
+      "speaker": "assistant",
+      "text": "Sure, I can help with that. What date are you looking for?",
+      "timestamp": 10
+    }
+  ],
+
+  "usage": {
+    "sttSeconds": 45,
+    "ttsCharacters": 1200,
+    "llmTokensIn": 800,
+    "llmTokensOut": 600
+  },
+
+  "endedBy": "caller",     // caller | assistant | system
+  "forwardedTo": null,     // or "+15550001111"
+
+  "metadata": {
+    "twilioCallSid": "CA123456789",
+    "javaSessionId": "sess_abc123"
+  }
+}
+
+// db.assistant_calls.createIndex({ customerId: 1, startTime: -1 });
+// db.assistant_calls.createIndex({ assistantPhoneNumber: 1 });
+// db.assistant_calls.createIndex({ status: 1 });

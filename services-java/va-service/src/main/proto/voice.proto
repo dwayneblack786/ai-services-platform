@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package com.ai.va.grpc;
+
+option java_multiple_files = true;
+option java_package = "com.ai.va.grpc";
+option java_outer_classname = "VoiceProto";
+
+// Voice service with bidirectional streaming for real-time audio
+service VoiceService {
+  // Bidirectional streaming for voice conversation
+  // Client sends audio chunks, server sends transcriptions and responses
+  rpc StreamVoiceConversation(stream VoiceRequest) returns (stream VoiceResponse);
+  
+  // Single request/response for voice (non-streaming fallback)
+  rpc ProcessVoice(VoiceRequest) returns (VoiceResponse);
+}
+
+// Voice request with audio data
+message VoiceRequest {
+  string session_id = 1;
+  bytes audio_data = 2;         // Audio chunk in bytes
+  AudioFormat format = 3;
+  bool is_final_chunk = 4;      // Indicates end of audio stream
+  string customer_id = 5;
+}
+
+// Audio format specification
+message AudioFormat {
+  string encoding = 1;          // e.g., "LINEAR16", "MULAW", "WEBM_OPUS"
+  int32 sample_rate = 2;        // e.g., 16000, 8000
+  int32 channels = 3;           // 1 for mono, 2 for stereo
+}
+
+// Voice response with transcription and assistant reply
+message VoiceResponse {
+  string session_id = 1;
+  string transcription = 2;     // What user said
+  string response_text = 3;     // Assistant's text response
+  bytes response_audio = 4;     // Assistant's audio response (TTS)
+  bool is_interim = 5;          // True for interim transcription results
+  bool is_final = 6;            // True for final response
+  string intent = 7;
+  bool requires_action = 8;
+  string suggested_action = 9;
+}

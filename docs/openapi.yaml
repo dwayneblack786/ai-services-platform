@@ -1,0 +1,319 @@
+openapi: 3.0.3
+info:
+  title: AI Phone Assistant API
+  version: 1.0.0
+  description: APIs for phone-based virtual assistant, settings, and call logs.
+
+servers:
+  - url: https://api.yourdomain.com
+
+paths:
+  /voice/incoming:
+    post:
+      summary: Handle incoming phone call webhook from telephony provider
+      tags: [Voice]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                To:
+                  type: string
+                  description: The number that was called (assistant phone number)
+                From:
+                  type: string
+                  description: Caller phone number
+                CallSid:
+                  type: string
+                  description: Telephony provider call identifier
+              required: [To, From]
+      responses:
+        '200':
+          description: TwiML/voice instructions to the telephony provider
+          content:
+            application/xml:
+              schema:
+                type: string
+        '400':
+          description: Invalid request
+
+  /voice/stream:
+    post:
+      summary: Handle streaming audio chunks during an active call
+      tags: [Voice]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callId:
+                  type: string
+                  description: Internal call identifier (assistant_calls._id)
+                audioChunk:
+                  type: string
+                  format: byte
+                  description: Encoded audio chunk from telephony provider
+              required: [callId, audioChunk]
+      responses:
+        '200':
+          description: Voice response or streaming instructions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ttsAudio:
+                    type: string
+                    format: byte
+                    description: Encoded audio to play back to caller
+        '400':
+          description: Invalid payload
+
+  /voice/end:
+    post:
+      summary: Mark a call as ended and finalize metrics
+      tags: [Voice]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callId:
+                  type: string
+                durationSeconds:
+                  type: integer
+                endedBy:
+                  type: string
+                  enum: [caller, assistant, system]
+              required: [callId, durationSeconds, endedBy]
+      responses:
+        '200':
+          description: Call end recorded
+        '400':
+          description: Invalid payload
+
+  /assistant/settings:
+    get:
+      summary: Get phone assistant settings for current customer
+      tags: [Assistant Settings]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Assistant settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantSettings'
+        '401':
+          description: Unauthorized
+    patch:
+      summary: Update phone assistant settings for current customer
+      tags: [Assistant Settings]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAssistantSettingsRequest'
+      responses:
+        '200':
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantSettings'
+        '400':
+          description: Invalid data
+        '401':
+          description: Unauthorized
+
+  /assistant/calls:
+    get:
+      summary: List assistant call logs for current customer
+      tags: [Assistant Calls]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [completed, missed, forwarded, failed]
+      responses:
+        '200':
+          description: List of call logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AssistantCall'
+        '401':
+          description: Unauthorized
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AssistantSettings:
+      type: object
+      properties:
+        customerId:
+          type: string
+        phoneEnabled:
+          type: boolean
+        phoneNumber:
+          type: string
+        fallbackNumber:
+          type: string
+          nullable: true
+        businessHours:
+          type: object
+          properties:
+            timezone:
+              type: string
+            monday:
+              $ref: '#/components/schemas/BusinessHoursDay'
+            tuesday:
+              $ref: '#/components/schemas/BusinessHoursDay'
+            wednesday:
+              $ref: '#/components/schemas/BusinessHoursDay'
+            thursday:
+              $ref: '#/components/schemas/BusinessHoursDay'
+            friday:
+              $ref: '#/components/schemas/BusinessHoursDay'
+            saturday:
+              $ref: '#/components/schemas/BusinessHoursDay'
+            sunday:
+              $ref: '#/components/schemas/BusinessHoursDay'
+        voice:
+          type: object
+          properties:
+            language:
+              type: string
+              example: en-US
+            voiceId:
+              type: string
+            speechRate:
+              type: number
+              format: float
+      required: [customerId, phoneEnabled, phoneNumber]
+
+    BusinessHoursDay:
+      type: object
+      properties:
+        open:
+          type: string
+          nullable: true
+          example: "09:00"
+        close:
+          type: string
+          nullable: true
+          example: "17:00"
+
+    UpdateAssistantSettingsRequest:
+      type: object
+      properties:
+        phoneEnabled:
+          type: boolean
+        fallbackNumber:
+          type: string
+        businessHours:
+          type: object
+        voice:
+          type: object
+      additionalProperties: false
+
+    AssistantCall:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        assistantPhoneNumber:
+          type: string
+        callerNumber:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+          nullable: true
+        durationSeconds:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [completed, missed, forwarded, failed, in_progress]
+        endedBy:
+          type: string
+          enum: [caller, assistant, system]
+          nullable: true
+        forwardedTo:
+          type: string
+          nullable: true
+        usage:
+          type: object
+          properties:
+            sttSeconds:
+              type: integer
+            ttsCharacters:
+              type: integer
+            llmTokensIn:
+              type: integer
+            llmTokensOut:
+              type: integer
+        transcript:
+          type: array
+          items:
+            $ref: '#/components/schemas/TranscriptTurn'
+      required:
+        - id
+        - customerId
+        - assistantPhoneNumber
+        - callerNumber
+        - startTime
+        - status
+
+    TranscriptTurn:
+      type: object
+      properties:
+        speaker:
+          type: string
+          enum: [caller, assistant]
+        text:
+          type: string
+        timestamp:
+          type: number
+          format: float

@@ -1,0 +1,6 @@
+server:
+  port: 8136
+
+spring:
+  application:
+    name: Infero

@@ -1,0 +1,10 @@
+# Development Environment Configuration
+# This file is automatically loaded when running with --spring.profiles.active=dev
+
+api:
+  endpoints:
+    llm:
+      url: http://localhost:1234/v1/chat/completions
+      api-key: lm-studio
+    
+    # Add other dev endpoints here
