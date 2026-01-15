@@ -1,5 +1,24 @@
 # External APIs & Integration Patterns
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [API Client Abstraction](#api-client-abstraction)
+  - [Base API Client](#base-api-client)
+- [Specific API Implementations](#specific-api-implementations)
+  - [Payment Gateway Integration](#payment-gateway-integration)
+  - [AI Service Integration](#ai-service-integration)
+- [Rate Limiting](#rate-limiting)
+  - [Rate Limiter Implementation](#rate-limiter-implementation)
+  - [Rate Limit Middleware](#rate-limit-middleware)
+- [Retry Strategies](#retry-strategies)
+  - [Intelligent Retry Logic](#intelligent-retry-logic)
+- [Circuit Breaker Pattern](#circuit-breaker-pattern)
+- [API Response Caching](#api-response-caching)
+- [External API Best Practices Checklist](#external-api-best-practices-checklist)
+- [Related Documentation](#related-documentation)
+
+---
+
 ## Overview
 
 This guide covers consuming external APIs, handling rate limiting, implementing retry logic, and managing API dependencies safely.

@@ -1,5 +1,41 @@
 # gRPC Streaming: Detailed Implementation Documentation
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Why gRPC for Backend Communication?](#why-grpc-for-backend-communication)
+  - [Advantages Over REST](#advantages-over-rest)
+  - [Use Cases in This Platform](#use-cases-in-this-platform)
+- [Architecture Overview](#architecture-overview)
+- [Part 1: Protocol Buffer Definitions](#part-1-protocol-buffer-definitions)
+  - [File: chat.proto](#file-chatproto)
+  - [RPC Type Breakdown](#rpc-type-breakdown)
+  - [Message Definitions](#message-definitions)
+- [Part 2: Java gRPC Server Implementation](#part-2-java-grpc-server-implementation)
+  - [2.1 Server Configuration](#21-server-configuration)
+  - [2.2 ChatService Implementation](#22-chatservice-implementation)
+- [Part 3: Node.js gRPC Client Implementation](#part-3-nodejs-grpc-client-implementation)
+  - [3.1 Client Initialization](#31-client-initialization)
+  - [3.2 Unary RPC Calls](#32-unary-rpc-calls)
+  - [3.3 Server-Side Streaming RPC](#33-server-side-streaming-rpc)
+- [Part 4: Complete Message Flow (with gRPC)](#part-4-complete-message-flow-with-grpc)
+  - [Scenario: User sends "What's the weather?"](#scenario-user-sends-whats-the-weather)
+- [Part 5: Voice Streaming (Bidirectional)](#part-5-voice-streaming-bidirectional)
+  - [Proto Definition: voice.proto](#proto-definition-voiceproto)
+  - [Bidirectional Flow](#bidirectional-flow)
+- [Part 6: Error Handling](#part-6-error-handling)
+  - [gRPC Status Codes](#grpc-status-codes)
+  - [Java Error Handling](#java-error-handling)
+  - [Node.js Error Handling](#nodejs-error-handling)
+- [Part 7: Performance Optimization](#part-7-performance-optimization)
+  - [Connection Pooling](#connection-pooling)
+  - [Deadline/Timeout Configuration](#deadlinetimeout-configuration)
+  - [Compression](#compression)
+- [Summary](#summary)
+  - [Key Differences: gRPC vs REST vs WebSocket](#key-differences-grpc-vs-rest-vs-websocket)
+  - [When to Use Each](#when-to-use-each)
+
+---
+
 ## Overview
 
 This document provides comprehensive documentation on **gRPC implementation** in the AI Services Platform, focusing on:

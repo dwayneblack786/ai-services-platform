@@ -1,5 +1,29 @@
 # Frontend Error Handling & Resilience Guide
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Error Boundaries](#error-boundaries)
+  - [Basic Error Boundary](#basic-error-boundary)
+  - [Feature-Level Error Boundaries](#feature-level-error-boundaries)
+- [API Error Handling](#api-error-handling)
+  - [Centralized Error Handler](#centralized-error-handler)
+  - [API Request Error Hook](#api-request-error-hook)
+- [Error Recovery Strategies](#error-recovery-strategies)
+  - [Retry Logic with Exponential Backoff](#retry-logic-with-exponential-backoff)
+  - [Fallback Data Strategy](#fallback-data-strategy)
+- [User-Facing Error Messages](#user-facing-error-messages)
+  - [Error Message Strategy](#error-message-strategy)
+  - [Error Toast Notification](#error-toast-notification)
+- [Error Logging and Monitoring](#error-logging-and-monitoring)
+  - [Error Tracking Setup](#error-tracking-setup)
+- [Common Error Scenarios](#common-error-scenarios)
+  - [Loading State Errors](#loading-state-errors)
+  - [Form Submission Errors](#form-submission-errors)
+- [Error Handling Checklist](#error-handling-checklist)
+- [Related Documentation](#related-documentation)
+
+---
+
 ## Overview
 
 This document covers comprehensive error handling strategies in React applications, including error boundaries, API error handling, async error management, user feedback, and recovery mechanisms.

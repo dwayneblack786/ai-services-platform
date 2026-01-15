@@ -1,5 +1,30 @@
 # gRPC Implementation Complete
 
+📑 **Table of Contents**
+- [Summary](#summary)
+- [Architecture](#architecture)
+- [What Was Implemented](#what-was-implemented)
+  - [1. Protobuf Service Definitions ✅](#1-protobuf-service-definitions-)
+  - [2. Java gRPC Server ✅](#2-java-grpc-server-)
+  - [3. Node.js gRPC Client ✅](#3-nodejs-grpc-client-)
+- [Current Status](#current-status)
+  - [Working ✅](#working-)
+  - [TODO for Full Streaming 🔄](#todo-for-full-streaming-)
+- [How to Test](#how-to-test)
+  - [1. Start Java VA Service](#1-start-java-va-service)
+  - [2. Start Node.js Backend](#2-start-nodejs-backend)
+  - [3. Test gRPC Connection](#3-test-grpc-connection)
+- [Benefits of This Architecture](#benefits-of-this-architecture)
+  - [Why WebSockets for Frontend?](#why-websockets-for-frontend)
+  - [Why gRPC for Backend Services?](#why-grpc-for-backend-services)
+- [Files Changed/Created](#files-changedcreated)
+  - [Java VA Service](#java-va-service)
+  - [Node.js Backend](#nodejs-backend)
+- [Next Steps (Optional Enhancements)](#next-steps-optional-enhancements)
+- [Conclusion](#conclusion)
+
+---
+
 ## Summary
 Successfully implemented hybrid architecture: **WebSockets for frontend communication** + **gRPC for backend-to-backend communication**.
 

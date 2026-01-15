@@ -1,5 +1,28 @@
 # WebSocket Configuration - Quick Reference
 
+📑 **Table of Contents**
+- [🔧 Enable/Disable WebSocket](#-enabledisable-websocket)
+  - [Environment Variable (Recommended)](#environment-variable-recommended)
+  - [Component Override](#component-override)
+- [📋 Configuration Priority](#-configuration-priority)
+- [🚀 Quick Start](#-quick-start)
+- [📊 Feature Comparison](#-feature-comparison)
+- [✅ When to Use WebSocket](#-when-to-use-websocket)
+- [⚠️ When to Use REST](#️-when-to-use-rest)
+- [🔍 Verify Configuration](#-verify-configuration)
+- [🎯 Common Scenarios](#-common-scenarios)
+  - [Development (WebSocket ON)](#development-websocket-on)
+  - [Production (WebSocket ON)](#production-websocket-on)
+  - [Fallback Mode (REST Only)](#fallback-mode-rest-only)
+  - [A/B Testing](#ab-testing)
+- [🐛 Troubleshooting](#-troubleshooting)
+  - [Not working after env change?](#not-working-after-env-change)
+  - [Still using REST despite env=true?](#still-using-rest-despite-envtrue)
+  - [Want to force REST for testing?](#want-to-force-rest-for-testing)
+- [📚 Documentation](#-documentation)
+
+---
+
 ## 🔧 Enable/Disable WebSocket
 
 ### Environment Variable (Recommended)

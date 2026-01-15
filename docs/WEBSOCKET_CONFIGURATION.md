@@ -1,5 +1,52 @@
 # WebSocket Configuration Guide
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Configuration Methods](#configuration-methods)
+  - [Method 1: Environment Variable (Recommended)](#method-1-environment-variable-recommended)
+  - [Method 2: Component Prop Override](#method-2-component-prop-override)
+- [Configuration Priority](#configuration-priority)
+  - [Example Priority Flow](#example-priority-flow)
+- [Environment-Specific Configurations](#environment-specific-configurations)
+  - [Development](#development)
+  - [Staging](#staging)
+  - [Production](#production)
+  - [Fallback Environment (Network Issues)](#fallback-environment-network-issues)
+- [When to Use WebSocket vs REST](#when-to-use-websocket-vs-rest)
+  - [Use WebSocket (Default: ✅ Enabled)](#use-websocket-default--enabled)
+  - [Use REST API (⚠️ Fallback)](#use-rest-api-️-fallback)
+- [Common Configuration Scenarios](#common-configuration-scenarios)
+  - [Scenario 1: Enable WebSocket Everywhere](#scenario-1-enable-websocket-everywhere)
+  - [Scenario 2: Disable WebSocket Globally](#scenario-2-disable-websocket-globally)
+  - [Scenario 3: Mixed Mode (Some WebSocket, Some REST)](#scenario-3-mixed-mode-some-websocket-some-rest)
+  - [Scenario 4: A/B Testing](#scenario-4-ab-testing)
+  - [Scenario 5: Feature Flag](#scenario-5-feature-flag)
+- [Setting Environment Variables](#setting-environment-variables)
+  - [Local Development](#local-development)
+  - [Production Deployment](#production-deployment)
+  - [CI/CD Pipelines](#cicd-pipelines)
+- [Validation & Testing](#validation--testing)
+  - [Check Current Configuration](#check-current-configuration)
+  - [Test WebSocket Connection](#test-websocket-connection)
+  - [Test REST Fallback](#test-rest-fallback)
+- [Troubleshooting](#troubleshooting)
+  - [WebSocket Not Connecting Despite VITE_USE_WEBSOCKET=true](#websocket-not-connecting-despite-vite_use_websockettrue)
+  - [REST API Used Despite VITE_USE_WEBSOCKET=true](#rest-api-used-despite-vite_use_websockettrue)
+  - [Environment Variable Not Working](#environment-variable-not-working)
+- [Best Practices](#best-practices)
+  - [1. Use Environment Variables for Infrastructure Decisions](#1-use-environment-variables-for-infrastructure-decisions)
+  - [2. Override Only When Necessary](#2-override-only-when-necessary)
+  - [3. Document Configuration in Deployment Docs](#3-document-configuration-in-deployment-docs)
+  - [4. Monitor Configuration](#4-monitor-configuration)
+- [Migration Guide](#migration-guide)
+  - [Migrating from Hardcoded to Env Variable](#migrating-from-hardcoded-to-env-variable)
+- [Summary](#summary)
+  - [Quick Reference](#quick-reference)
+  - [Environment Variable Syntax](#environment-variable-syntax)
+  - [Component Usage](#component-usage)
+
+---
+
 ## Overview
 
 The AI Services Platform's WebSocket functionality can be configured through environment variables, allowing you to enable or disable real-time communication without modifying code.

@@ -1,5 +1,39 @@
 # WebSocket Chat - Quick Start Guide
 
+📑 **Table of Contents**
+- [🚀 Quick Start](#-quick-start)
+  - [1. Start Backend Server](#1-start-backend-server)
+  - [2. Start Frontend](#2-start-frontend)
+  - [3. Test the Chat](#3-test-the-chat)
+  - [4. Test WebSocket Features](#4-test-websocket-features)
+- [🔧 Configuration](#-configuration)
+  - [Enable/Disable WebSocket](#enabledisable-websocket)
+  - [Environment Variables](#environment-variables)
+- [🧪 Testing WebSocket Connection](#-testing-websocket-connection)
+  - [Browser Console Test](#browser-console-test)
+- [📊 What's Different?](#-whats-different)
+  - [Before (REST Only)](#before-rest-only)
+  - [After (WebSocket)](#after-websocket)
+- [🎯 Key Features Implemented](#-key-features-implemented)
+  - [✅ Real-Time Messaging](#-real-time-messaging)
+  - [✅ Typing Indicators](#-typing-indicators)
+  - [✅ Connection Status](#-connection-status)
+  - [✅ Hybrid Architecture](#-hybrid-architecture)
+- [🐛 Troubleshooting](#-troubleshooting)
+  - [WebSocket Not Connecting](#websocket-not-connecting)
+  - [Messages Not Received](#messages-not-received)
+  - [Fallback to REST](#fallback-to-rest)
+- [📈 Performance Monitoring](#-performance-monitoring)
+  - [Check Connection Health](#check-connection-health)
+  - [Monitor Active Connections](#monitor-active-connections)
+- [🔐 Security](#-security)
+  - [Authentication Flow](#authentication-flow)
+  - [Best Practices](#best-practices)
+- [📚 Additional Resources](#-additional-resources)
+- [🎉 Next Steps](#-next-steps)
+
+---
+
 ## 🚀 Quick Start
 
 ### 1. Start Backend Server

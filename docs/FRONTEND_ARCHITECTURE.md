@@ -1,5 +1,42 @@
 # Frontend Architecture Guide
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Component Architecture](#component-architecture)
+  - [Component Types](#component-types)
+  - [Component Hierarchy Example](#component-hierarchy-example)
+- [Data Flow Architecture](#data-flow-architecture)
+  - [Request/Response Flow](#requestresponse-flow)
+  - [Example: Fetching User Data](#example-fetching-user-data)
+- [Page Layout Patterns](#page-layout-patterns)
+  - [Public Layout (unauthenticated)](#public-layout-unauthenticated)
+  - [Protected Layout (authenticated)](#protected-layout-authenticated)
+- [Routing Strategy](#routing-strategy)
+- [Performance Considerations](#performance-considerations)
+  - [Code Splitting](#code-splitting)
+  - [Memoization](#memoization)
+  - [Image Optimization](#image-optimization)
+  - [Bundle Analysis](#bundle-analysis)
+- [Error Boundaries](#error-boundaries)
+- [Asset Organization](#asset-organization)
+  - [Images and Icons](#images-and-icons)
+  - [Fonts](#fonts)
+- [Accessibility](#accessibility)
+  - [ARIA Labels and Semantic HTML](#aria-labels-and-semantic-html)
+  - [Focus Management](#focus-management)
+  - [Color Contrast](#color-contrast)
+- [Browser Support](#browser-support)
+- [Development Workflow](#development-workflow)
+  - [Starting Development Server](#starting-development-server)
+  - [Building for Production](#building-for-production)
+  - [Environment Configuration](#environment-configuration)
+- [Key Architectural Decisions](#key-architectural-decisions)
+- [Related Documentation](#related-documentation)
+- [Quick Reference](#quick-reference)
+
+---
+
 ## Overview
 
 This document describes the overall architecture of the React TypeScript frontend application, including the project structure, component hierarchy, data flow patterns, and architectural decisions.
