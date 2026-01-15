@@ -247,104 +247,21 @@ mvnw.cmd spring-boot:run  # Windows
 
 ## API Documentation
 
-### Interactive Documentation
+### API Endpoints
 
-Visit http://localhost:5000/api-docs for the interactive Swagger UI with full API documentation.
+For a complete list of all API endpoints with detailed request/response schemas, authentication requirements, and examples, see:
 
-**OpenAPI Version:** 2.0.0
+📖 **[Interactive API Documentation (Swagger UI)](http://localhost:5000/api-docs)** - Available when backend is running
 
-### Key Endpoints
+📄 **[OpenAPI Specification](backend-node/openapi.yaml)** - Complete API specification (OpenAPI 3.0.3)
 
-#### Authentication Routes
-- `GET /api/auth/google` - Initiate Google OAuth flow
-- `GET /api/auth/google/callback` - Google OAuth callback
-- `POST /api/auth/dev-login` - Development login (dev only)
-- `POST /api/auth/logout` - Logout user
-- `GET /api/auth/status` - Check authentication status
-
-#### User Routes (Protected)
-- `GET /api/user/me` - Get current user information
-
-#### Chat Assistant Routes (NEW)
-- `POST /api/chat/session` - Initialize a new chat session (supports resume)
-- `POST /api/chat/message` - Send a message in an active chat session
-- `POST /api/chat/end` - End a chat session
-- `GET /api/chat/history/:sessionId` - Get conversation history for a session
-
-#### Voice Assistant Routes
-- `POST /voice/incoming` - Handle incoming phone call webhook
-- `POST /voice/stream` - Handle streaming audio chunks during call
-- `POST /voice/end` - Mark a call as ended and finalize metrics
-- `GET /assistant/settings` - Get phone assistant settings
-- `PATCH /assistant/settings` - Update phone assistant settings
-- `GET /assistant/calls` - List assistant call logs
-
-#### Usage Tracking Routes (NEW)
-- `POST /api/usage/assistant-call` - Update usage metrics for call/session (supports both ObjectId and UUID)
-- `GET /api/usage/assistant-call/:callId` - Get usage metrics for specific call
-
-#### Product Routes
-- `GET /api/products` - Get all products
-- `GET /api/products/:id` - Get product by ID
-- `POST /api/products` - Create product (Admin only)
-- `PUT /api/products/:id` - Update product (Admin only)
-- `PATCH /api/products/:id/status` - Update product status (Admin only)
-- `DELETE /api/products/:id` - Delete product (Admin only)
-
-#### Product Configuration Routes
-- `GET /api/product-configurations` - Get all configurations for tenant
-- `GET /api/product-configurations/:productId` - Get config for specific product
-- `POST /api/product-configurations` - Create/update product configuration
-- `DELETE /api/product-configurations/:productId` - Delete configuration (Admin only)
-
-#### Assistant Channels Routes
-- `GET /api/assistant-channels` - Get all assistant channel configurations for tenant
-- `GET /api/assistant-channels/:productId` - Get assistant channels for product
-- `GET /api/assistant-channels/by-phone/:phoneNumber` - Get channels by phone number (public)
-- `PATCH /api/assistant-channels` - Update assistant channel configuration
-- `PATCH /api/assistant-channels/voice` - Update voice channel configuration
-- `PATCH /api/assistant-channels/chat` - Update chat channel configuration
-- `POST /api/assistant-channels/voice/toggle` - Toggle voice channel on/off
-- `POST /api/assistant-channels/chat/toggle` - Toggle chat channel on/off
-
-#### Prompt Routes
-- `GET /api/prompts` - Get all default prompt templates
-- `GET /api/prompts/:id` - Get specific prompt template by ID
-- `GET /api/prompts/industry/:industry` - Get prompts for specific industry
-
-#### Subscription Routes
-- `GET /api/subscriptions` - Get user subscriptions
-- `POST /api/subscriptions` - Create new subscription
-- `POST /api/subscriptions/create` - Create subscription with validation
-- `POST /api/subscriptions/validate-payment` - Validate payment method
-- `GET /api/subscriptions/product/:productId` - Get subscription for product
-- `PATCH /api/subscriptions/:subscriptionId` - Update subscription
-- `GET /api/subscriptions/:subscriptionId/billing` - Get billing history
-- `POST /api/subscriptions/:subscriptionId/billing` - Create billing record
-
-#### User Products Routes (NEW)
-- `GET /api/user-products` - Get user's subscribed products
-- `POST /api/user-products` - Subscribe to a product (requires payment)
-- `DELETE /api/user-products/:productId` - Unsubscribe from a product
-
-#### Payment Methods Routes
-- `GET /api/payment-methods` - Get all payment methods for user
-- `POST /api/payment-methods` - Add new payment method
-- `DELETE /api/payment-methods/:id` - Remove payment method
-- `PATCH /api/payment-methods/:id/set-default` - Set payment method as default
-
-#### Transaction Routes (NEW)
-- `GET /api/transactions` - Get all transactions for tenant (with filters)
-- `GET /api/transactions/:transactionId` - Get transaction by ID
-- `GET /api/transactions/payment-method/:paymentMethodId` - Get transactions for payment method
-- `GET /api/transactions/stats/summary` - Get transaction statistics
-
-#### Tenant Routes (NEW)
-- `GET /api/tenants` - Get all tenants (Admin only)
-- `POST /api/tenants` - Create new tenant (Admin only)
-- `GET /api/tenants/:tenantId/users` - Get users by tenant
-- `GET /api/tenants/users/all` - Get all users with tenant info
-- `PUT /api/tenants/users/:userId/tenant` - Assign user to tenant (Admin only)
+The interactive documentation includes:
+- All available endpoints organized by category
+- Request/response schemas with examples
+- Authentication methods (Cookie Auth, JWT Bearer Token)
+- Try-it-out functionality for testing endpoints
+- Query parameters and filtering options
+- Error response formats and status codes
 
 ### Authentication Methods
 
@@ -574,37 +491,174 @@ Visit http://localhost:5000/api-docs and use the interactive interface to test e
 
 ## Recent Updates
 
-### Latest Features
+### Latest Features (January 2026)
+
+**🛡️ Circuit Breaker & Resilience**
+- ✅ Circuit breaker pattern implementation (CLOSED/OPEN/HALF_OPEN states)
+- ✅ Automatic failure detection with 5 failure threshold
+- ✅ Exponential backoff retry logic (1s → 2s → 4s with jitter)
+- ✅ Real-time circuit monitor UI with clickable badge
+- ✅ Circuit state dropdown with statistics and reset button
+- ✅ 70+ API calls protected across frontend and backend
+
+**🔌 Backend Infrastructure**
+- ✅ Centralized API client service with retry logic
+- ✅ WebSocket/Socket.IO integration with circuit breaker
+- ✅ gRPC client implementations for Java microservices
+- ✅ MongoDB models and improved data layer
+- ✅ Enhanced middleware for authentication and authorization
+- ✅ Swagger/OpenAPI 3.0.3 documentation integration
+
+**🎨 Frontend Enhancements**
 - ✅ Product-specific configuration pages by category
 - ✅ Prompt configuration with unsaved changes tracking
-- ✅ Swagger/OpenAPI documentation integration
-- ✅ MongoDB indexes for product configurations
+- ✅ Real-time WebSocket communication (Socket.IO 4.8+)
+- ✅ CircuitMonitor component with live updates (2-second polling)
+- ✅ Enhanced error boundaries and error handling
 - ✅ Responsive layout with dynamic settings positioning
-- ✅ Dynamic copyright year in footer
-- ✅ Unique IDs for all layout components
+- ✅ Custom hooks for API calls and state management
+
+**📊 Data & Configuration**
+- ✅ MongoDB indexes for product configurations
 - ✅ Template seeding with 7 industry-specific templates
-- ✅ Generic Java API client (removed OpenAI dependency)
+- ✅ Unique compound indexes (tenantId, productId, status)
+- ✅ Chat session and assistant channels collections
+- ✅ Payment methods and transactions support
+
+**📚 Documentation**
+- ✅ Comprehensive circuit breaker documentation (3 guides)
+- ✅ Technology features guide with benefits/downsides
+- ✅ Updated developer setup guide
+- ✅ Backend-specific implementation documentation
 
 ### Bug Fixes
-- Fixed CSS border warning in Sidebar
-- Resolved layout spacing issues
+
+**Circuit Breaker & API Integration**
+- Fixed TypeScript compilation errors in chat-routes.ts (20 errors resolved)
+- Fixed duplicate console.error statements in chat message handling
+- Fixed incomplete JSON responses in error handlers
+- Fixed duplicate javaVAClient parameters in WebSocket handlers
+- Fixed ttsAudio.length type checking in voice routes
+- Fixed getCircuitState() returning string vs object expectations
+- Fixed circuit breaker reset() not clearing all statistics (totalRequests, timestamps)
+- Fixed CircuitMonitor badge not updating immediately after manual reset
+
+**Frontend UI & UX**
+- Fixed CSS border warning in Sidebar component
 - Fixed settings dropdown positioning for PROJECT_ADMIN users
-- Corrected userInfoContainer responsive behavior
+- Fixed userInfoContainer responsive behavior
+- Fixed CircuitMonitor badge not being clickable
+- Fixed missing tooltips on circuit monitor UI elements
+- Fixed circuit state not refreshing after actions
+
+**Backend & Services**
+- Resolved layout spacing issues in main application
+- Fixed missing fallback responses in API error scenarios
+- Fixed session management in WebSocket connections
+- Corrected dynamic copyright year calculation in footer
+
+**Type Safety & Code Quality**
+- Fixed ChatResponse interface with optional fields for WebSocket
+- Fixed type assertions for Buffer objects in voice processing
+- Added proper error boundaries for component failures
+- Improved error message clarity across all API endpoints
 
 ## Next Steps
 
-- [ ] Add user management UI for tenant admins
-- [ ] Implement subscription and billing system
-- [ ] Add email verification flow
-- [ ] Implement password reset for local auth
-- [ ] Add comprehensive unit and integration tests
-- [ ] Implement logging and monitoring (Winston, ELK stack)
-- [ ] Add Redis for session storage (production)
-- [ ] Implement rate limiting and API throttling
-- [ ] Add WebSocket support for real-time features
-- [ ] Create admin dashboard for SUPER_ADMIN users
-- [ ] Add audit logging for configuration changes
-- [ ] Implement backup and restore procedures
+### 🎯 High Priority
+
+- [ ] **User Management UI** - Create tenant admin interface for managing users
+  - Assign roles (USER, TENANT_USER, TENANT_ADMIN)
+  - View user activity and permissions
+  - Invite new users to tenant
+  - Related: [Product-Based Access Control](docs/PRODUCT_BASED_ACCESS_CONTROL.md), [Security Architecture](docs/SECURITY_ARCHITECTURE.md)
+
+- [ ] **Email Verification Flow** - Implement email verification for new users
+  - Send verification emails on registration
+  - Token-based verification links
+  - Resend verification email option
+  - Related: Email templates in `backend-node/emails/`
+
+- [ ] **Password Reset** - Add forgot password flow for local authentication
+  - Reset token generation and expiration
+  - Email-based reset links
+  - Secure password update process
+
+- [ ] **Comprehensive Testing** - Expand test coverage across platform
+  - Unit tests for services and utilities
+  - Integration tests for API endpoints
+  - E2E tests for critical user flows
+  - Related: [Testing Strategy](docs/TESTING_STRATEGY.md)
+
+### 🔧 Infrastructure & DevOps
+
+- [ ] **Redis Integration** - Add Redis for production session storage and caching
+  - Session storage for multi-instance deployments
+  - Circuit breaker state sharing
+  - API response caching
+  - Related: [Caching Strategies](docs/CACHING_STRATEGIES.md), [Technology Features](docs/TECHNOLOGY_FEATURES.md)
+
+- [ ] **Rate Limiting & Throttling** - Implement API rate limiting
+  - Per-endpoint rate limits
+  - Per-user/tenant quotas
+  - DDoS protection
+  - Related: [API Design Standards](docs/API_DESIGN_STANDARDS.md#rate-limiting)
+
+- [ ] **Advanced Monitoring** - Implement comprehensive logging and monitoring
+  - Prometheus metrics collection
+  - Grafana dashboards
+  - Distributed tracing (Jaeger/Zipkin)
+  - Alert system for critical issues
+  - Related: [Logging & Monitoring](docs/LOGGING_MONITORING.md), [Technology Features](docs/TECHNOLOGY_FEATURES.md)
+
+- [ ] **Backup & Restore** - Implement automated backup procedures
+  - MongoDB automated backups
+  - Point-in-time recovery
+  - Disaster recovery procedures
+  - Per-tenant data export
+
+### 📊 Features & Enhancements
+
+- [ ] **Admin Dashboard** - Create comprehensive dashboard for SUPER_ADMIN users
+  - System-wide metrics and analytics
+  - Tenant management interface
+  - User activity monitoring
+  - Service health status
+
+- [ ] **Audit Logging** - Track configuration changes and user actions
+  - Who changed what and when
+  - Configuration version history
+  - Compliance reporting
+  - Related: [Database Patterns](docs/DATABASE_PATTERNS.md)
+
+- [ ] **Advanced Circuit Breaker** - Enhance circuit breaker functionality
+  - Per-endpoint circuit breakers
+  - Adaptive timeout configuration
+  - Bulkhead pattern for resource isolation
+  - Related: [Circuit Breaker Implementation](backend-node/CIRCUIT_BREAKER_IMPLEMENTATION.md), [External APIs](docs/EXTERNAL_APIS.md)
+
+- [ ] **WebHook System** - Implement outbound webhook support
+  - Event-based notifications
+  - Webhook retry logic
+  - Signature verification
+  - Related: [Webhook Handling](docs/WEBHOOK_HANDLING.md)
+
+### ✅ Already Implemented
+
+- ✅ **Subscription and Billing** - Payment methods, transactions, and subscription management
+  - Related: [Payment System](docs/PAYMENT_SYSTEM.md), [Payment Testing](backend-node/PAYMENT_TESTING.md)
+  
+- ✅ **WebSocket Support** - Real-time features with Socket.IO
+  - Related: [WebSocket Implementation](docs/WEBSOCKET_IMPLEMENTATION.md), [WebSocket Quick Start](docs/WEBSOCKET_QUICK_START.md)
+  
+- ✅ **Circuit Breaker Pattern** - Resilience and failure detection
+  - Related: [Circuit Breaker User Guide](docs/CIRCUIT_BREAKER_USER_GUIDE.md)
+  
+- ✅ **gRPC Integration** - Backend-to-Java microservice communication
+  - Related: [gRPC Implementation](docs/GRPC_IMPLEMENTATION.md)
+
+- ✅ **Multi-Tenant Architecture** - Complete tenant isolation
+  - Related: [Tenant Validation](docs/TENANT_VALIDATION_AND_REDIRECT.md)
 
 ## Documentation
 
