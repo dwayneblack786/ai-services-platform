@@ -17,9 +17,10 @@ Complete guide for setting up the AI Services Platform development environment l
 ## System Requirements
 
 ### Minimum Hardware
-- **RAM**: 8GB (16GB recommended)
-- **Disk Space**: 20GB free
+- **RAM**: 8GB minimum, **16GB highly recommended** (12GB+ needed for running LM Studio with Gemma-2-9B)
+- **Disk Space**: 30GB free (20GB for development tools + 10GB for LLM models)
 - **CPU**: Quad-core (Intel/Apple Silicon/AMD)
+- **GPU**: Optional but recommended for faster LLM inference (NVIDIA GPU with CUDA support or Apple Silicon)
 
 ### Operating Systems
 - Windows 10+ (PowerShell 7+ or CMD)
@@ -117,7 +118,90 @@ mongosh    # Connect to local MongoDB (or mongo for older versions)
 - **Port**: 27017
 - **Database**: ai_platform
 
-### 5. Git
+### 5. LM Studio (Local LLM)
+
+**Required for**: Chat functionality testing with local LLM
+
+**Current Model**: google/gemma-2-9b (used for development and testing)
+
+#### Installation
+
+**Windows:**
+```bash
+# Download from official website
+# Visit: https://lmstudio.ai/
+# Click "Download for Windows"
+# Run the installer (LMStudio-Setup.exe)
+```
+
+Or via direct download:
+1. Go to https://lmstudio.ai/
+2. Click "Download for Windows"
+3. Run the downloaded `.exe` installer
+4. Follow installation prompts
+5. Launch LM Studio from Start Menu
+
+**macOS:**
+```bash
+# Download from official website
+# Visit: https://lmstudio.ai/
+# Click "Download for macOS"
+# Install the .dmg file
+```
+
+Or via Homebrew:
+```bash
+brew install --cask lm-studio
+```
+
+**Linux:**
+```bash
+# Download AppImage from official website
+# Visit: https://lmstudio.ai/
+# Click "Download for Linux"
+# Make executable and run:
+chmod +x LM-Studio-*.AppImage
+./LM-Studio-*.AppImage
+```
+
+#### Model Setup
+
+1. **Launch LM Studio**
+
+2. **Download Gemma-2-9B Model**:
+   - Click on "Search" or "Discover" tab
+   - Search for: `google/gemma-2-9b`
+   - Select the model variant (recommended: `gemma-2-9b-it-GGUF` for instruction tuning)
+   - Click "Download"
+   - Wait for download to complete (model size: ~5-10GB depending on quantization)
+
+3. **Load the Model**:
+   - Go to "Local Server" or "Chat" tab
+   - Select `google/gemma-2-9b` from the model dropdown
+   - Click "Load Model"
+   - Wait for model to load into memory
+
+4. **Start Local Server**:
+   - Click "Start Server" button
+   - Default port: `1234`
+   - API will be available at: `http://localhost:1234`
+   - Ensure "OpenAI Compatible API" is enabled
+
+**Server Configuration**:
+- **Host**: localhost
+- **Port**: 1234 (default)
+- **API Endpoint**: http://localhost:1234/v1
+- **API Format**: OpenAI-compatible
+
+**Verify Installation**:
+```bash
+# Test the LM Studio API
+curl http://localhost:1234/v1/models
+
+# Expected output: List of loaded models including gemma-2-9b
+```
+
+### 6. Git
 
 ```bash
 # Windows (via Chocolatey)
@@ -133,7 +217,7 @@ sudo apt-get install git
 git --version     # git version 2.x.x
 ```
 
-### 6. Optional but Recommended Tools
+### 7. Optional but Recommended Tools
 
 ```bash
 # VS Code (recommended IDE)
@@ -242,6 +326,11 @@ TWILIO_PHONE_NUMBER=+1234567890
 # Infero API Configuration (Java Services)
 INFERO_API_BASE_URL=http://localhost:8136
 INFERO_API_KEY=your_api_key_here
+
+# LM Studio (Local LLM for Development)
+LM_STUDIO_BASE_URL=http://localhost:1234/v1
+LM_STUDIO_MODEL=google/gemma-2-9b
+LM_STUDIO_API_KEY=not_required  # LM Studio doesn't require API key for local
 
 # Logging
 LOG_LEVEL=debug
