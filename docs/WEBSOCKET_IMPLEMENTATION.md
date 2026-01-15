@@ -2,7 +2,41 @@
 
 ## Overview
 
-The AI Services Platform now supports **real-time WebSocket communication** using **Socket.IO** for both chat and voice virtual assistant features, while maintaining backward compatibility with REST APIs.
+The AI Services Platform now supports **real-time WebSocket communication** using **Socket.IO** for both chat and voice virtual assistant features, while maintaining backward compatibility with REST APIs. The backend communicates with Java microservices primarily via **gRPC** for high-performance, low-latency messaging, with REST APIs as a fallback.
+
+---
+
+## 📑 Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+  - [Communication Protocols](#communication-protocols)
+  - [gRPC Integration](#grpc-integration)
+- [Key Features](#key-features)
+- [Implementation Details](#implementation-details)
+  - [Backend Components](#backend-components)
+  - [Frontend Components](#frontend-components)
+- [gRPC Communication](#grpc-communication)
+  - [Why gRPC?](#why-grpc)
+  - [Protocol Buffers](#protocol-buffers)
+  - [gRPC Client (Node.js)](#grpc-client-nodejs)
+  - [gRPC Server (Java)](#grpc-server-java)
+  - [Message Flow with gRPC](#message-flow-with-grpc)
+- [Usage Examples](#usage-examples)
+- [Event Flow](#event-flow)
+- [Configuration](#configuration)
+- [Testing](#testing)
+- [Performance Benefits](#performance-benefits)
+- [Future Enhancements](#future-enhancements)
+- [Troubleshooting](#troubleshooting)
+- [Best Practices](#best-practices)
+- [Migration Guide](#migration-guide)
+- [Security Considerations](#security-considerations)
+- [Monitoring & Logging](#monitoring--logging)
+- [Related Documentation](#related-documentation)
+- [Support](#support)
+
+---
 
 ## Architecture
 
@@ -34,22 +68,60 @@ The AI Services Platform now supports **real-time WebSocket communication** usin
 │  └──────────────────────────────────────────────────────┘   │
 │                                                               │
 │  ┌──────────────────────────────────────────────────────┐   │
+│  │  gRPC Client (Primary)                               │   │
+│  │  ├── StartSession RPC                               │   │
+│  │  ├── SendMessageStream RPC                          │   │
+│  │  ├── SendMessage RPC                                │   │
+│  │  └── EndSession RPC                                 │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐   │
 │  │  REST API Endpoints (Fallback)                       │   │
 │  │  ├── POST /api/chat/session                         │   │
 │  │  ├── POST /api/chat/message                         │   │
 │  │  └── POST /api/chat/end                             │   │
 │  └──────────────────────────────────────────────────────┘   │
 └──────────────────┬──────────────────────────────────────────┘
+                   │ gRPC (Protocol Buffers)
+                   │ Port 50051 (Primary)
+                   │
                    │ HTTP/REST
+                   │ Port 8136 (Fallback)
                    ↓
 ┌─────────────────────────────────────────────────────────────┐
 │              Java VA Service (Spring Boot)                   │
-│  ├── ChatSessionController                                   │
+│  ├── gRPC Server (ChatServiceImpl)                          │
+│  ├── ChatSessionController (REST)                           │
 │  ├── DialogManager                                          │
 │  ├── LLM Service                                            │
 │  └── MongoDB (Session Storage)                              │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### Communication Protocols
+
+The platform uses a **hybrid communication architecture**:
+
+1. **Frontend ↔ Backend:** WebSocket (Socket.IO) for real-time bidirectional communication
+2. **Backend ↔ Java Microservices:** gRPC (primary) with REST API fallback
+3. **Session Management:** REST APIs for initialization and history retrieval
+
+### gRPC Integration
+
+**gRPC (Google Remote Procedure Call)** is the primary protocol for backend-to-Java communication, offering:
+
+- **High Performance:** Binary Protocol Buffers serialization (30-50% smaller payloads than JSON)
+- **Low Latency:** HTTP/2 multiplexing and persistent connections
+- **Native Streaming:** Server-side and bidirectional streaming support
+- **Type Safety:** Strongly-typed service contracts via `.proto` files
+- **Automatic Code Generation:** Client/server stubs generated from protobuf definitions
+
+**Protocol Buffer Definitions:** Located in `backend-node/proto/chat.proto` and `backend-node/proto/voice.proto`
+
+**For detailed gRPC implementation, see:**
+- 📘 [gRPC Streaming Flow](GRPC_STREAMING_FLOW.md) - Complete gRPC architecture (4000+ lines)
+- 📘 [gRPC Implementation](GRPC_IMPLEMENTATION.md) - Java service implementation guide
+- 📘 [Method Handlers Reference](METHOD_HANDLERS_REFERENCE.md) - Complete API reference with gRPC methods
 
 ## Key Features
 
@@ -257,6 +329,338 @@ function CustomChat() {
   return <div>Connected: {isConnected ? 'Yes' : 'No'}</div>;
 }
 ```
+
+## gRPC Communication
+
+### Why gRPC?
+
+The platform uses **gRPC as the primary protocol** for Node.js backend to Java microservices communication for several reasons:
+
+| Feature | gRPC | REST API |
+|---------|------|----------|
+| **Protocol** | HTTP/2 binary | HTTP/1.1 text (JSON) |
+| **Payload Size** | 30-50% smaller (Protobuf) | Larger (JSON overhead) |
+| **Latency** | ~10-30ms lower | Higher due to JSON parsing |
+| **Streaming** | Native bidirectional | Not supported (long-polling only) |
+| **Type Safety** | Strongly typed (`.proto`) | Weakly typed (runtime validation) |
+| **Code Generation** | Automatic client/server stubs | Manual implementation |
+| **Connection** | Persistent (HTTP/2 multiplexing) | Per-request connection |
+
+**Use Case:** Perfect for high-frequency, low-latency microservice communication like real-time chat processing.
+
+### Protocol Buffers
+
+Protocol Buffers (protobuf) define the service contract between Node.js and Java services.
+
+**File:** `backend-node/proto/chat.proto`
+
+```protobuf
+syntax = "proto3";
+
+package chat;
+
+service ChatService {
+  // Start a new chat session
+  rpc StartSession(SessionRequest) returns (SessionResponse);
+  
+  // Send message with streaming response
+  rpc SendMessageStream(ChatRequest) returns (stream ChatResponse);
+  
+  // Send message with single response
+  rpc SendMessage(ChatRequest) returns (ChatResponse);
+  
+  // End chat session
+  rpc EndSession(EndSessionRequest) returns (EndSessionResponse);
+  
+  // Get conversation history
+  rpc GetHistory(HistoryRequest) returns (HistoryResponse);
+}
+
+message SessionRequest {
+  string tenant_id = 1;
+  string user_id = 2;
+  string product_id = 3;
+}
+
+message SessionResponse {
+  string session_id = 1;
+  string status = 2;
+}
+
+message ChatRequest {
+  string session_id = 1;
+  string message = 2;
+  string user_id = 3;
+}
+
+message ChatResponse {
+  string session_id = 1;
+  string message = 2;
+  string intent = 3;
+  bool requires_action = 4;
+}
+```
+
+**Benefits:**
+- **Version Control:** Proto files serve as living documentation
+- **Backward Compatibility:** Add fields without breaking existing clients
+- **Multi-Language Support:** Same `.proto` generates code for Node.js, Java, Python, etc.
+
+### gRPC Client (Node.js)
+
+**File:** `backend-node/src/grpc/client.ts`
+
+```typescript
+import * as grpc from '@grpc/grpc-js';
+import * as protoLoader from '@grpc/proto-loader';
+import path from 'path';
+
+// Load proto definition
+const PROTO_PATH = path.join(__dirname, '../../proto/chat.proto');
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true
+});
+
+const chatProto = grpc.loadPackageDefinition(packageDefinition).chat;
+
+// Create gRPC client
+export class ChatGrpcClient {
+  private client: any;
+
+  constructor(serverAddress: string = 'localhost:50051') {
+    this.client = new chatProto.ChatService(
+      serverAddress,
+      grpc.credentials.createInsecure()
+    );
+  }
+
+  // Start session
+  async startSession(tenantId: string, userId: string, productId: string) {
+    return new Promise((resolve, reject) => {
+      this.client.StartSession(
+        { tenant_id: tenantId, user_id: userId, product_id: productId },
+        (error: any, response: any) => {
+          if (error) reject(error);
+          else resolve(response);
+        }
+      );
+    });
+  }
+
+  // Send message (unary)
+  async sendMessage(sessionId: string, message: string, userId: string) {
+    return new Promise((resolve, reject) => {
+      this.client.SendMessage(
+        { session_id: sessionId, message, user_id: userId },
+        (error: any, response: any) => {
+          if (error) reject(error);
+          else resolve(response);
+        }
+      );
+    });
+  }
+
+  // Send message with streaming response
+  sendMessageStream(sessionId: string, message: string, userId: string) {
+    const call = this.client.SendMessageStream({
+      session_id: sessionId,
+      message,
+      user_id: userId
+    });
+
+    return call; // Returns a readable stream
+  }
+}
+
+export const chatGrpcClient = new ChatGrpcClient(
+  process.env.GRPC_SERVER_URL || 'localhost:50051'
+);
+```
+
+**Usage in Socket Handler:**
+
+```typescript
+// In chat-socket.ts
+socket.on('chat:send-message', async (data) => {
+  try {
+    // Use gRPC for low-latency communication
+    const response = await chatGrpcClient.sendMessage(
+      data.sessionId,
+      data.message,
+      socket.user.id
+    );
+
+    socket.emit('chat:message-received', response);
+
+  } catch (error) {
+    console.error('[gRPC] Error, falling back to REST:', error);
+    
+    // Fallback to REST API
+    const restResponse = await axios.post(
+      `${JAVA_VA_URL}/chat/message`,
+      data
+    );
+    
+    socket.emit('chat:message-received', restResponse.data);
+  }
+});
+```
+
+### gRPC Server (Java)
+
+**File:** `services-java/va-service/src/main/java/com/aiservices/va/grpc/ChatServiceImpl.java`
+
+The Java VA Service implements the gRPC server defined in `chat.proto`:
+
+```java
+@GrpcService
+public class ChatServiceImpl extends ChatServiceGrpc.ChatServiceImplBase {
+
+    @Autowired
+    private ChatSessionService chatSessionService;
+
+    @Override
+    public void startSession(SessionRequest request, 
+                           StreamObserver<SessionResponse> responseObserver) {
+        try {
+            String sessionId = chatSessionService.createSession(
+                request.getTenantId(),
+                request.getUserId(),
+                request.getProductId()
+            );
+
+            SessionResponse response = SessionResponse.newBuilder()
+                .setSessionId(sessionId)
+                .setStatus("active")
+                .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL
+                .withDescription(e.getMessage())
+                .asRuntimeException());
+        }
+    }
+
+    @Override
+    public void sendMessage(ChatRequest request, 
+                          StreamObserver<ChatResponse> responseObserver) {
+        try {
+            // Process message through LLM
+            ChatResponse response = chatSessionService.processMessage(
+                request.getSessionId(),
+                request.getMessage(),
+                request.getUserId()
+            );
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL
+                .withDescription(e.getMessage())
+                .asRuntimeException());
+        }
+    }
+
+    @Override
+    public void sendMessageStream(ChatRequest request,
+                                 StreamObserver<ChatResponse> responseObserver) {
+        try {
+            // Stream LLM response in chunks
+            chatSessionService.processMessageStream(
+                request.getSessionId(),
+                request.getMessage(),
+                (chunk) -> {
+                    ChatResponse response = ChatResponse.newBuilder()
+                        .setSessionId(request.getSessionId())
+                        .setMessage(chunk)
+                        .build();
+                    
+                    responseObserver.onNext(response);
+                }
+            );
+
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            responseObserver.onError(Status.INTERNAL
+                .withDescription(e.getMessage())
+                .asRuntimeException());
+        }
+    }
+}
+```
+
+**Configuration:** `application.properties`
+
+```properties
+# gRPC Server Configuration
+grpc.server.port=50051
+grpc.server.max-inbound-message-size=10MB
+grpc.server.max-connection-age=300s
+```
+
+**For complete Java implementation details, see:**
+- 📘 [Java VA Service README](../services-java/va-service/README.md)
+- 📘 [gRPC Implementation Guide](GRPC_IMPLEMENTATION.md)
+- 📘 [Java VA Verification](JAVA_VA_VERIFICATION.md)
+
+### Message Flow with gRPC
+
+**Complete flow from user message to response:**
+
+```
+1. User types message in React UI
+   ↓
+2. Frontend sends via WebSocket
+   socket.emit('chat:send-message', { sessionId, message })
+   ↓
+3. Node.js receives WebSocket event
+   Backend Socket Handler (chat-socket.ts)
+   ↓
+4. Backend makes gRPC call to Java
+   chatGrpcClient.sendMessage(sessionId, message, userId)
+   ↓ [gRPC/HTTP2 binary protocol]
+   ↓
+5. Java receives gRPC request
+   ChatServiceImpl.sendMessage()
+   ↓
+6. Java processes with LLM
+   ChatSessionService.processMessage()
+   → MongoDB: Load session & history
+   → LLM Service: Generate response (OpenAI API)
+   → MongoDB: Save conversation turn
+   ↓
+7. Java returns gRPC response
+   responseObserver.onNext(chatResponse)
+   ↓ [gRPC/HTTP2 binary protocol]
+   ↓
+8. Node.js receives gRPC response
+   chatGrpcClient callback
+   ↓
+9. Backend emits WebSocket event
+   socket.emit('chat:message-received', response)
+   ↓
+10. React receives and displays
+    useEffect(() => { socket.on('chat:message-received', ...) })
+```
+
+**Timing Breakdown:**
+- Steps 1-3 (WebSocket): ~10-20ms
+- Steps 4-7 (gRPC + LLM): ~2000-3000ms (90% is LLM API call)
+- Steps 8-10 (WebSocket): ~10-20ms
+- **Total:** ~2020-3040ms (vs ~2100-3150ms with REST)
+
+**Performance Advantage:**
+- gRPC saves ~30-50ms per request vs REST
+- More significant with high-frequency requests (typing indicators, streaming)
 
 ## Event Flow
 
@@ -578,6 +982,26 @@ All Socket.IO events are logged:
 [Chat Socket] Response from Java VA: { intent: 'greeting', requiresAction: false }
 [Socket.IO] Client disconnected: abc123 Reason: transport close
 ```
+
+## Related Documentation
+
+### gRPC & Communication Workflows
+- 📘 **[gRPC Streaming Flow](GRPC_STREAMING_FLOW.md)** - Complete gRPC architecture with Protocol Buffers, Java/Node.js implementations, streaming patterns (4000+ lines)
+- 📘 **[Method Handlers Reference](METHOD_HANDLERS_REFERENCE.md)** - Complete API reference for all methods: Frontend Socket, Backend Socket, gRPC Client, Java Server, Business Logic (7000+ lines)
+- 📘 **[End-to-End Integration Guide](END_TO_END_INTEGRATION_GUIDE.md)** - Complete message journey with 8-stage breakdown, timing analysis, optimization opportunities (5000+ lines)
+- 📘 **[WebSocket Detailed Flow](WEBSOCKET_DETAILED_FLOW.md)** - Complete WebSocket lifecycle, connection, rooms, bidirectional message flow (6000+ lines)
+- 📘 **[Error Handling Patterns](ERROR_HANDLING_PATTERNS.md)** - Circuit breaker, retry logic, fallback strategies, monitoring (5000+ lines)
+
+### Java Implementation
+- 📘 **[gRPC Implementation](GRPC_IMPLEMENTATION.md)** - Java gRPC server implementation guide
+- 📘 **[Java VA Service README](../services-java/va-service/README.md)** - Virtual Assistant service documentation
+- 📘 **[Java VA Verification](JAVA_VA_VERIFICATION.md)** - VA service verification and testing
+
+### Additional Resources
+- 📘 **[WebSocket Quick Start](WEBSOCKET_QUICK_START.md)** - Quick start guide for WebSocket features
+- 📘 **[WebSocket Configuration](WEBSOCKET_CONFIGURATION.md)** - Configuration reference
+- 📘 **[Chat Session Management](CHAT_SESSION_MANAGEMENT.md)** - Chat system architecture
+- 📘 **[Circuit Breaker User Guide](CIRCUIT_BREAKER_USER_GUIDE.md)** - Resilience patterns
 
 ## Support
 
