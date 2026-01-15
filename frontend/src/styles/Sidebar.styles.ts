@@ -89,6 +89,7 @@ export const styles = {
   } as React.CSSProperties,
   icon: {
     fontSize: '1.25rem',
+    color: '#ffffff',
   } as React.CSSProperties,
   label: {
     fontWeight: '500',

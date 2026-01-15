@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: AI Services Platform API
+  title: Infero API
   version: 2.0.0
   description: APIs for AI-powered services including Virtual Assistant, IDP, Computer Vision, Authentication, and more.
   contact:

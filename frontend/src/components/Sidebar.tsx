@@ -9,7 +9,7 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
   // Core menu items (always visible)
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
-    { path: '/users?view=tenant', label: 'Users', icon: '👥' },
+    { path: '/users?view=tenant', label: 'Users', icon: '🧑🏽‍🤝‍🧑🏻' },
     { path: '/products', label: 'Products', icon: '📦' },
     { path: '/subscriptions', label: 'Subscriptions', icon: '🔔' },
     { path: '/payment', label: 'Payment', icon: '💳' },
