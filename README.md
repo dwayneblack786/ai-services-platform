@@ -69,39 +69,75 @@ A full-stack AI services platform with React (TypeScript) frontend, Node.js Expr
 ## Tech Stack
 
 ### Frontend
-- React 18.2.0 with TypeScript 5.3.3
-- Vite (build tool)
-- React Router v6 (navigation)
-- Emotion (CSS-in-JS styling)
-- Axios (HTTP client)
+- **React** 18.2.0 with **TypeScript** 5.3.3
+- **Vite** 5.0+ (build tool and dev server)
+- **React Router** v6.21+ (navigation)
+- **Emotion** 11.14+ (CSS-in-JS styling)
+- **Axios** 1.6+ (HTTP client with interceptors)
+- **Socket.IO Client** 4.8+ (real-time WebSocket communication)
+- **js-cookie** (client-side cookie management)
 - Context API for state management
+- ESLint + TypeScript ESLint (code quality)
 
 ### Backend (Node.js)
-- Node.js with Express
-- TypeScript 5.3.3
-- Passport.js (Google OAuth2 strategy)
-- express-session
-- JWT (jsonwebtoken)
-- MongoDB (product configurations, users, tenants)
-- Swagger UI Express (API documentation)
-- YAML.js (OpenAPI spec loading)
+- **Node.js** with **Express** 4.18+
+- **TypeScript** 5.3.3
+- **Passport.js** 0.7+ (OAuth2 strategies)
+  - passport-google-oauth20
+  - passport-local
+- **express-session** 1.17+ (session management)
+- **JWT** (jsonwebtoken 9.0+)
+- **MongoDB** 6.21+ (native driver)
+- **Mongoose** 9.1+ (ODM for MongoDB)
+- **Socket.IO** 4.8+ (WebSocket server)
+- **gRPC** (@grpc/grpc-js, @grpc/proto-loader)
+- **bcrypt** 5.1+ (password hashing)
+- **Swagger UI Express** 5.0+ (API documentation)
+- **YAMLJS** (OpenAPI spec loading)
+- **cookie-parser** (cookie handling)
+- **CORS** (cross-origin resource sharing)
 
 ### Microservices (Java)
-- Java 17
-- Spring Boot 4.0.1
-- Maven build system
+- **Java** 17
+- **Spring Boot** 4.0.1
+- **Maven** build system
+- **Log4j2** (logging framework)
+- **gRPC** 1.61+ (inter-service communication)
+- **Protocol Buffers** 3.25+ (data serialization)
 - RESTful API architecture
 - Generic API client (RestTemplate)
 
+### Database & Storage
+- **MongoDB** 6.0+ (primary database)
+- Collections: users, tenants, product_configurations, assistant_channels, chat_sessions, subscriptions, payment_methods, transactions
+- Compound indexes for multi-tenant queries
+- Native MongoDB driver + Mongoose ODM
+
+### Real-Time & Communication
+- **Socket.IO** 4.8+ (WebSocket communication)
+- **gRPC** (backend-to-Java microservices)
+- Protocol Buffers for efficient serialization
+- Circuit breaker pattern for resilience
+
 ### Authentication & Authorization
-- Google OAuth2
-- JWT token-based sessions
-- Role-based access control (RBAC)
-  - USER
-  - TENANT_USER
-  - TENANT_ADMIN
-  - PROJECT_ADMIN
-  - SUPER_ADMIN
+- **Google OAuth2** (primary authentication)
+- **JWT** token-based sessions (HTTP-only cookies)
+- **bcrypt** password hashing (local auth)
+- **Role-based access control (RBAC)**
+  - USER - Basic access to own data
+  - TENANT_USER - Access to tenant-specific data
+  - TENANT_ADMIN - Manage users within tenant
+  - PROJECT_ADMIN - Access to all tenant management
+  - SUPER_ADMIN - Full system access
+
+### Development & Tooling
+- **TypeScript** 5.3.3 (full-stack type safety)
+- **Vite** (fast HMR and optimized builds)
+- **Nodemon** (backend hot reload)
+- **ESLint** (code linting)
+- **ts-node** (TypeScript execution)
+- **VS Code** (recommended IDE)
+- **Git** (version control)
 
 ## Features
 
