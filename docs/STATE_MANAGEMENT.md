@@ -1,5 +1,33 @@
 # State Management & Context API Guide
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Context Architecture](#context-architecture)
+  - [1. AuthContext - Authentication State](#1-authcontext---authentication-state)
+  - [2. ThemeContext - Theme State](#2-themecontext---theme-state)
+  - [3. NotificationContext - Toast Notifications](#3-notificationcontext---toast-notifications)
+- [Custom Hooks for State Management](#custom-hooks-for-state-management)
+  - [useLocalStorage Hook](#uselocalstorage-hook)
+  - [useApi Hook](#useapi-hook)
+  - [usePrevious Hook](#useprevious-hook)
+  - [useAsync Hook](#useasync-hook)
+- [State Management Best Practices](#state-management-best-practices)
+  - [1. Context Splitting](#1-context-splitting)
+  - [2. Memoizing Context Value](#2-memoizing-context-value)
+  - [3. Avoid Prop Drilling](#3-avoid-prop-drilling)
+  - [4. Local State vs. Context](#4-local-state-vs-context)
+- [Performance Optimization Patterns](#performance-optimization-patterns)
+  - [Selector Pattern with useContext](#selector-pattern-with-usecontext)
+  - [Callback Hooks in Context](#callback-hooks-in-context)
+- [Debugging State Management](#debugging-state-management)
+  - [Chrome DevTools](#chrome-devtools)
+  - [Console Logging](#console-logging)
+  - [Custom Hook for Debugging](#custom-hook-for-debugging)
+- [Related Documentation](#related-documentation)
+- [Testing Context Providers](#testing-context-providers)
+
+---
+
 ## Overview
 
 This document explains the state management architecture of the frontend application using React Context API and custom hooks. It covers how to manage authentication, theme, notifications, and application-level state.

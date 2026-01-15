@@ -1,5 +1,17 @@
 # Customer to Tenant Migration
 
+📑 **Table of Contents**
+- [Summary](#summary)
+- [Changes Made](#changes-made)
+  - [Frontend Changes](#frontend-changes)
+  - [Backend Changes](#backend-changes)
+- [Backward Compatibility](#backward-compatibility)
+- [Migration Notes](#migration-notes)
+- [User Impact](#user-impact)
+- [Testing Completed](#testing-completed)
+
+---
+
 ## Summary
 
 Removed all customer-related UI components and routes since **tenant** and **customer** represent the same concept. The platform now uses **tenant** consistently throughout.

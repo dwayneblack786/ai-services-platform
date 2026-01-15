@@ -1,5 +1,37 @@
 # Frontend Component Patterns & Best Practices
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Component Patterns](#component-patterns)
+  - [1. Controlled vs Uncontrolled Components](#1-controlled-vs-uncontrolled-components)
+  - [2. Container/Presentational Pattern](#2-containerpresentational-pattern)
+  - [3. Compound Components Pattern](#3-compound-components-pattern)
+  - [4. Render Props Pattern](#4-render-props-pattern)
+  - [5. Higher-Order Components (HOC) Pattern](#5-higher-order-components-hoc-pattern)
+- [Form Handling Patterns](#form-handling-patterns)
+  - [1. Simple Form with Local State](#1-simple-form-with-local-state)
+  - [2. Complex Form with Hook Pattern](#2-complex-form-with-hook-pattern)
+- [List & Iteration Patterns](#list--iteration-patterns)
+  - [1. Rendering Lists](#1-rendering-lists)
+  - [2. Filtering and Sorting](#2-filtering-and-sorting)
+  - [3. Pagination Pattern](#3-pagination-pattern)
+- [Conditional Rendering Patterns](#conditional-rendering-patterns)
+  - [1. Using Early Returns](#1-using-early-returns)
+  - [2. Ternary for Simple Conditions](#2-ternary-for-simple-conditions)
+  - [3. Logical AND for Optional Rendering](#3-logical-and-for-optional-rendering)
+- [Styling Patterns](#styling-patterns)
+  - [1. CSS-in-JS with Emotion](#1-css-in-js-with-emotion)
+  - [2. Theme-aware Styles](#2-theme-aware-styles)
+- [Anti-Patterns to Avoid](#anti-patterns-to-avoid)
+  - [1. Creating Functions in Render](#1-creating-functions-in-render)
+  - [2. Object/Array Literals as Props](#2-objectarray-literals-as-props)
+  - [3. Directly Mutating State](#3-directly-mutating-state)
+  - [4. Missing Dependencies in Hooks](#4-missing-dependencies-in-hooks)
+- [Related Documentation](#related-documentation)
+- [Quick Reference](#quick-reference)
+
+---
+
 ## Overview
 
 This document provides guidelines and examples for building React components following best practices, including common patterns, anti-patterns, and architectural considerations.

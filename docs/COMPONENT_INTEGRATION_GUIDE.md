@@ -1,5 +1,50 @@
 # AI Services Platform - Component Integration Guide
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [MongoDB Shared Database Architecture](#mongodb-shared-database-architecture)
+  - [Why MongoDB is Shared](#why-mongodb-is-shared)
+  - [Collection Access Patterns](#collection-access-patterns)
+  - [Java Service Database Access](#java-service-database-access)
+  - [Data Isolation with Tenant ID](#data-isolation-with-tenant-id)
+- [Component Interaction Flows](#component-interaction-flows)
+  - [1. User Authentication Flow](#1-user-authentication-flow)
+  - [2. Product Subscription Flow](#2-product-subscription-flow)
+  - [3. Virtual Assistant Voice Flow](#3-virtual-assistant-voice-flow)
+  - [4. Chat Session Flow](#4-chat-session-flow)
+  - [5. Tenant Data Isolation Flow](#5-tenant-data-isolation-flow)
+- [Data Flow Examples](#data-flow-examples)
+  - [Example 1: User Subscribes to Virtual Assistant Product](#example-1-user-subscribes-to-virtual-assistant-product)
+  - [Example 2: Incoming Phone Call to Voice Assistant](#example-2-incoming-phone-call-to-voice-assistant)
+  - [Example 3: PROJECT_ADMIN Views All Tenants](#example-3-project_admin-views-all-tenants)
+  - [Example 4: Regular User (Non-PROJECT_ADMIN) Views Transactions](#example-4-regular-user-non-project_admin-views-transactions)
+- [Integration Points Reference](#integration-points-reference)
+  - [Frontend ↔ Backend](#frontend--backend)
+  - [Backend ↔ MongoDB](#backend--mongodb)
+  - [Backend ↔ Java Services](#backend--java-services)
+  - [Frontend ↔ Google OAuth](#frontend--google-oauth)
+  - [Access Control & Multi-Tenancy](#access-control--multi-tenancy)
+- [Component Dependencies](#component-dependencies)
+- [Real-World Use Case: HR Department Configures Voice Assistant](#real-world-use-case-hr-department-configures-voice-assistant)
+  - [Scenario](#scenario)
+  - [Flow](#flow)
+- [Key Files Reference](#key-files-reference)
+- [Performance Considerations](#performance-considerations)
+  - [Database Query Patterns](#database-query-patterns)
+  - [API Response Times](#api-response-times)
+  - [Scalability](#scalability)
+- [Troubleshooting Common Issues](#troubleshooting-common-issues)
+  - [Issue: User can't see tenants page](#issue-user-cant-see-tenants-page)
+  - [Issue: Chat not connecting](#issue-chat-not-connecting)
+  - [Issue: Voice call fails](#issue-voice-call-fails)
+  - [Issue: Tenant data leakage](#issue-tenant-data-leakage)
+- [Development Workflow](#development-workflow)
+  - [Starting the Platform](#starting-the-platform)
+  - [Adding a New Feature](#adding-a-new-feature)
+  - [Testing Workflows](#testing-workflows)
+
+---
+
 ## Overview
 
 The AI Services Platform is a full-stack application that orchestrates AI services through a three-tier architecture:

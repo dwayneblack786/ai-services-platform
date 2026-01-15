@@ -1,5 +1,29 @@
 # MongoDB Database Consolidation - Summary
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [What Was Done](#what-was-done)
+  - [1. Database Consolidation ✅](#1-database-consolidation-)
+  - [2. Data Migration Results ✅](#2-data-migration-results-)
+    - [Final Collections in ai_platform](#final-collections-in-ai_platform)
+  - [3. Code Updates ✅](#3-code-updates-)
+    - [Core Configuration Files](#core-configuration-files)
+    - [All Scripts Updated (17 files)](#all-scripts-updated-17-files)
+  - [4. New Scripts Created ✅](#4-new-scripts-created-)
+  - [5. Documentation Updated ✅](#5-documentation-updated-)
+  - [6. Database Cleanup ✅](#6-database-cleanup-)
+  - [7. Validation ✅](#7-validation-)
+- [Environment Variables](#environment-variables)
+- [Remaining Databases](#remaining-databases)
+- [Verification Steps Completed](#verification-steps-completed)
+- [No Schema Changes](#no-schema-changes)
+- [Next Steps](#next-steps)
+- [Rollback (If Needed)](#rollback-if-needed)
+- [Files Changed](#files-changed)
+- [Summary](#summary)
+
+---
+
 ## Overview
 Successfully consolidated three MongoDB databases into a single `ai_platform` database.
 

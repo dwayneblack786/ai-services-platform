@@ -1,5 +1,25 @@
 # Batch Processing & Queue Management
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Batch Operations](#batch-operations)
+  - [Bulk Database Operations](#bulk-database-operations)
+- [Job Queue Setup (BullMQ)](#job-queue-setup-bullmq)
+  - [Queue Configuration](#queue-configuration)
+  - [Email Queue with Worker](#email-queue-with-worker)
+  - [Enqueue Jobs](#enqueue-jobs)
+- [Report Generation Queue](#report-generation-queue)
+- [Scheduled Tasks (Cron Jobs)](#scheduled-tasks-cron-jobs)
+  - [Recurring Job Scheduling](#recurring-job-scheduling)
+- [Data Import/Export](#data-importexport)
+  - [Bulk Data Import](#bulk-data-import)
+  - [Bulk Data Export](#bulk-data-export)
+- [Queue Monitoring](#queue-monitoring)
+- [Batch Processing Best Practices Checklist](#batch-processing-best-practices-checklist)
+- [Related Documentation](#related-documentation)
+
+---
+
 ## Overview
 
 This guide covers batch processing, job queues, background task scheduling, and bulk operations in Node.js applications.

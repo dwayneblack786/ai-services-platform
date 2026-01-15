@@ -1,5 +1,25 @@
 # Prompt Configuration Seed - Success Report
 
+📑 **Table of Contents**
+- [✅ Seed Completed Successfully](#-seed-completed-successfully)
+  - [What Was Done](#what-was-done)
+  - [Database Structure](#database-structure)
+    - [1. prompt_templates Collection](#1-prompt_templates-collection)
+    - [2. assistant_channels Collection](#2-assistant_channels-collection)
+  - [Configuration Data Populated](#configuration-data-populated)
+    - [🏢 Business Identity](#-business-identity)
+    - [📚 Knowledge Base](#-knowledge-base)
+    - [🛡️ Safety & Compliance](#️-safety--compliance)
+    - [🔍 RAG Configuration](#-rag-configuration)
+  - [How to Run](#how-to-run)
+  - [Frontend Integration](#frontend-integration)
+  - [Java Service Integration](#java-service-integration)
+  - [Next Steps](#next-steps)
+  - [Verification](#verification)
+  - [Files Modified](#files-modified)
+
+---
+
 ## ✅ Seed Completed Successfully
 
 ### What Was Done

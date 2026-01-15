@@ -1,5 +1,33 @@
 # PromptBuilder Usage Guide
 
+## 📑 Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+  - [Components](#components)
+- [Prompt Layers](#prompt-layers)
+- [Quick Start](#quick-start)
+  - [Option 1: Manual Building (Simple Cases)](#option-1-manual-building-simple-cases)
+  - [Option 2: Using PromptAssembler (Recommended)](#option-2-using-promptassembler-recommended)
+- [Integration Examples](#integration-examples)
+  - [ChatSessionService.startSession()](#chatsessionservicestartsession)
+  - [DialogManager.processUserMessage()](#dialogmanagerprocessusermessage)
+- [Configuration Mapping](#configuration-mapping)
+  - [PromptContext → PromptBuilder](#promptcontext--promptbuilder)
+  - [CustomPrompts → PromptBuilder](#customprompts--promptbuilder)
+- [Example Output](#example-output)
+- [Advanced Usage](#advanced-usage)
+  - [Channel-Specific Prompts](#channel-specific-prompts)
+  - [Dynamic RAG Integration](#dynamic-rag-integration)
+  - [Conversation Memory Control](#conversation-memory-control)
+- [Benefits](#benefits)
+- [Migration Path](#migration-path)
+- [Testing](#testing)
+- [Next Steps](#next-steps)
+- [Support](#support)
+
+---
+
 ## Overview
 The `PromptBuilder` class provides a clean, fluent API for assembling enterprise-grade, business-aware prompts for your VA service. It combines multiple layers of context into a cohesive system prompt.
 

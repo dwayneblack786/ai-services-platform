@@ -1,5 +1,28 @@
 # Backend Architecture & Structure Guide
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Request-Response Flow](#request-response-flow)
+  - [1. Request Entry Point](#1-request-entry-point)
+  - [2. Route Layer](#2-route-layer)
+  - [3. Controller Layer](#3-controller-layer)
+  - [4. Service Layer](#4-service-layer)
+  - [5. Model/Data Access Layer](#5-modeldata-access-layer)
+- [Error Handling Architecture](#error-handling-architecture)
+  - [Global Error Handler](#global-error-handler)
+- [Dependency Injection Pattern](#dependency-injection-pattern)
+- [Configuration Management](#configuration-management)
+- [Middleware Composition](#middleware-composition)
+- [Type Safety Patterns](#type-safety-patterns)
+- [Architecture Patterns](#architecture-patterns)
+  - [Single Responsibility Principle](#single-responsibility-principle)
+  - [Async/Await Pattern](#asyncawait-pattern)
+- [Best Practices Checklist](#best-practices-checklist)
+- [Related Documentation](#related-documentation)
+
+---
+
 ## Overview
 
 This guide covers the architecture of the Node.js Express backend, including project structure, layer organization, request handling flow, and design principles.

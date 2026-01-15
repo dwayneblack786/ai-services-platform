@@ -1,5 +1,27 @@
 # Caching Strategies & Performance Optimization
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [In-Memory Caching](#in-memory-caching)
+  - [Simple Memory Cache](#simple-memory-cache)
+  - [LRU Cache (Least Recently Used)](#lru-cache-least-recently-used)
+- [Redis Caching](#redis-caching)
+  - [Redis Setup](#redis-setup)
+  - [Redis Cache Service](#redis-cache-service)
+  - [Cache-Aside Pattern](#cache-aside-pattern)
+  - [Write-Through Cache](#write-through-cache)
+- [Cache Invalidation Strategies](#cache-invalidation-strategies)
+  - [Time-Based Invalidation (TTL)](#time-based-invalidation-ttl)
+  - [Event-Based Invalidation](#event-based-invalidation)
+  - [Dependency-Based Invalidation](#dependency-based-invalidation)
+- [Cache Warming](#cache-warming)
+- [Cache Patterns Performance](#cache-patterns-performance)
+- [Multi-Level Caching](#multi-level-caching)
+- [Caching Best Practices Checklist](#caching-best-practices-checklist)
+- [Related Documentation](#related-documentation)
+
+---
+
 ## Overview
 
 This guide covers caching patterns, cache invalidation strategies, performance optimization, and memory management in Node.js applications.

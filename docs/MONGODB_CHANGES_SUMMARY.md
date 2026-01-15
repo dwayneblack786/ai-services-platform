@@ -1,5 +1,30 @@
 # MongoDB Changes Summary - Assistant Channels
 
+📑 **Table of Contents**
+- [What Changed](#what-changed)
+  - [New Collection: `assistant_channels`](#new-collection-assistant_channels)
+- [Schema Structure](#schema-structure)
+- [Files Created](#files-created)
+  - [Backend (Node.js)](#backend-nodejs)
+  - [Frontend (React)](#frontend-react)
+  - [Documentation](#documentation)
+- [Files Modified](#files-modified)
+  - [Backend Routes](#backend-routes)
+- [How to Use](#how-to-use)
+  - [1. Run the Setup Script](#1-run-the-setup-script)
+  - [2. API Usage](#2-api-usage)
+  - [3. Frontend Integration](#3-frontend-integration)
+- [Migration from `assistant_settings`](#migration-from-assistant_settings)
+- [Database Indexes](#database-indexes)
+- [Architecture Highlights](#architecture-highlights)
+  - [Channel Independence](#channel-independence)
+  - [Shared Backend Logic](#shared-backend-logic)
+  - [Future Extensibility](#future-extensibility)
+- [Testing Checklist](#testing-checklist)
+- [Summary](#summary)
+
+---
+
 ## What Changed
 
 ### New Collection: `assistant_channels`

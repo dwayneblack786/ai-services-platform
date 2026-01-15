@@ -1,5 +1,32 @@
 # Mobile Responsive Implementation
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Changes Made](#changes-made)
+  - [1. Global CSS](#1-global-css-frontendsrcindexcss)
+  - [2. Layout Component](#2-layout-component-frontendsrccomponentslayouttsx)
+  - [3. Layout Styles](#3-layout-styles-frontendsrcstyleslayoutstylests)
+  - [4. Dashboard](#4-dashboard-frontendsrcpagesdashboardtsx--styles)
+  - [5. Products Page](#5-products-page-frontendsrcpagesproductstsx--styles)
+  - [6. Login Page](#6-login-page-frontendsrcstyleslloginstylests)
+  - [7. Sidebar](#7-sidebar-frontendsrcstyllessidebarstylests)
+  - [8. Additional Pages](#8-additional-pages-billing-customers-users-reports-settings)
+- [Mobile Design Principles](#mobile-design-principles)
+  - [Touch Targets](#touch-targets)
+  - [Responsive Typography](#responsive-typography)
+  - [Layout Strategy](#layout-strategy)
+  - [Performance](#performance)
+- [Testing Recommendations](#testing-recommendations)
+  - [Browser DevTools](#browser-devtools)
+  - [Real Device Testing](#real-device-testing)
+  - [Key Test Cases](#key-test-cases)
+- [Known Limitations](#known-limitations)
+- [Future Enhancements](#future-enhancements)
+- [Browser Support](#browser-support)
+- [Resources](#resources)
+
+---
+
 ## Overview
 The frontend application has been updated to support mobile and tablet devices with responsive design patterns.
 

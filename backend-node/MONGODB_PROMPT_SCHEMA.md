@@ -1,5 +1,33 @@
 # MongoDB Prompt Configuration Schema
 
+📑 **Table of Contents**
+- [Collection: assistant_channels](#collection-assistant_channels)
+- [Document Structure](#document-structure)
+- [Channel Configurations](#channel-configurations)
+  - [Voice Channel Config](#voice-channel-config)
+  - [Chat Channel Config](#chat-channel-config)
+- [Core Interfaces](#core-interfaces)
+  - [PromptContext (Business Configuration)](#promptcontext-business-configuration)
+  - [CustomPrompts (Safety & Compliance)](#customprompts-safety--compliance)
+  - [RagConfiguration (Knowledge Sources)](#ragconfiguration-knowledge-sources)
+- [API Endpoints](#api-endpoints)
+  - [GET /api/assistant-channels](#get-apiassistant-channels)
+  - [GET /api/assistant-channels/:productId](#get-apiassistant-channelsproductid)
+  - [PATCH /api/assistant-channels](#patch-apiassistant-channels)
+  - [PATCH /api/assistant-channels/voice](#patch-apiassistant-channelsvoice)
+  - [PATCH /api/assistant-channels/chat](#patch-apiassistant-channelschat)
+- [Seeding Test Data](#seeding-test-data)
+- [Example Query](#example-query)
+- [Frontend Integration](#frontend-integration)
+- [Java Service Integration](#java-service-integration)
+- [Migration Notes](#migration-notes)
+  - [From Old Schema](#from-old-schema)
+  - [Adding New Fields](#adding-new-fields)
+- [Best Practices](#best-practices)
+- [Security Considerations](#security-considerations)
+
+---
+
 ## Collection: `assistant_channels`
 
 This collection stores comprehensive prompt configuration for virtual assistants, supporting voice, chat, SMS, and WhatsApp channels.

@@ -1,5 +1,20 @@
 # MongoDB Common Configuration
 
+## 📑 Table of Contents
+
+- [Overview](#overview)
+- [Components](#components)
+  - [MongoDBConfig.java](#mongodbconfigjava)
+  - [MongoDBService.java](#mongodbservicejava)
+- [Configuration](#configuration)
+- [Dependencies](#dependencies)
+- [Example Usage](#example-usage)
+- [Reusability](#reusability)
+
+---
+
+## Overview
+
 This package provides reusable MongoDB configuration and services that can be shared across all Java microservices in the platform.
 
 ## Components

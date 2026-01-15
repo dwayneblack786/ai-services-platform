@@ -1,5 +1,27 @@
 # Payment Testing Guide
 
+📑 **Table of Contents**
+- [Development Payment Methods](#development-payment-methods)
+  - [Quick Setup](#quick-setup)
+  - [Test Cards](#test-cards)
+    - [✅ Success Card (Visa ****4242)](#-success-card-visa-4242)
+    - [❌ Decline Card (Mastercard ****0002)](#-decline-card-mastercard-0002)
+    - [⏰ Expired Card (Amex ****9999)](#-expired-card-amex-9999)
+- [Testing Product Signup Flow](#testing-product-signup-flow)
+  - [1. Select Payment Method](#1-select-payment-method)
+  - [2. Verify Payment Method](#2-verify-payment-method)
+  - [3. Subscribe to Product](#3-subscribe-to-product)
+- [Expected Responses](#expected-responses)
+  - [Success Verification (****4242)](#success-verification-4242)
+  - [Failed Verification (****0002)](#failed-verification-0002)
+  - [Expired Card (****9999)](#expired-card-9999)
+- [Frontend Integration](#frontend-integration)
+- [Production Considerations](#production-considerations)
+- [Stripe Test Cards (Future Integration)](#stripe-test-cards-future-integration)
+- [Security Notes](#security-notes)
+
+---
+
 ## Development Payment Methods
 
 For testing the payment verification flow during development, we provide dummy payment methods with predictable behavior.

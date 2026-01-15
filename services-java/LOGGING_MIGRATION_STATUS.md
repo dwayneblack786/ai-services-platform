@@ -1,5 +1,26 @@
 # SLF4J + Log4j2 Logging Migration Status
 
+## 📑 Table of Contents
+
+- [Overview](#overview)
+- [Implementation Steps Completed](#implementation-steps-completed)
+  - [1. Dependencies Added ✅](#1-dependencies-added-)
+  - [2. Log4j2 Configuration Created ✅](#2-log4j2-configuration-created-)
+  - [3. LogFactory Created ✅](#3-logfactory-created-)
+  - [4. LogUtil Enhanced (Already Existed) ✅](#4-logutil-enhanced-already-existed-)
+- [Files Refactored](#files-refactored)
+  - [Completed ✅](#completed-)
+  - [Remaining (56 statements in 9 files)](#remaining-56-statements-in-9-files)
+  - [High Priority Service Files](#high-priority-service-files)
+  - [Client Files](#client-files)
+- [Refactoring Pattern for Each File](#refactoring-pattern-for-each-file)
+- [Log Level Guidelines](#log-level-guidelines)
+- [Benefits of This Migration](#benefits-of-this-migration)
+- [Next Steps](#next-steps)
+- [Commands to Complete Refactoring](#commands-to-complete-refactoring)
+
+---
+
 ## Overview
 Migrating from `System.out.println` to centralized SLF4J logging with Log4j2 implementation across all Java services in the AI Services Platform.
 

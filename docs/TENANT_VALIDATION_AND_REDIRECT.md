@@ -1,5 +1,31 @@
 # Tenant Validation and Redirect After Login
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Changes Made](#changes-made)
+  - [Frontend Changes](#frontend-changes)
+  - [Backend Changes](#backend-changes)
+- [Security Enhancements](#security-enhancements)
+  - [1. Tenant Validation Before OAuth](#1-tenant-validation-before-oauth)
+  - [2. Session-Based Tenant Verification](#2-session-based-tenant-verification)
+  - [3. Error Handling](#3-error-handling)
+- [User Experience Flow](#user-experience-flow)
+  - [Scenario 1: Direct Login to Dashboard](#scenario-1-direct-login-to-dashboard)
+  - [Scenario 2: Accessing Specific Page](#scenario-2-accessing-specific-page)
+  - [Scenario 3: Accessing Page with Query Params](#scenario-3-accessing-page-with-query-params)
+  - [Scenario 4: Invalid Tenant ID](#scenario-4-invalid-tenant-id)
+  - [Scenario 5: Tenant Mismatch (OAuth)](#scenario-5-tenant-mismatch-oauth)
+- [Testing](#testing)
+  - [Test Cases](#test-cases)
+- [Files Modified](#files-modified)
+  - [Frontend](#frontend)
+  - [Backend](#backend)
+- [Environment Variables](#environment-variables)
+- [Security Considerations](#security-considerations)
+- [Future Enhancements](#future-enhancements)
+
+---
+
 ## Overview
 Implemented tenant ID validation on login and redirect to intended URL after successful authentication.
 

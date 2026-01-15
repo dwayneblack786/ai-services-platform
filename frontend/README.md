@@ -1,5 +1,29 @@
 # Client - React Frontend
 
+📑 **Table of Contents**
+- [Features](#features)
+- [Structure](#structure)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Running](#running)
+  - [Development Mode](#development-mode)
+  - [Production Build](#production-build)
+- [Pages](#pages)
+  - [Login Page (`/`)](#login-page-)
+  - [Dashboard Page (`/dashboard`)](#dashboard-page-dashboard)
+- [Authentication Flow](#authentication-flow)
+- [Protected Routes](#protected-routes)
+- [API Communication](#api-communication)
+- [Styling](#styling)
+- [Dependencies](#dependencies)
+- [Development](#development)
+  - [Hot Module Replacement](#hot-module-replacement)
+  - [Type Safety](#type-safety)
+- [Building for Production](#building-for-production)
+- [Environment](#environment)
+
+---
+
 React TypeScript frontend application with OAuth2 authentication and protected routes.
 
 ## Features

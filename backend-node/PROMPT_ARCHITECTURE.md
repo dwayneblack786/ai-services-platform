@@ -1,5 +1,36 @@
 # Prompt Configuration Architecture - Implementation Complete
 
+📑 **Table of Contents**
+- [✅ Architecture Overview](#-architecture-overview)
+  - [1. prompt_templates Collection (Read-Only Defaults)](#1-prompt_templates-collection-read-only-defaults)
+  - [2. assistant_channels Collection (User Customizations)](#2-assistant_channels-collection-user-customizations)
+- [🔄 Data Flow](#-data-flow)
+- [📦 Database Structure](#-database-structure)
+  - [prompt_templates Collection](#prompt_templates-collection)
+  - [assistant_channels Collection](#assistant_channels-collection)
+- [🎯 API Behavior](#-api-behavior)
+  - [GET /api/assistant-channels](#get-apiassistant-channels)
+  - [PATCH /api/assistant-channels](#patch-apiassistant-channels)
+- [🚀 Implementation Files](#-implementation-files)
+  - [Updated Files](#updated-files)
+  - [New Files](#new-files)
+- [📋 Usage](#-usage)
+  - [Seed Templates](#seed-templates)
+  - [Test Loading Logic](#test-loading-logic)
+  - [API Endpoints](#api-endpoints)
+- [🎨 Frontend Integration](#-frontend-integration)
+  - [Initial Load](#initial-load)
+  - [Save Changes](#save-changes)
+- [✅ Benefits](#-benefits)
+- [🧪 Test Results](#-test-results)
+- [📊 Current State](#-current-state)
+  - [Templates in Database](#templates-in-database)
+  - [For Test Customer (ten-splendor-florida-33064)](#for-test-customer-ten-splendor-florida-33064)
+- [🔧 Next Steps](#-next-steps)
+- [📝 Notes](#-notes)
+
+---
+
 ## ✅ Architecture Overview
 
 The system now uses a **two-tier configuration model**:

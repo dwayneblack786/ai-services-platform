@@ -2,6 +2,32 @@
 
 This directory contains scripts for managing the MongoDB database for the AI Services Platform.
 
+📑 **Table of Contents**
+- [Scripts Overview](#scripts-overview)
+  - [1. createIndexes.js](#1-createindexesjs)
+  - [2. seedData.js](#2-seeddatajs)
+  - [3. validateCollections.js](#3-validatecollectionsjs)
+  - [4. seedPrompts.js](#4-seedpromptsjs)
+  - [5. consolidate-databases.js](#5-consolidate-databasesjs)
+  - [6. ERD.txt](#6-erdtxt)
+- [Quick Setup](#quick-setup)
+  - [For New Database](#for-new-database)
+  - [For Existing Databases (Consolidation)](#for-existing-databases-consolidation)
+- [Environment Variables](#environment-variables)
+- [Collections Reference](#collections-reference)
+  - [Core Collections (Required)](#core-collections-required)
+  - [Optional Collections](#optional-collections)
+- [Performance Tips](#performance-tips)
+- [Troubleshooting](#troubleshooting)
+  - ["Cannot connect to MongoDB"](#cannot-connect-to-mongodb)
+  - ["Database not found"](#database-not-found)
+  - ["Missing required collections"](#missing-required-collections)
+  - ["Duplicate key error"](#duplicate-key-error)
+- [Notes](#notes)
+- [Related Documentation](#related-documentation)
+
+---
+
 ## Scripts Overview
 
 ### 1. `createIndexes.js`

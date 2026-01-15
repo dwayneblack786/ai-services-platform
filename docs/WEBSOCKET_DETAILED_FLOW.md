@@ -1,5 +1,40 @@
 # WebSocket Communication: Detailed Flow Documentation
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Architecture Layers](#architecture-layers)
+- [Part 1: WebSocket Connection Lifecycle](#part-1-websocket-connection-lifecycle)
+  - [1.1 Initial Connection (Frontend → Backend)](#11-initial-connection-frontend--backend)
+  - [1.2 Joining a Chat Session (Session Room Management)](#12-joining-a-chat-session-session-room-management)
+- [Part 2: Sending a Message (Complete Bidirectional Flow)](#part-2-sending-a-message-complete-bidirectional-flow)
+  - [2.1 User Sends Message (Frontend → Backend)](#21-user-sends-message-frontend--backend)
+  - [2.2 Backend Receives Message](#22-backend-receives-message)
+  - [2.3 Backend Forwards to Java VA Service](#23-backend-forwards-to-java-va-service)
+  - [2.4 Backend Sends Response to Frontend](#24-backend-sends-response-to-frontend)
+  - [2.5 Frontend Receives Response](#25-frontend-receives-response)
+- [Part 3: Typing Indicators (Real-Time Feedback)](#part-3-typing-indicators-real-time-feedback)
+  - [3.1 User Starts Typing](#31-user-starts-typing)
+  - [3.2 Backend Broadcasts Typing Status](#32-backend-broadcasts-typing-status)
+  - [3.3 Frontend Shows Typing Indicator](#33-frontend-shows-typing-indicator)
+- [Part 4: Error Handling & Fallbacks](#part-4-error-handling--fallbacks)
+  - [4.1 Connection Loss Handling](#41-connection-loss-handling)
+  - [4.2 REST API Fallback](#42-rest-api-fallback)
+  - [4.3 Timeout Handling](#43-timeout-handling)
+- [Part 5: Method Reference Table](#part-5-method-reference-table)
+  - [Frontend Methods (`useSocket.ts`)](#frontend-methods-usesocketts)
+  - [Backend Socket Handlers (`chat-socket.ts`)](#backend-socket-handlers-chat-socketts)
+- [Part 6: Data Flow Diagrams](#part-6-data-flow-diagrams)
+  - [Complete Message Flow (Timing)](#complete-message-flow-timing)
+- [Part 7: Comparison: WebSocket vs REST](#part-7-comparison-websocket-vs-rest)
+- [Part 8: Advanced Topics](#part-8-advanced-topics)
+  - [8.1 WebSocket Rooms (Detailed)](#81-websocket-rooms-detailed)
+  - [8.2 Namespace Segregation](#82-namespace-segregation)
+- [Summary](#summary)
+  - [Key Takeaways](#key-takeaways)
+  - [Next Steps](#next-steps)
+
+---
+
 ## Overview
 
 This document provides a comprehensive explanation of how WebSocket (Socket.IO) bidirectional communication works in the AI Services Platform, including:

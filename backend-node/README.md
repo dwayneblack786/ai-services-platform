@@ -2,6 +2,28 @@
 
 Node.js Express TypeScript middleware server that handles authentication, manages API requests to Java microservices with circuit breaker protection, and provides resilient service communication.
 
+📑 **Table of Contents**
+- [Features](#features)
+- [Structure](#structure)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Running](#running)
+  - [Development Mode](#development-mode)
+  - [Production Mode](#production-mode)
+- [API Routes](#api-routes)
+  - [Authentication](#authentication-apiauth)
+  - [User](#user-apiuser)
+  - [Infero Proxy](#infero-proxy-apibackend)
+  - [Health Check](#health-check)
+- [Development Features](#development-features)
+  - [Dev Login](#dev-login)
+  - [Infero API Client](#infero-api-client)
+- [Security](#security)
+- [Dependencies](#dependencies)
+- [Circuit Breaker Pattern](#circuit-breaker-pattern)
+
+---
+
 ## Features
 
 - **Circuit Breaker Pattern** - Automatic failure detection and recovery for Java microservice calls ([Implementation Guide](CIRCUIT_BREAKER_IMPLEMENTATION.md))

@@ -1,5 +1,40 @@
 # Frontend Testing Strategy & Guide
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Testing Setup](#testing-setup)
+  - [Dependencies](#dependencies)
+  - [Vitest Configuration](#vitest-configuration)
+  - [Test Setup File](#test-setup-file)
+- [Unit Testing](#unit-testing)
+  - [Testing Utilities](#testing-utilities)
+  - [Testing Hooks](#testing-hooks)
+- [Component Testing](#component-testing)
+  - [Testing Presentational Components](#testing-presentational-components)
+  - [Testing Form Components](#testing-form-components)
+- [Integration Testing](#integration-testing)
+  - [Testing Component Composition](#testing-component-composition)
+- [Testing with Context](#testing-with-context)
+- [E2E Testing](#e2e-testing)
+  - [Setup Playwright](#setup-playwright)
+  - [E2E Test Example](#e2e-test-example)
+- [Mocking Strategies](#mocking-strategies)
+  - [Mocking API Calls](#mocking-api-calls)
+  - [Mocking Hooks](#mocking-hooks)
+  - [Mocking Window APIs](#mocking-window-apis)
+- [Testing Best Practices](#testing-best-practices)
+  - [1. Use Semantic Queries](#1-use-semantic-queries)
+  - [2. Arrange-Act-Assert Pattern](#2-arrange-act-assert-pattern)
+  - [3. Test User Behavior, Not Implementation](#3-test-user-behavior-not-implementation)
+  - [4. Avoid Testing Internal Library Details](#4-avoid-testing-internal-library-details)
+- [Test Coverage](#test-coverage)
+  - [Generate Coverage Report](#generate-coverage-report)
+  - [Coverage Configuration](#coverage-configuration)
+- [Testing Checklist](#testing-checklist)
+- [Related Documentation](#related-documentation)
+
+---
+
 ## Overview
 
 This document provides comprehensive testing strategies for React TypeScript applications, including unit tests, integration tests, component tests, and end-to-end tests.

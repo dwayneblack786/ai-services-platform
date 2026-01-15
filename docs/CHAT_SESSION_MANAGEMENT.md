@@ -1,5 +1,51 @@
 # Chat Session Management System
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Features](#features)
+  - [1. Session Persistence](#1-session-persistence)
+  - [2. One Session Per Customer](#2-one-session-per-customer)
+  - [3. Session Storage](#3-session-storage)
+  - [4. User Controls](#4-user-controls)
+- [Architecture](#architecture)
+  - [MongoDB Schema](#mongodb-schema)
+  - [Indexes](#indexes)
+- [API Endpoints](#api-endpoints)
+  - [Java Service (Port 8136)](#java-service-port-8136)
+    - [POST /chat/session](#post-chatsession)
+    - [POST /chat/message](#post-chatmessage)
+    - [GET /chat/history/{sessionId}](#get-chathistorysessionid)
+    - [GET /chat/active-session/{customerId}](#get-chatactive-sessioncustomerid)
+    - [POST /chat/end](#post-chatend)
+  - [Node.js Backend (Port 5000)](#nodejs-backend-port-5000)
+    - [POST /api/chat/session](#post-apichatsession)
+    - [POST /api/chat/message](#post-apichatmessage)
+    - [GET /api/chat/history/:sessionId](#get-apichathistorysessionid)
+    - [POST /api/chat/end](#post-apichatend)
+- [Frontend Implementation](#frontend-implementation)
+  - [Session Initialization](#session-initialization)
+  - [User Actions](#user-actions)
+  - [UI Components](#ui-components)
+- [Data Flow](#data-flow)
+  - [Starting Session](#starting-session)
+  - [Sending Message](#sending-message)
+  - [Session Recovery](#session-recovery)
+- [Security](#security)
+  - [Cookie Settings](#cookie-settings)
+  - [Session Validation](#session-validation)
+- [Usage Examples](#usage-examples)
+  - [Testing Session Creation](#testing-session-creation)
+  - [Testing Session Resume](#testing-session-resume)
+- [Files Changed](#files-changed)
+  - [Java Service](#java-service)
+  - [Node.js Backend](#nodejs-backend)
+  - [Frontend](#frontend)
+  - [Scripts](#scripts)
+- [Deployment Notes](#deployment-notes)
+- [Future Enhancements](#future-enhancements)
+
+---
+
 ## Overview
 Complete implementation of persistent chat session management with MongoDB storage, cookie-based session tracking, and session recovery.
 

@@ -1,5 +1,22 @@
 # Centralized Debug Logging Control
 
+## 📑 Table of Contents
+
+- [Overview](#overview)
+- [Implementation](#implementation)
+  - [1. Configuration Property](#1-configuration-property)
+  - [2. LogFactory Enhancement](#2-logfactory-enhancement)
+  - [3. Usage](#3-usage)
+    - [In Your Code](#in-your-code)
+    - [To Disable Debug Logging Application-Wide](#to-disable-debug-logging-application-wide)
+- [Benefits](#benefits)
+- [Testing](#testing)
+- [Log4j2 vs LogFactory Control](#log4j2-vs-logfactory-control)
+- [Files Modified](#files-modified)
+- [Status](#status)
+
+---
+
 ## Overview
 Added centralized control for debug logging across all Java services without requiring code changes or passing parameters.
 

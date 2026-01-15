@@ -1,5 +1,37 @@
 # Assistant Channels Architecture
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [MongoDB Schema](#mongodb-schema)
+- [API Endpoints](#api-endpoints)
+  - [GET /api/assistant-channels](#get-apiassistant-channels)
+  - [PATCH /api/assistant-channels](#patch-apiassistant-channels)
+  - [PATCH /api/assistant-channels/voice](#patch-apiassistant-channelsvoice)
+  - [PATCH /api/assistant-channels/chat](#patch-apiassistant-channelschat)
+  - [POST /api/assistant-channels/voice/toggle](#post-apiassistant-channelsvoicetoggle)
+  - [POST /api/assistant-channels/chat/toggle](#post-apiassistant-channelschattoggle)
+  - [GET /api/assistant-channels/by-phone/:phoneNumber](#get-apiassistant-channelsby-phonephonenumber)
+- [Channel Flow](#channel-flow)
+  - [Voice Channel](#voice-channel)
+  - [Chat Channel](#chat-channel)
+- [Benefits](#benefits)
+  - [1. Clean Separation](#1-clean-separation)
+  - [2. Independent Control](#2-independent-control)
+  - [3. Extensibility](#3-extensibility)
+  - [4. Single Source of Truth](#4-single-source-of-truth)
+- [Implementation Notes](#implementation-notes)
+  - [Migration from assistant_settings](#migration-from-assistant_settings)
+  - [Indexes](#indexes)
+  - [Default Configuration](#default-configuration)
+- [Future Enhancements](#future-enhancements)
+  - [SMS Channel](#sms-channel)
+  - [WhatsApp Channel](#whatsapp-channel)
+  - [Webhook Channel](#webhook-channel)
+- [Testing](#testing)
+- [UI Component](#ui-component)
+
+---
+
 ## Overview
 
 The `assistant_channels` collection provides a unified configuration system for multi-channel AI assistant communication. Each customer can enable/disable channels independently while sharing the same backend intelligence.

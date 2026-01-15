@@ -1,5 +1,44 @@
 # End-to-End Integration Guide
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [Scenario: User Sends "Book an appointment for tomorrow"](#scenario-user-sends-book-an-appointment-for-tomorrow)
+  - [Architecture Recap](#architecture-recap)
+- [Stage 1: Frontend User Input (0ms - 50ms)](#stage-1-frontend-user-input-0ms---50ms)
+  - [1.1 User Types Message](#11-user-types-message)
+- [Stage 2: WebSocket Transmission (5ms - 15ms)](#stage-2-websocket-transmission-5ms---15ms)
+  - [2.1 Socket.IO Client Sends Event](#21-socketio-client-sends-event)
+- [Stage 3: Backend Receives WebSocket Event (15ms - 30ms)](#stage-3-backend-receives-websocket-event-15ms---30ms)
+  - [3.1 Socket.IO Server Receives Frame](#31-socketio-server-receives-frame)
+  - [3.2 Chat Handler Processes Event](#32-chat-handler-processes-event)
+- [Stage 4: Backend Calls Java VA Service (30ms - 40ms)](#stage-4-backend-calls-java-va-service-30ms---40ms)
+  - [4.1 HTTP POST to Java Service](#41-http-post-to-java-service)
+- [Stage 5: Java Receives Request (40ms - 60ms)](#stage-5-java-receives-request-40ms---60ms)
+  - [5.1 Spring Boot Controller Receives Request](#51-spring-boot-controller-receives-request)
+  - [5.2 Service Layer Processes Message](#52-service-layer-processes-message)
+  - [5.3 LLM API Call (The Bottleneck)](#53-llm-api-call-the-bottleneck)
+- [Stage 6: Java Returns Response (3100ms - 3120ms)](#stage-6-java-returns-response-3100ms---3120ms)
+  - [6.1 Controller Sends HTTP Response](#61-controller-sends-http-response)
+- [Stage 7: Backend Receives Java Response (3120ms - 3130ms)](#stage-7-backend-receives-java-response-3120ms---3130ms)
+  - [7.1 Node.js Processes Response](#71-nodejs-processes-response)
+- [Stage 8: Frontend Receives Response (3130ms - 3150ms)](#stage-8-frontend-receives-response-3130ms---3150ms)
+  - [8.1 Socket.IO Client Receives Event](#81-socketio-client-receives-event)
+- [Complete Timeline Summary](#complete-timeline-summary)
+- [Optimization Opportunities](#optimization-opportunities)
+  - [1. Streaming LLM Responses](#1-streaming-llm-responses)
+  - [2. Caching Intent Classification](#2-caching-intent-classification)
+  - [3. MongoDB Connection Pooling](#3-mongodb-connection-pooling)
+- [Debugging Guide](#debugging-guide)
+  - [Check Each Layer](#check-each-layer)
+- [Error Scenarios](#error-scenarios)
+  - [Scenario 1: LLM API Timeout](#scenario-1-llm-api-timeout)
+  - [Scenario 2: WebSocket Disconnection](#scenario-2-websocket-disconnection)
+- [Summary](#summary)
+  - [Key Takeaways](#key-takeaways)
+  - [Performance Targets](#performance-targets)
+
+---
+
 ## Overview
 
 This document provides a **complete walkthrough** of how a single user message travels through the entire AI Services Platform, from the browser to the Java backend and back. It includes:

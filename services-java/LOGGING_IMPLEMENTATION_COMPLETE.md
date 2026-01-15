@@ -1,5 +1,32 @@
 # SLF4J + Log4j2 Centralized Logging Implementation - COMPLETE
 
+## 📑 Table of Contents
+
+- [Summary](#summary)
+- [Implementation Completed ✅](#implementation-completed-)
+  - [1. Dependencies & Configuration](#1-dependencies--configuration)
+  - [2. Logging Utilities](#2-logging-utilities)
+  - [3. Files Refactored (7 of 11 completed)](#3-files-refactored-7-of-11-completed)
+- [Refactoring Pattern Used](#refactoring-pattern-used)
+- [Log Levels Applied](#log-levels-applied)
+- [Benefits Achieved](#benefits-achieved)
+- [Testing the Implementation](#testing-the-implementation)
+  - [Build and Run](#build-and-run)
+  - [Verify Logging](#verify-logging)
+  - [Test Log Levels](#test-log-levels)
+- [Remaining Work (Optional Enhancement)](#remaining-work-optional-enhancement)
+  - [Priority Files to Refactor (32 statements)](#priority-files-to-refactor-32-statements)
+  - [Lower Priority](#lower-priority)
+  - [Quick Refactoring Script](#quick-refactoring-script)
+- [MDC Context Integration (Recommended Next Step)](#mdc-context-integration-recommended-next-step)
+- [Production Deployment Checklist](#production-deployment-checklist)
+- [Files Modified](#files-modified)
+  - [Created](#created)
+  - [Modified](#modified)
+- [Conclusion](#conclusion)
+
+---
+
 ## Summary
 Successfully implemented centralized logging using SLF4J API with Log4j2 implementation for the AI Services Platform Java services. This provides production-ready logging with proper log levels, rotation, and MDC context support.
 

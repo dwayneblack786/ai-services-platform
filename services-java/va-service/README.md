@@ -1,5 +1,38 @@
 # Infero - Java Spring Boot Backend API
 
+## 📑 Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Structure](#structure)
+- [Installation](#installation)
+- [Configuration](#configuration)
+  - [Application Settings](#application-settings)
+- [Running](#running)
+  - [Using Maven Wrapper](#using-maven-wrapper)
+  - [Using VS Code Tasks](#using-vs-code-tasks)
+  - [Using Eclipse](#using-eclipse)
+- [Building](#building)
+  - [Clean and Install](#clean-and-install)
+  - [Run Tests](#run-tests)
+  - [Package JAR](#package-jar)
+- [API Endpoints](#api-endpoints)
+  - [Available Endpoints](#available-endpoints)
+- [API Response Model](#api-response-model)
+  - [Example Controller](#example-controller)
+- [Dependencies](#dependencies)
+- [Development](#development)
+  - [Maven Commands](#maven-commands)
+  - [Adding Dependencies](#adding-dependencies)
+- [Testing](#testing)
+- [Project Information](#project-information)
+- [Next Steps](#next-steps)
+- [Integration](#integration)
+
+---
+
+## Overview
+
 Java Spring Boot RESTful API backend service providing CRUD operations with standardized JSON responses.
 
 ## Features

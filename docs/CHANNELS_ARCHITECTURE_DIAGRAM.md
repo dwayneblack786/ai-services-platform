@@ -1,5 +1,14 @@
 # Assistant Channels - Visual Architecture
 
+📑 **Table of Contents**
+- [Visual Architecture Diagram](#visual-architecture-diagram)
+- [API Flow Diagram](#api-flow-diagram)
+- [Database Structure](#database-structure)
+
+---
+
+## Visual Architecture Diagram
+
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      CUSTOMER CONFIGURATION                          │

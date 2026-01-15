@@ -1,5 +1,26 @@
 # Database Patterns & MongoDB Guide
 
+📑 **Table of Contents**
+- [Overview](#overview)
+- [MongoDB Schema Design](#mongodb-schema-design)
+  - [Schema Design Best Practices](#schema-design-best-practices)
+  - [Denormalization Strategy](#denormalization-strategy)
+- [Query Optimization](#query-optimization)
+  - [Efficient Query Patterns](#efficient-query-patterns)
+- [Indexing Strategy](#indexing-strategy)
+  - [Index Design Patterns](#index-design-patterns)
+  - [Index Monitoring](#index-monitoring)
+- [Data Validation](#data-validation)
+  - [Schema Validation](#schema-validation)
+- [Data Consistency](#data-consistency)
+  - [Transaction Management](#transaction-management)
+- [Performance Optimization](#performance-optimization)
+  - [Query Caching](#query-caching)
+- [Database Patterns Best Practices Checklist](#database-patterns-best-practices-checklist)
+- [Related Documentation](#related-documentation)
+
+---
+
 ## Overview
 
 This guide covers MongoDB schema design, query optimization, indexing strategies, and data access patterns for Node.js applications.

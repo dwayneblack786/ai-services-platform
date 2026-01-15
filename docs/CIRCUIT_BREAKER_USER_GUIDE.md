@@ -1,5 +1,43 @@
 # Circuit Breaker Pattern - User Guide
 
+📑 **Table of Contents**
+- [What is a Circuit Breaker?](#what-is-a-circuit-breaker)
+- [🚦 Circuit States Explained](#-circuit-states-explained)
+  - [✅ CLOSED (Green Badge - "Service Healthy")](#-closed-green-badge---service-healthy)
+  - [⚠️ OPEN (Red Badge - "Service Degraded")](#️-open-red-badge---service-degraded)
+  - [🔄 HALF_OPEN (Yellow Badge - "Service Recovering")](#-half_open-yellow-badge---service-recovering)
+- [📊 Understanding the Circuit Monitor](#-understanding-the-circuit-monitor)
+  - [Badge Location](#badge-location)
+  - [Badge Colors](#badge-colors)
+  - [Viewing Statistics](#viewing-statistics)
+  - [Resetting the Circuit](#resetting-the-circuit)
+- [🔄 How Circuit Breaker Works (Timeline)](#-how-circuit-breaker-works-timeline)
+  - [Scenario: Backend Service Goes Down](#scenario-backend-service-goes-down)
+  - [Scenario: Backend Service Comes Back Online](#scenario-backend-service-comes-back-online)
+- [⚙️ Configuration](#️-configuration)
+  - [Thresholds](#thresholds)
+  - [What Counts as a Failure?](#what-counts-as-a-failure)
+  - [What Doesn't Count as a Failure?](#what-doesnt-count-as-a-failure)
+- [🎯 Best Practices](#-best-practices)
+  - [For End Users](#for-end-users)
+  - [For Developers](#for-developers)
+- [🐛 Troubleshooting](#-troubleshooting)
+  - [Badge is Red but Backend is Running](#badge-is-red-but-backend-is-running)
+  - [Badge Won't Turn Green After Reset](#badge-wont-turn-green-after-reset)
+  - [Circuit Opens Immediately on Page Load](#circuit-opens-immediately-on-page-load)
+- [📈 Monitoring Tips](#-monitoring-tips)
+  - [Check Circuit Health](#check-circuit-health)
+  - [When to Alert](#when-to-alert)
+  - [Logging](#logging)
+- [🎓 Key Concepts](#-key-concepts)
+  - [Why "CLOSED" is Good?](#why-closed-is-good)
+  - [Why Block Requests When Service is Down?](#why-block-requests-when-service-is-down)
+  - [Why Wait 30 Seconds?](#why-wait-30-seconds)
+- [📞 Support](#-support)
+- [🔗 Related Documentation](#-related-documentation)
+
+---
+
 ## What is a Circuit Breaker?
 
 The circuit breaker protects your application from cascading failures when backend services become unavailable. Think of it like an electrical circuit breaker in your home - it "trips" to prevent damage when there's a problem.
