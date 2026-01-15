@@ -8,37 +8,62 @@ A full-stack AI services platform with React (TypeScript) frontend, Node.js Expr
 .
 ├── frontend/               # React frontend (Vite + TypeScript)
 │   ├── src/
-│   │   ├── components/     # React components (Layout, Sidebar, SettingsDropdown, etc.)
+│   │   ├── components/     # React components (Layout, Sidebar, CircuitMonitor, etc.)
+│   │   ├── config/         # Configuration files
 │   │   ├── context/        # Auth context with role-based access control
+│   │   ├── hooks/          # Custom React hooks
 │   │   ├── pages/          # Page components (Dashboard, Products, Tenants, etc.)
+│   │   ├── services/       # API service clients
 │   │   ├── styles/         # Emotion-styled component styles
+│   │   ├── types/          # TypeScript type definitions
+│   │   ├── utils/          # Utility functions
 │   │   ├── App.tsx
 │   │   └── main.tsx
+│   ├── index.html
 │   ├── package.json
+│   ├── tsconfig.json
 │   └── vite.config.ts
 ├── backend-node/           # Node.js Express backend
 │   ├── src/
 │   │   ├── config/         # Passport OAuth2 configuration
-│   │   ├── middleware/     # Authentication middleware
-│   │   ├── routes/         # API routes (auth, products, billing, users, etc.)
-│   │   ├── services/       # External API clients (Infero)
+│   │   ├── grpc/           # gRPC client implementations
+│   │   ├── middleware/     # Authentication & authorization middleware
+│   │   ├── models/         # MongoDB data models
+│   │   ├── routes/         # API routes (auth, products, billing, chat, voice, etc.)
+│   │   ├── scripts/        # Utility scripts (separate from root scripts/)
+│   │   ├── services/       # External API clients & circuit breaker
+│   │   ├── sockets/        # WebSocket/Socket.IO handlers
 │   │   ├── types/          # TypeScript type definitions
 │   │   └── index.ts        # Express app with Swagger UI integration
+│   ├── emails/             # Email templates and logs
+│   ├── proto/              # Protocol buffer definitions
 │   ├── scripts/            # Database setup and utility scripts
 │   ├── openapi.yaml        # OpenAPI 3.0.3 API documentation
+│   ├── CIRCUIT_BREAKER_IMPLEMENTATION.md  # Circuit breaker technical guide
 │   ├── package.json
 │   └── tsconfig.json
 ├── services-java/          # Java Spring Boot microservices
-│   ├── _common-libs/       # Shared libraries and utilities
+│   ├── common-libs/        # Shared libraries and utilities
+│   ├── _common-libs/       # Legacy shared libraries (deprecated)
 │   ├── cv-service/         # Computer Vision AI service
 │   ├── idp-service/        # Intelligent Document Processing service
 │   └── va-service/         # Virtual Assistant service
+├── Infero/                 # Legacy Infero service (Spring Boot)
 ├── shared/                 # Shared TypeScript types across frontend and backend
-│   └── types.ts
-└── docs/                   # Project documentation
-    ├── PROJECT_OVERVIEW.md
-    ├── RepositoryStructure.md
-    └── Platform Architecture Diagram.ini
+│   ├── types.ts
+│   ├── types.d.ts
+│   └── types.js
+├── docs/                   # Project documentation
+│   ├── DEVELOPER_SETUP.md
+│   ├── TECHNOLOGY_FEATURES.md
+│   ├── CIRCUIT_BREAKER_USER_GUIDE.md
+│   ├── CIRCUIT_BREAKER_TASK_BREAKDOWN.md
+│   ├── PROJECT_OVERVIEW.md
+│   └── (50+ additional documentation files)
+├── .github/                # GitHub configuration
+│   └── copilot-instructions.md
+└── .vscode/                # VS Code workspace configuration
+    └── tasks.json
 ```
 
 ## Tech Stack
