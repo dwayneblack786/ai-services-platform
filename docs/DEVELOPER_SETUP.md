@@ -239,6 +239,10 @@ TWILIO_ACCOUNT_SID=your_account_sid
 TWILIO_AUTH_TOKEN=your_auth_token
 TWILIO_PHONE_NUMBER=+1234567890
 
+# Infero API Configuration (Java Services)
+INFERO_API_BASE_URL=http://localhost:8136
+INFERO_API_KEY=your_api_key_here
+
 # Logging
 LOG_LEVEL=debug
 LOG_DIR=./logs
@@ -255,6 +259,18 @@ ENABLE_WEBSOCKET=true          # Enable WebSocket/Socket.IO
 4. Create OAuth 2.0 credentials (Web application)
 5. Add authorized redirect URIs: `http://localhost:5000/api/auth/google/callback`
 
+**Generate Random Secrets**:
+
+For `SESSION_SECRET` and `JWT_SECRET`, use:
+
+```bash
+# Node.js method (recommended)
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# OpenSSL method
+openssl rand -hex 32
+```
+
 ### 2. Frontend (.env)
 
 Create `frontend/.env`:
@@ -265,6 +281,8 @@ VITE_USE_WEBSOCKET=true
 ```
 
 ### 3. MongoDB Initial Setup
+
+**Step 1: Create Database and Collections**
 
 ```bash
 # Connect to MongoDB
@@ -281,6 +299,24 @@ db.chat_sessions.createIndex({ tenantId: 1, userId: 1 })
 
 # Verify database
 show collections
+
+# Exit mongosh
+exit
+```
+
+**Step 2: Run Setup Scripts**
+
+```bash
+cd backend-node
+
+# Create product configuration indexes
+node scripts/create-product-config-indexes.js
+
+# Verify setup
+node scripts/verify-product-config-setup.js
+
+# (Optional) Seed prompt templates
+node scripts/seed-product-templates.js
 ```
 
 ---
@@ -321,19 +357,48 @@ cd services-java/va-service
 
 Tasks are pre-configured in `.vscode/tasks.json`:
 
-```bash
-# Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
-# Type: "Tasks: Run Task"
-# Select from:
-# - "Frontend: Dev Server"
-# - "Backend: Dev Server"
-# - "VA Service: Maven Run"
-```
+1. Open Command Palette: `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (macOS)
+2. Type: **Tasks: Run Task**
+3. Select from available tasks:
+   - **VA Service: Maven Run** - Start VA microservice
+   - **VA Service: Maven Run (Debug)** - Start VA with debugger attached
+   - **VA Service: Maven Clean Install** - Build VA service
+   - **VA Service: Maven Test** - Run VA service tests
+   - **Infero: Maven Run** - Start Infero service
+   - **Infero: Maven Clean Install** - Build Infero
+   - **Infero: Maven Test** - Run Infero tests
+
+Tasks will run in VS Code's integrated terminal with proper working directories.
 
 ### Option 3: Docker Compose (if available)
 
 ```bash
 docker-compose up
+```
+
+### Production Build
+
+For production deployment, build optimized versions:
+
+**Backend:**
+```bash
+cd backend-node
+npm run build
+npm start
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run build
+npm run preview  # Preview production build locally
+```
+
+**Java Services:**
+```bash
+cd services-java/va-service
+./mvnw clean package -DskipTests
+java -jar target/va-service-*.jar
 ```
 
 ---

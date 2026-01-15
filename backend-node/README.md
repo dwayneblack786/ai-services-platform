@@ -4,7 +4,7 @@ Node.js Express TypeScript middleware server that handles authentication, manage
 
 ## Features
 
-- **Circuit Breaker Pattern** - Automatic failure detection and recovery for Java microservice calls
+- **Circuit Breaker Pattern** - Automatic failure detection and recovery for Java microservice calls ([Implementation Guide](CIRCUIT_BREAKER_IMPLEMENTATION.md))
 - **Resilient API Client** - Exponential backoff retry logic with fallback responses
 - Google OAuth2 authentication with Passport.js
 - Development login bypass for local development
@@ -160,163 +160,19 @@ const response = await javaApi.users.getUsers();
 - **swagger-ui-express** - API documentation UI
 - **yaml** - OpenAPI spec parsing
 
----
+## Circuit Breaker Pattern
 
-## 🔄 Circuit Breaker Pattern (NEW)
+The backend implements a circuit breaker pattern for resilient communication with Java microservices. This provides automatic failure detection, fast-fail responses, and graceful degradation.
 
-The backend now implements a **Circuit Breaker Pattern** for all Java microservice communications, providing automatic failure detection, fast-fail responses, and graceful degradation.
+**Key Benefits:**
+- ✅ Prevents cascading failures
+- ✅ Fast-fail responses (instant vs 30+ second timeouts)
+- ✅ Automatic recovery after service restoration
+- ✅ Graceful degradation with fallback messages
 
-### What Changed?
+**Protected Services:**
+- Chat routes (6 API calls)
+- WebSocket handlers (3 API calls)
+- Voice routes (1 API call)
 
-#### 🆕 New Services Created
-
-**1. Circuit Breaker Service** (`src/services/circuitBreaker.ts`)
-- Implements three-state circuit breaker (CLOSED, OPEN, HALF_OPEN)
-- Tracks failure/success counts and request statistics
-- Automatic timeout-based recovery (60 seconds)
-- Manual reset capability
-- Comprehensive logging of state transitions
-
-**2. API Client Service** (`src/services/apiClient.ts`)
-- Centralized HTTP client for all Java microservice calls
-- Automatic exponential backoff retry (1s → 2s → 4s with jitter)
-- Circuit breaker integration on every request
-- Support for fallback responses
-- Request/response logging
-- Methods: GET, POST, PUT, PATCH, DELETE
-
-**3. Java VA Client Instance** (`javaVAClient`)
-- Pre-configured client for Virtual Assistant service
-- Exported singleton for consistent usage
-- Circuit breaker protection enabled by default
-
-#### 🔄 Routes Migrated to Circuit Breaker
-
-**1. Chat Routes** (`src/routes/chat-routes.ts`)
-- ✅ 6 Java VA API calls migrated
-- All chat operations protected:
-  - Session initialization with resume support
-  - Message processing with fallback responses
-  - Session end handling
-  - Chat history retrieval
-- Fallback messages provide graceful degradation
-- Circuit state included in error responses
-
-**2. Chat WebSocket Handler** (`src/sockets/chat-socket.ts`)
-- ✅ 3 Java VA API calls migrated
-- Real-time chat protected:
-  - Message streaming
-  - Session end events
-  - History fetching
-- Circuit state emitted to clients
-- Retry flags for client-side handling
-
-**3. Voice Routes** (`src/routes/voice-routes.ts`)
-- ✅ 1 Java VA API call migrated
-- Voice processing protected:
-  - TTS audio generation with fallback
-  - Error responses include circuit state
-
-### How It Works
-
-```typescript
-// Example: Making a protected API call
-import { javaVAClient } from '../services/apiClient';
-
-// Automatic circuit breaker + retry + fallback
-const response = await javaVAClient.post(
-  '/chat/message',
-  { sessionId, message },
-  { timeout: 30000 },
-  () => ({
-    // Fallback response if circuit is OPEN
-    sessionId,
-    message: 'Service temporarily unavailable. Please try again shortly.',
-    intent: 'system_error',
-    requiresAction: false
-  })
-);
-```
-
-### Circuit States
-
-| State | Description | Behavior |
-|-------|-------------|----------|
-| **CLOSED** 🟢 | Normal operation | All requests proceed normally |
-| **OPEN** 🔴 | Service failing | Requests fast-fail, fallback responses returned |
-| **HALF_OPEN** 🟡 | Testing recovery | Limited requests allowed to test service health |
-
-### Configuration
-
-**Circuit Breaker Thresholds:**
-- **Failure Threshold:** 5 consecutive failures → Circuit OPENS
-- **Success Threshold:** 2 consecutive successes → Circuit CLOSES
-- **Timeout:** 60 seconds before retry attempt
-- **Retry Strategy:** Exponential backoff (1s → 2s → 4s) with jitter
-
-**Request Configuration:**
-- **Max Retry Attempts:** 3
-- **Request Timeout:** 30 seconds (chat/voice), 10 seconds (default)
-- **Retry Conditions:** Network errors and 5xx server errors only
-
-### Benefits
-
-✅ **Resilience**
-- Prevents cascading failures when Java services are down
-- System remains responsive during partial outages
-- Automatic recovery without manual intervention
-
-✅ **Performance**
-- Fast-fail responses (instant vs 30+ second timeouts)
-- Reduces resource exhaustion from hanging requests
-- Circuit opens after 5 failures, not 50+
-
-✅ **User Experience**
-- Graceful degradation with fallback messages
-- Users informed about service status
-- No hanging requests or browser freezes
-
-✅ **Observability**
-- Detailed logging of circuit state changes
-- Request statistics tracking (failures, successes, totals)
-- Circuit state exposed in API responses
-
-✅ **Maintainability**
-- Centralized error handling
-- Consistent retry logic across all endpoints
-- Easy to add new protected endpoints
-
-### Monitoring
-
-Circuit breaker logs to console:
-```
-[CircuitBreaker:JavaVA] Initialized
-[CircuitBreaker:JavaVA] Circuit OPENED until 10:30:45 PM
-[CircuitBreaker:JavaVA] Circuit CLOSED
-```
-
-Request statistics available via:
-```typescript
-const stats = javaVAClient.getCircuitState();
-// { state: 'CLOSED', failureCount: 0, successCount: 142, totalRequests: 142 }
-```
-
-### Migration Summary
-
-| Component | Before | After |
-|-----------|--------|-------|
-| **chat-routes.ts** | Direct axios calls | Circuit breaker protected |
-| **chat-socket.ts** | Direct axios calls | Circuit breaker protected |
-| **voice-routes.ts** | Direct axios calls | Circuit breaker protected |
-| **Retry Logic** | None | 3 attempts with backoff |
-| **Timeout Handling** | 30s+ hang | Instant fast-fail |
-| **Failure Recovery** | Manual restart | Automatic retry after 60s |
-| **Fallback Responses** | Generic errors | User-friendly messages |
-
-### Documentation
-
-For detailed implementation and usage:
-- 📖 [Circuit Breaker Implementation Guide](../docs/CIRCUIT_BREAKER_TASK_BREAKDOWN.md)
-- 📖 [Circuit Breaker User Guide](../docs/CIRCUIT_BREAKER_USER_GUIDE.md)
-
----
+For complete details, see **[Circuit Breaker Implementation Guide](CIRCUIT_BREAKER_IMPLEMENTATION.md)**

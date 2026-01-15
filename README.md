@@ -124,145 +124,65 @@ React Frontend → Node.js Backend → Java Microservices
   Port 5173         Port 5000          Port 8136+
 ```
 
-## Prerequisites
+## Quick Start
 
-Before you begin, ensure you have installed:
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [npm](https://www.npmjs.com/) (comes with Node.js)
-- [MongoDB](https://www.mongodb.com/try/download/community) (v6.0 or higher)
-- [Java JDK](https://www.oracle.com/java/technologies/downloads/) (v17 or higher)
-- [Maven](https://maven.apache.org/) (or use included Maven Wrapper)
+For complete installation and setup instructions, see the [Developer Setup Guide](docs/DEVELOPER_SETUP.md).
+
+**Prerequisites Summary:**
+- Node.js 18+
+- MongoDB 6.0+
+- Java JDK 17+
+- Maven 3.6+ (or use included Maven Wrapper)
 
 ## Google OAuth2 Setup
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one
-3. Enable the Google+ API
-4. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
-5. Configure the OAuth consent screen
-6. Add authorized redirect URIs:
-   - `http://localhost:5000/api/auth/google/callback`
-7. Copy the **Client ID** and **Client Secret**
+For detailed OAuth2 configuration, see [Environment Configuration](docs/DEVELOPER_SETUP.md#environment-configuration) in the Developer Setup Guide.
 
 ## Installation
 
-### 1. Install Backend Dependencies
+For complete installation instructions, environment configuration, and database setup, please refer to:
 
-```bash
-cd backend-node
-npm install
-```
+📘 **[Developer Setup Guide](docs/DEVELOPER_SETUP.md)**
 
-### 2. Install Frontend Dependencies
-
-```bash
-cd frontend
-npm install
-```
-
-### 3. Configure Environment Variables
-
-#### Backend (.env)
-
-Create a `.env` file in the `backend-node` directory:
-
-```env
-PORT=5000
-GOOGLE_CLIENT_ID=your_google_client_id_here
-GOOGLE_CLIENT_SECRET=your_google_client_secret_here
-SESSION_SECRET=your_random_session_secret
-JWT_SECRET=your_random_jwt_secret
-CLIENT_URL=http://localhost:5173
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/ai_platform
-
-# Infero API Configuration
-INFERO_API_BASE_URL=http://localhost:8136
-INFERO_API_KEY=your_api_key_here
-```
-
-#### Frontend (.env)
-
-Create a `.env` file in the `frontend` directory:
-
-```env
-VITE_API_URL=http://localhost:5000
-```
-
-### 4. Setup MongoDB
-
-#### Create Database and Indexes
-
-```bash
-cd backend-node
-
-# Create product configuration indexes
-node scripts/create-product-config-indexes.js
-
-# Verify setup
-node scripts/verify-product-config-setup.js
-```
+The guide includes:
+- Detailed prerequisites installation for all platforms
+- Environment variable configuration
+- MongoDB setup and initialization
+- Service startup instructions
+- IDE configuration (VS Code, IntelliJ)
+- Common commands reference
+- Troubleshooting tips
 
 ## Running the Application
 
-You need to run all services:
+For detailed startup instructions and troubleshooting, see [Service Startup](docs/DEVELOPER_SETUP.md#service-startup) in the Developer Setup Guide.
 
-#### 1. Start MongoDB
+### Quick Start Commands
 
-```bash
-# On Windows (if installed as a service)
-net start MongoDB
-
-# Or start manually
-mongod --dbpath C:\data\db
-```
-
-#### 2. Start the Backend (Node.js)
-
+**Terminal 1 - Backend:**
 ```bash
 cd backend-node
 npm run dev
+# Runs on http://localhost:5000
+# API Docs: http://localhost:5000/api-docs
 ```
 
-The backend will run on `http://localhost:5000`
-
-**API Documentation:** http://localhost:5000/api-docs
-
-#### 3. Start the Frontend (React)
-
+**Terminal 2 - Frontend:**
 ```bash
 cd frontend
 npm run dev
+# Runs on http://localhost:5173
 ```
 
-The frontend will run on `http://localhost:5173`
-
-#### 4. (Optional) Start Java Microservices
-
+**Terminal 3 - Java VA Service (Optional):**
 ```bash
 cd services-java/va-service
-./mvnw spring-boot:run
+./mvnw spring-boot:run  # macOS/Linux
+mvnw.cmd spring-boot:run  # Windows
+# Runs on http://localhost:8136
 ```
 
-Or use VS Code tasks: Terminal → Run Task → "Infero: Maven Run"
-
-### Production Build
-
-#### Build Backend
-
-```bash
-cd backend-node
-npm run build
-npm start
-```
-
-#### Build Frontend
-
-```bash
-cd frontend
-npm run build
-npm run preview
-```
+**Note:** MongoDB must be running. See [Developer Setup Guide](docs/DEVELOPER_SETUP.md) for details.
 
 ## API Documentation
 
@@ -628,8 +548,7 @@ Visit http://localhost:5000/api-docs and use the interactive interface to test e
 ## Documentation
 
 ### � Critical Foundation Documentation (Start Here!)
-- [Developer Setup Guide](docs/DEVELOPER_SETUP.md) - Complete environment setup, prerequisites, IDE configuration, common commands
-- [Security Architecture](docs/SECURITY_ARCHITECTURE.md) - OAuth2, JWT tokens, CORS, multi-tenancy, role-based access control, threat mitigation
+- [Developer Setup Guide](docs/DEVELOPER_SETUP.md) - Complete environment setup, prerequisites, IDE configuration, common commands- [Technology Features Guide](docs/TECHNOLOGY_FEATURES.md) - Key technology features, benefits, downsides, and improvement roadmap- [Security Architecture](docs/SECURITY_ARCHITECTURE.md) - OAuth2, JWT tokens, CORS, multi-tenancy, role-based access control, threat mitigation
 - [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Solutions for setup, authentication, database, connectivity, frontend, backend, WebSocket, Java services issues
 - [API Design Standards](docs/API_DESIGN_STANDARDS.md) - REST conventions, naming, request/response format, versioning, pagination, error handling, rate limiting
 
