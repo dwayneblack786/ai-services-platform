@@ -20,6 +20,11 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
     setIsOpen(!isOpen);
   };
 
+  const handleLogout = async () => {
+    await onLogout();
+    navigate('/home');
+  };
+
   return (
     <>
       <button onClick={toggleSidebar} style={styles.toggleButton}>
@@ -46,7 +51,7 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
           ))}
         </nav>
         <div style={styles.footer}>
-          <button onClick={onLogout} style={styles.logoutButton}>
+          <button onClick={handleLogout} style={styles.logoutButton}>
             <span style={styles.icon}>🚪</span>
             <span style={styles.label}>Logout</span>
           </button>

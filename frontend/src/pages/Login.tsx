@@ -118,7 +118,13 @@ const Login = () => {
     return (
       <>
         <header style={styles.header}>
-          <h1 style={isMobile ? styles.companyNameMobile : styles.companyName}>
+          <h1 
+            style={{
+              ...(isMobile ? styles.companyNameMobile : styles.companyName),
+              cursor: 'pointer'
+            }}
+            onClick={() => navigate('/home')}
+          >
             Infero Agents
           </h1>
         </header>
@@ -134,12 +140,49 @@ const Login = () => {
   return (
     <>
       <header style={styles.header}>
-        <h1 style={isMobile ? styles.companyNameMobile : styles.companyName}>
+        <h1 
+          style={{
+            ...(isMobile ? styles.companyNameMobile : styles.companyName),
+            cursor: 'pointer'
+          }}
+          onClick={() => navigate('/home')}
+        >
           Infero Agents
         </h1>
       </header>
       <div style={styles.container}>
       <div style={styles.card}>
+        <button
+          onClick={() => navigate('/home')}
+          style={{
+            background: 'rgba(255,255,255,0.15)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            padding: '8px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '8px',
+            transition: 'all 0.3s ease',
+            minHeight: '40px',
+            color: 'black',
+            marginBottom: '20px',
+            alignSelf: 'center'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.25)';
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)';
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
+          }}
+          title="Go to Home"
+        >
+          🏪 Home
+        </button>
         <h1 style={styles.title}>Welcome Back</h1>
         <p style={styles.subtitle}>Sign in to continue</p>
         

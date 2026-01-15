@@ -9,7 +9,7 @@ import { Product, UserProduct } from '../types';
 
 const Products = () => {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
@@ -47,8 +47,10 @@ const Products = () => {
 
   useEffect(() => {
     fetchProducts();
-    fetchUserProducts();
-  }, []);
+    if (user) {
+      fetchUserProducts();
+    }
+  }, [user]);
 
   useEffect(() => {
     let filtered = products;

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
@@ -29,6 +30,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/home" element={<Layout><Home /></Layout>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
@@ -57,11 +59,9 @@ function App() {
           <Route
             path="/products"
             element={
-              <ProtectedRoute>
-                <Layout>
-                  <Products />
-                </Layout>
-              </ProtectedRoute>
+              <Layout>
+                <Products />
+              </Layout>
             }
           />
           <Route
@@ -144,11 +144,31 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<HomeRedirect />} />
         </Routes>
       </Router>
     </AuthProvider>
   );
 }
+
+// Component to handle root redirect based on auth status
+const HomeRedirect = () => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh' 
+      }}>
+        Loading...
+      </div>
+    );
+  }
+  
+  return <Navigate to={user ? "/dashboard" : "/home"} replace />;
+};
 
 export default App;

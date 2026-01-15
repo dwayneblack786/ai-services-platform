@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/apiClient';
 import { styles } from '../styles/Products.styles';
 import { productSignupStyles } from '../styles/ProductSignup.styles';
@@ -12,6 +13,7 @@ import { Product } from '../types';
 const ProductSignup = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
@@ -60,6 +62,14 @@ const ProductSignup = () => {
   };
 
   const handleStartSignup = () => {
+    // Check if user is authenticated
+    if (!user) {
+      // Redirect to login with return URL
+      const returnUrl = `/products/${productId}/signup`;
+      navigate(`/login?redirect=${encodeURIComponent(returnUrl)}`);
+      return;
+    }
+
     if (!product) {
       alert('Product information is still loading. Please wait.');
       return;

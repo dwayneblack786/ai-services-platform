@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './Sidebar';
 import SettingsDropdown from './SettingsDropdown';
@@ -8,7 +9,9 @@ import { LayoutProps } from '../types';
 import { UserRole } from '../types/shared';
 
 const Layout = ({ children }: LayoutProps) => {
+  const navigate = useNavigate();
   const { logout, user, hasRole } = useAuth();
+  const isAuthenticated = !!user;
   const isProjectAdmin = hasRole(UserRole.PROJECT_ADMIN);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -49,22 +52,95 @@ const Layout = ({ children }: LayoutProps) => {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/home');
+  };
+
   return (
     <>
       <header style={styles.header}>
-        <h1 style={{...styles.companyName, ...(isMobile ? styles.companyNameMobile : {})}}>
-          Infero Agents
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {isAuthenticated && (
+            <button
+              onClick={() => navigate('/home')}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                padding: '8px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '8px',
+                transition: 'all 0.3s ease',
+                minHeight: '40px',
+                color: 'white'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.25)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
+              }}
+              title="Go to Home"
+            >
+              ⌂ Home
+            </button>
+          )}
+          <h1 
+            style={{
+              ...styles.companyName, 
+              ...(isMobile ? styles.companyNameMobile : {}),
+              cursor: 'pointer',
+              margin: 0
+            }}
+            onClick={() => navigate('/home')}
+          >
+            Infero Agents
+          </h1>
+        </div>
+        {!isAuthenticated && (
+          <button
+            onClick={() => navigate('/login')}
+            style={{
+              position: 'absolute',
+              right: '20px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              padding: '10px 24px',
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: isMobile ? '0.9rem' : '1rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s ease',
+              minHeight: '44px',
+              zIndex: 1000
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#45a049')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#4CAF50')}
+          >
+            Sign In
+          </button>
+        )}
       </header>
-      <div id="user-info-container" style={{
-        ...styles.userInfoContainer,
-        ...(isMobile ? styles.userInfoContainerMobile : {}),
-        right: '20px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        flexDirection: 'row'
-      }}>
+      {isAuthenticated && (
+        <div id="user-info-container" style={{
+          ...styles.userInfoContainer,
+          ...(isMobile ? styles.userInfoContainerMobile : {}),
+          right: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          flexDirection: 'row'
+        }}>
         {/* Circuit Breaker Status Monitor */}
         <CircuitMonitor compact={true} />
         
@@ -90,9 +166,10 @@ const Layout = ({ children }: LayoutProps) => {
           </span>
         </div>
       </div>
+      )}
       
       {/* Overlay for mobile when sidebar is open */}
-      {isMobile && isSidebarOpen && (
+      {isAuthenticated && isMobile && isSidebarOpen && (
         <div
           id="mobile-overlay"
           style={{
@@ -108,10 +185,12 @@ const Layout = ({ children }: LayoutProps) => {
         />
       )}
       
-      <Sidebar onLogout={logout} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      {isAuthenticated && (
+        <Sidebar onLogout={handleLogout} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      )}
       <main id="main-content" style={{
         ...styles.main,
-        marginLeft: isMobile ? '0' : (isSidebarOpen ? '250px' : '0'),
+        marginLeft: isMobile ? '0' : (isAuthenticated && isSidebarOpen ? '250px' : '0'),
         padding: isMobile ? '1rem' : '2rem',
         transition: 'margin-left 0.3s ease-in-out'
       }}>
