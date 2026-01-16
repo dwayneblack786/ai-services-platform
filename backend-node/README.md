@@ -129,8 +129,79 @@ All routes proxy to Infero API on port 8136:
 - `/api/backend/billing/*` - Billing CRUD operations
 - `/api/backend/products/*` - Products CRUD operations
 
-### Health Check
-- `GET /api/health` - Server health status
+### Health Check (`/api/health`)
+Comprehensive health monitoring endpoints:
+- `GET /api/health` - Basic health check (returns 200 if server responding)
+- `GET /api/health/detailed` - Detailed health status with all dependencies
+  - MongoDB connection status
+  - Redis connection status
+  - Java VA service status
+  - Circuit breaker states
+  - Memory usage statistics
+- `GET /api/health/liveness` - Kubernetes liveness probe
+- `GET /api/health/readiness` - Kubernetes readiness probe
+
+#### Health Check Response Example
+
+**Basic (`/api/health`):**
+```json
+{
+  "status": "ok",
+  "message": "Server is running",
+  "timestamp": "2026-01-16T10:30:00.000Z"
+}
+```
+
+**Detailed (`/api/health/detailed`):**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-01-16T10:30:00.000Z",
+  "uptime": 3600,
+  "services": {
+    "mongodb": {
+      "status": "up",
+      "responseTime": 5,
+      "message": "MongoDB is connected"
+    },
+    "redis": {
+      "status": "up",
+      "responseTime": 2,
+      "message": "Redis is connected"
+    },
+    "javaVA": {
+      "status": "up",
+      "responseTime": 120,
+      "message": "Java VA service is responding"
+    },
+    "circuitBreakers": {
+      "status": "healthy",
+      "circuits": {
+        "JavaVAClient": {
+          "state": "CLOSED",
+          "failureCount": 0,
+          "successCount": 150,
+          "totalRequests": 150
+        }
+      }
+    }
+  },
+  "system": {
+    "memory": {
+      "used": 145,
+      "total": 512,
+      "percentage": 28
+    },
+    "nodeVersion": "v20.10.0",
+    "environment": "development"
+  },
+  "responseTime": "45ms"
+}
+```
+
+**Health Status Codes:**
+- `200 OK` - System is healthy or degraded but operational
+- `503 Service Unavailable` - System is unhealthy (critical services down)
 
 ## Development Features
 
@@ -182,6 +253,104 @@ const response = await javaApi.users.getUsers();
 - **swagger-ui-express** - API documentation UI
 - **yaml** - OpenAPI spec parsing
 
+## MongoDB Chat Messages Schema
+
+Chat messages are stored in the `chat_messages` collection using a **session-based document model**. Each session has **one document** containing all messages in an array, ordered by timestamp.
+
+### Schema Structure
+
+```javascript
+{
+  _id: ObjectId,
+  sessionId: String,          // Unique session identifier (UUID)
+  customerId: String,         // Customer/tenant ID
+  productId: String,          // Product ID (e.g., "va-service")
+  messages: [                 // Array of messages ordered by timestamp
+    {
+      role: String,           // "user" | "assistant"
+      content: String,        // Message text
+      timestamp: Date,        // Message timestamp
+      intent: String          // Detected intent (optional)
+    }
+  ],
+  startedAt: Date,           // Session start time
+  lastUpdatedAt: Date,       // Last message timestamp
+  isActive: Boolean          // Session active status
+}
+```
+
+### Key Features
+
+- **Single document per session** - All messages grouped by `sessionId`
+- **Atomic updates** - New messages appended using `$push` operator
+- **Ordered messages** - Messages maintain insertion order
+- **Efficient queries** - One read operation retrieves entire conversation history
+- **Session lifecycle** - `startedAt`, `lastUpdatedAt`, `isActive` track session state
+
+### Implementation
+
+Messages are persisted by the Java VA service (`ChatSessionService.saveChatHistory`):
+
+1. **First message**: Creates new document with message array
+2. **Subsequent messages**: Appends to existing messages array using `$push`
+
+```java
+// Create new session document
+Document newHistory = new Document()
+    .append("sessionId", sessionId)
+    .append("customerId", customerId)
+    .append("productId", productId)
+    .append("messages", Arrays.asList(messageDoc))
+    .append("startedAt", new Date())
+    .append("lastUpdatedAt", new Date())
+    .append("isActive", true);
+
+// Append to existing session
+Document update = new Document("$push", new Document("messages", messageDoc))
+    .append("$set", new Document("lastUpdatedAt", new Date()));
+```
+
+### Example Document
+
+```json
+{
+  "_id": ObjectId("507f1f77bcf86cd799439011"),
+  "sessionId": "a3d8c947-1234-5678-9abc-def012345678",
+  "customerId": "customer-123",
+  "productId": "va-service",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What are your business hours?",
+      "timestamp": ISODate("2024-01-15T10:30:00Z"),
+      "intent": "hours_inquiry"
+    },
+    {
+      "role": "assistant",
+      "content": "We're open Monday-Friday 9AM-5PM EST.",
+      "timestamp": ISODate("2024-01-15T10:30:02Z"),
+      "intent": "hours_inquiry"
+    }
+  ],
+  "startedAt": ISODate("2024-01-15T10:30:00Z"),
+  "lastUpdatedAt": ISODate("2024-01-15T10:30:02Z"),
+  "isActive": true
+}
+```
+
+### Querying
+
+```javascript
+// Get all messages for a session
+db.chat_messages.findOne({ sessionId: "session-id-here" })
+
+// Get active sessions for a customer
+db.chat_messages.find({ customerId: "customer-123", isActive: true })
+
+// Get recent sessions
+db.chat_messages.find().sort({ lastUpdatedAt: -1 }).limit(10)
+```
+
 ## Circuit Breaker Pattern
 
 The backend implements a circuit breaker pattern for resilient communication with Java microservices. This provides automatic failure detection, fast-fail responses, and graceful degradation.
@@ -197,4 +366,4 @@ The backend implements a circuit breaker pattern for resilient communication wit
 - WebSocket handlers (3 API calls)
 - Voice routes (1 API call)
 
-For complete details, see **[Circuit Breaker Implementation Guide](CIRCUIT_BREAKER_IMPLEMENTATION.md)**
+For complete details, see **[Circuit Breaker Implementation Guide](CIRCUIT_BREAKER_IMPLEMENTATION.md)** and **[Redis Implementation Guide](../docs/REDIS_IMPLEMENTATION_GUIDE.md)**

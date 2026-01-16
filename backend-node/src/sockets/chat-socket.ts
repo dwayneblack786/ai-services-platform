@@ -2,6 +2,9 @@ import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../config/socket';
 import { getDB } from '../config/database';
 import { javaVAClient } from '../services/apiClient';
+import logger, { createModuleLogger } from '../utils/logger';
+
+const socketLogger = createModuleLogger('chat-socket');
 
 interface ChatMessageData {
   sessionId: string;
@@ -30,17 +33,17 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
   const user = socket.user;
   
   if (!user) {
-    console.error('[Chat Socket] No user on socket, disconnecting');
+    socketLogger.error('No user on socket, disconnecting', { socketId: socket.id });
     socket.disconnect();
     return;
   }
 
-  console.log('[Chat Socket] Setting up chat handlers for user:', user.email);
+  socketLogger.info('Setting up chat handlers', { userId: user.id, email: user.email, socketId: socket.id });
 
     // Join session-specific room when chat session is initialized
     socket.on('chat:join-session', (sessionId: string) => {
       socket.join(`session:${sessionId}`);
-      console.log('[Chat Socket] User', user.email, 'joined session:', sessionId);
+      socketLogger.info('User joined session', { email: user.email, sessionId, socketId: socket.id });
       
       // Notify others in the session (for multi-user support future)
       socket.to(`session:${sessionId}`).emit('chat:user-joined', {
@@ -52,9 +55,8 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
 
     // Handle sending a message
     socket.on('chat:send-message', async (data: ChatMessageData) => {
+      const { sessionId, message } = data;
       try {
-        const { sessionId, message } = data;
-
         if (!sessionId || !message) {
           socket.emit('chat:error', { 
             error: 'Missing required fields: sessionId and message' 
@@ -62,10 +64,11 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
           return;
         }
 
-        console.log('[Chat Socket] Message received:', { 
+        socketLogger.debug('Message received', { 
           sessionId, 
           messageLength: message.length,
-          user: user.email 
+          userId: user.id,
+          socketId: socket.id 
         });
 
         // Echo user's message immediately for instant feedback
@@ -96,10 +99,11 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
 
         const response = javaResponse.data as ChatResponse;
 
-        console.log('[Chat Socket] Response from Java VA:', {
+        socketLogger.debug('Response from Java VA', {
           sessionId: response.sessionId,
           intent: response.intent,
-          requiresAction: response.requiresAction
+          requiresAction: response.requiresAction,
+          socketId: socket.id
         });
 
         // Send assistant's response
@@ -124,7 +128,13 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
         }
 
       } catch (error: any) {
-        console.error('[Chat Socket] Error processing message:', error);
+        socketLogger.error('Error processing message', { 
+          sessionId, 
+          userId: user.id,
+          error: error.message,
+          stack: error.stack,
+          socketId: socket.id
+        });
         
         // Stop typing indicator
         socket.emit('chat:typing', { isTyping: false });
@@ -154,7 +164,7 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
     // Handle leaving session
     socket.on('chat:leave-session', (sessionId: string) => {
       socket.leave(`session:${sessionId}`);
-      console.log('[Chat Socket] User left session:', sessionId);
+      socketLogger.info('User left session', { sessionId, userId: user.id, socketId: socket.id });
       
       // Notify others
       socket.to(`session:${sessionId}`).emit('chat:user-left', {

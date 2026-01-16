@@ -7,6 +7,7 @@
 import express, { Request, Response } from 'express';
 import { javaVAClient } from '../services/apiClient';
 import { authenticateToken } from '../middleware/auth';
+import logger from '../utils/logger';
 
 const router = express.Router();
 
@@ -32,8 +33,8 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
           : null,
       }
     });
-  } catch (error) {
-    console.error('[CircuitRoutes] Error getting circuit stats:', error);
+  } catch (error: any) {
+    logger.error('Error getting circuit stats', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       error: 'Failed to get circuit breaker statistics'
@@ -54,8 +55,8 @@ router.post('/reset', authenticateToken, async (req: Request, res: Response) => 
       message: 'Circuit breaker reset successfully',
       stats: javaVAClient.getStats()
     });
-  } catch (error) {
-    console.error('[CircuitRoutes] Error resetting circuit:', error);
+  } catch (error: any) {
+    logger.error('Error resetting circuit', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       error: 'Failed to reset circuit breaker'
@@ -88,7 +89,7 @@ router.get('/health', authenticateToken, async (req: Request, res: Response) => 
       }
     });
   } catch (error: any) {
-    console.error('[CircuitRoutes] Health check failed:', error.message);
+    logger.error('Health check failed', { error: error.message, stack: error.stack });
     
     const circuitStats = javaVAClient.getStats();
     

@@ -1,4 +1,6 @@
 import { MongoClient, Db } from 'mongodb';
+import logger from '..//utils/logger';
+
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
 const DB_NAME = process.env.DB_NAME || 'ai_platform';
@@ -15,10 +17,10 @@ export const connectDB = async (): Promise<Db> => {
     client = new MongoClient(MONGO_URI);
     await client.connect();
     db = client.db(DB_NAME);
-    console.log('✓ MongoDB connected successfully');
+    logger.info('✓ MongoDB connected successfully');
     return db;
   } catch (error) {
-    console.error('✗ MongoDB connection error:', error);
+    logger.error('✗ MongoDB connection error:', error);
     throw error;
   }
 };

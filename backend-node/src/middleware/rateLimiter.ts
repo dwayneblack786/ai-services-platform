@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '../utils/logger';
 
 /**
  * Rate Limiter Configuration
@@ -105,7 +106,7 @@ setInterval(cleanupOldData, 60 * 60 * 1000);
 export function streamRateLimiter(req: Request, res: Response, next: NextFunction) {
   // Skip rate limiting if disabled
   if (!config.enabled) {
-    console.log('[RateLimiter] Rate limiting disabled');
+    logger.debug('Rate limiting disabled');
     return next();
   }
 
@@ -116,7 +117,11 @@ export function streamRateLimiter(req: Request, res: Response, next: NextFunctio
 
   // Check 1: Concurrent streams limit
   if (limits.concurrentStreams >= config.maxConcurrentStreams) {
-    console.warn(`[RateLimiter] User ${userId} exceeded concurrent streams limit: ${limits.concurrentStreams}/${config.maxConcurrentStreams}`);
+    logger.warn('User exceeded concurrent streams limit', { 
+      userId, 
+      current: limits.concurrentStreams, 
+      max: config.maxConcurrentStreams 
+    });
     return res.status(429).json({
       error: 'Rate limit exceeded',
       message: `Too many concurrent streams. Maximum ${config.maxConcurrentStreams} allowed.`,
@@ -133,7 +138,11 @@ export function streamRateLimiter(req: Request, res: Response, next: NextFunctio
   // Check 2: Hourly message limit
   const hourlyCount = limits.hourlyMessages.get(currentHour) || 0;
   if (hourlyCount >= config.maxMessagesPerHour) {
-    console.warn(`[RateLimiter] User ${userId} exceeded hourly message limit: ${hourlyCount}/${config.maxMessagesPerHour}`);
+    logger.warn('User exceeded hourly message limit', { 
+      userId, 
+      hourlyCount, 
+      maxHourly: config.maxMessagesPerHour 
+    });
     return res.status(429).json({
       error: 'Rate limit exceeded',
       message: `Too many messages this hour. Maximum ${config.maxMessagesPerHour} per hour allowed.`,
@@ -150,7 +159,11 @@ export function streamRateLimiter(req: Request, res: Response, next: NextFunctio
   // Check 3: Daily message limit
   const dailyMessageCount = limits.dailyMessages.get(currentDate) || 0;
   if (dailyMessageCount >= config.maxMessagesPerDay) {
-    console.warn(`[RateLimiter] User ${userId} exceeded daily message limit: ${dailyMessageCount}/${config.maxMessagesPerDay}`);
+    logger.warn('User exceeded daily message limit', { 
+      userId, 
+      dailyCount: dailyMessageCount, 
+      maxDaily: config.maxMessagesPerDay 
+    });
     return res.status(429).json({
       error: 'Rate limit exceeded',
       message: `Daily message limit reached. Maximum ${config.maxMessagesPerDay} per day allowed.`,
@@ -169,12 +182,20 @@ export function streamRateLimiter(req: Request, res: Response, next: NextFunctio
   limits.hourlyMessages.set(currentHour, hourlyCount + 1);
   limits.dailyMessages.set(currentDate, dailyMessageCount + 1);
 
-  console.log(`[RateLimiter] User ${userId} - Concurrent: ${limits.concurrentStreams}/${config.maxConcurrentStreams}, Hourly: ${hourlyCount + 1}/${config.maxMessagesPerHour}, Daily: ${dailyMessageCount + 1}/${config.maxMessagesPerDay}`);
+  logger.debug('Rate limiter status', {
+    userId,
+    concurrent: `${limits.concurrentStreams}/${config.maxConcurrentStreams}`,
+    hourly: `${hourlyCount + 1}/${config.maxMessagesPerHour}`,
+    daily: `${dailyMessageCount + 1}/${config.maxMessagesPerDay}`
+  });
 
   // Decrement concurrent counter when stream ends
   const decrementConcurrent = () => {
     limits.concurrentStreams = Math.max(0, limits.concurrentStreams - 1);
-    console.log(`[RateLimiter] User ${userId} stream ended - Concurrent: ${limits.concurrentStreams}/${config.maxConcurrentStreams}`);
+    logger.debug('User stream ended', {
+      userId,
+      concurrent: `${limits.concurrentStreams}/${config.maxConcurrentStreams}`
+    });
   };
 
   res.on('close', decrementConcurrent);
@@ -194,11 +215,21 @@ export function trackTokenUsage(userId: string, tokenCount: number) {
   const currentTokens = limits.dailyTokens.get(currentDate) || 0;
   limits.dailyTokens.set(currentDate, currentTokens + tokenCount);
 
-  console.log(`[RateLimiter] User ${userId} used ${tokenCount} tokens - Daily total: ${currentTokens + tokenCount}/${config.maxTokensPerDay}`);
+  logger.debug('Token usage recorded', {
+    userId,
+    tokensUsed: tokenCount,
+    dailyTotal: currentTokens + tokenCount,
+    maxDaily: config.maxTokensPerDay
+  });
 
   // Check if approaching limit
   if (currentTokens + tokenCount > config.maxTokensPerDay * 0.9) {
-    console.warn(`[RateLimiter] User ${userId} approaching daily token limit: ${currentTokens + tokenCount}/${config.maxTokensPerDay}`);
+    logger.warn('User approaching daily token limit', {
+      userId,
+      current: currentTokens + tokenCount,
+      max: config.maxTokensPerDay,
+      percentUsed: Math.round(((currentTokens + tokenCount) / config.maxTokensPerDay) * 100)
+    });
   }
 }
 

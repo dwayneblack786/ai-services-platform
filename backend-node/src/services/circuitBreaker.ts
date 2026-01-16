@@ -212,3 +212,17 @@ export class CircuitBreaker {
     console.log(`[CircuitBreaker:${this.config.name}] Circuit manually opened`);
   }
 }
+// Global registry of circuit breakers for health checks
+const circuitBreakerRegistry = new Map<string, CircuitBreaker>();
+
+export function registerCircuitBreaker(name: string, breaker: CircuitBreaker): void {
+  circuitBreakerRegistry.set(name, breaker);
+}
+
+export function getCircuitBreakerStats(): Record<string, CircuitBreakerStats> {
+  const stats: Record<string, CircuitBreakerStats> = {};
+  circuitBreakerRegistry.forEach((breaker, name) => {
+    stats[name] = breaker.getStats();
+  });
+  return stats;
+}

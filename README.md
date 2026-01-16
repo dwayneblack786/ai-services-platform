@@ -706,11 +706,14 @@ Visit http://localhost:5000/api-docs and use the interactive interface to test e
 
 ### 🔧 Infrastructure & DevOps
 
-- [ ] **Redis Integration** - Add Redis for production session storage and caching
+- [ ] **Redis Integration for Java Services** - ⚠️ **Required for load balancing**
   - Session storage for multi-instance deployments
   - Circuit breaker state sharing
   - API response caching
+  - LLM response caching (90% cost reduction)
+  - **📖 See [Redis Implementation Guide](docs/REDIS_IMPLEMENTATION_GUIDE.md) when scaling horizontally**
   - Related: [Caching Strategies](docs/CACHING_STRATEGIES.md), [Technology Features](docs/TECHNOLOGY_FEATURES.md)
+  - Status: Backend-Node ✅ using Redis | Java Services ⚠️ using in-memory (not production-ready)
 
 - [ ] **Rate Limiting & Throttling** - Implement API rate limiting
   - Per-endpoint rate limits

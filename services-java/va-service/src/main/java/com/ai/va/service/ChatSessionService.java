@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +13,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import io.grpc.stub.StreamObserver;
-
 import com.ai.common.logging.LogFactory;
-import com.ai.va.config.ApiEndpointsConfig;
 import com.ai.va.model.ChannelConfiguration;
 import com.ai.va.model.ChannelType;
 import com.ai.va.model.ChatRequest;
@@ -26,6 +22,8 @@ import com.ai.va.model.LlmResult;
 import com.ai.va.model.PromptContext;
 import com.ai.va.model.SessionState;
 import com.ai.va.model.Turn;
+
+import io.grpc.stub.StreamObserver;
 
 /**
  * Chat Session Service
@@ -46,12 +44,6 @@ public class ChatSessionService {
 
 	@Autowired
 	private UsageService usageService;
-
-	@Autowired 
-	private ApiClientService apiClientService;
-
-	@Autowired
-	private ApiEndpointsConfig apiEndpointsConfig;
 
 	@Autowired
 	private ConfigurationService configurationService;
@@ -129,7 +121,7 @@ public class ChatSessionService {
 	 * 4. Conversation Context
 	 * 5. Constraints/Guardrails
 	 */
-	private String buildSystemPrompt(ChannelConfiguration config, SessionState session) {
+	private String buildSystemPrompt(ChannelConfiguration config) {
 		StringBuilder prompt = new StringBuilder();
 
 		// === LAYER 1: ROLE / PERSONA ===
@@ -428,7 +420,7 @@ public class ChatSessionService {
 		}
 
 		// Build system prompt from configuration
-		String systemPrompt = buildSystemPrompt(chatConfig, session);
+		String systemPrompt = buildSystemPrompt(chatConfig);
 		String greetingPrompt = "Generate a brief, friendly greeting message for this chat session. Keep it concise and welcoming.";
 
 		logger.debug("============================================================");
@@ -593,7 +585,7 @@ public class ChatSessionService {
 	/**
 	 * Process message with streaming support
 	 * Streams tokens via SSE while accumulating full response
-	 * 
+	 *
 	 * @param request Chat request with sessionId and message
 	 * @param emitter SSE emitter for streaming tokens
 	 */
@@ -636,31 +628,31 @@ public class ChatSessionService {
 			// 4. Get channel configuration for system prompt
 			ChannelConfiguration config = configurationService.getChatConfiguration(
 					state.getCustomerId(), state.getProductId());
-			String systemPrompt = buildSystemPrompt(config, state);
+			String systemPrompt = buildSystemPrompt(config);
 
 			// 5. Stream LLM response with token callback
 			logger.debug("[ChatSession] Starting LLM streaming...");
 			StringBuilder fullResponse = new StringBuilder();
-			
+
 			String completeResponse = llmClient.streamChatCompletion(
-				systemPrompt,
-				prompt,
-				0.7,
-				(token) -> {
-					// Send each token as SSE event
-					try {
-						Map<String, String> tokenData = new HashMap<>();
-						tokenData.put("token", token);
-						tokenData.put("sessionId", sessionId);
-						emitter.send(SseEmitter.event()
-								.name("token")
-								.data(tokenData));
-						fullResponse.append(token);
-					} catch (Exception e) {
-						logger.error("[ChatSession] Error sending token: {}", e.getMessage());
+					systemPrompt,
+					prompt,
+					0.7,
+					(token) -> {
+						// Send each token as SSE event
+						try {
+							Map<String, String> tokenData = new HashMap<>();
+							tokenData.put("token", token);
+							tokenData.put("sessionId", sessionId);
+							emitter.send(SseEmitter.event()
+									.name("token")
+									.data(tokenData));
+							fullResponse.append(token);
+						} catch (Exception e) {
+							logger.error("[ChatSession] Error sending token: {}", e.getMessage());
+						}
 					}
-				}
-			);
+					);
 
 			logger.debug("[ChatSession] Streaming completed, full response length: {}", completeResponse.length());
 
@@ -678,11 +670,11 @@ public class ChatSessionService {
 			completionData.put("sessionId", sessionId);
 			completionData.put("intent", state.getCurrentIntent());
 			completionData.put("complete", true);
-			
+
 			emitter.send(SseEmitter.event()
 					.name("complete")
 					.data(completionData));
-			
+
 			emitter.complete();
 			logger.info("[ChatSession] Streaming message processing completed successfully");
 
@@ -704,15 +696,15 @@ public class ChatSessionService {
 	/**
 	 * Process message with gRPC streaming support
 	 * Streams tokens via gRPC StreamObserver while accumulating full response
-	 * 
+	 *
 	 * @param sessionId Session identifier
 	 * @param userMessage User's message
 	 * @param responseObserver gRPC StreamObserver for streaming tokens
 	 */
 	@Async
-	public void processMessageStreamingGrpc(String sessionId, String userMessage, 
+	public void processMessageStreamingGrpc(String sessionId, String userMessage,
 			StreamObserver<com.ai.va.grpc.ChatResponse> responseObserver) {
-		
+
 		SessionState state = activeSessions.get(sessionId);
 		if (state == null) {
 			responseObserver.onError(io.grpc.Status.NOT_FOUND
@@ -745,30 +737,30 @@ public class ChatSessionService {
 			// 4. Get channel configuration for system prompt
 			ChannelConfiguration config = configurationService.getChatConfiguration(
 					state.getCustomerId(), state.getProductId());
-			String systemPrompt = buildSystemPrompt(config, state);
+			String systemPrompt = buildSystemPrompt(config);
 
 			// 5. Stream LLM response with token callback for gRPC
 			logger.debug("[ChatSession] Starting LLM streaming via gRPC...");
-			
+
 			String completeResponse = llmClient.streamChatCompletion(
-				systemPrompt,
-				prompt,
-				0.7,
-				(token) -> {
-					// Send each token as gRPC message
-					try {
-						com.ai.va.grpc.ChatResponse tokenResponse = com.ai.va.grpc.ChatResponse.newBuilder()
-								.setSessionId(sessionId)
-								.setMessage(token)
-								.setIsFinal(false)
-								.build();
-						
-						responseObserver.onNext(tokenResponse);
-					} catch (Exception e) {
-						logger.error("[ChatSession] Error sending gRPC token: {}", e.getMessage());
+					systemPrompt,
+					prompt,
+					0.7,
+					(token) -> {
+						// Send each token as gRPC message
+						try {
+							com.ai.va.grpc.ChatResponse tokenResponse = com.ai.va.grpc.ChatResponse.newBuilder()
+									.setSessionId(sessionId)
+									.setMessage(token)
+									.setIsFinal(false)
+									.build();
+
+							responseObserver.onNext(tokenResponse);
+						} catch (Exception e) {
+							logger.error("[ChatSession] Error sending gRPC token: {}", e.getMessage());
+						}
 					}
-				}
-			);
+					);
 
 			logger.debug("[ChatSession] gRPC streaming completed, full response length: {}", completeResponse.length());
 
@@ -788,10 +780,10 @@ public class ChatSessionService {
 					.setIntent(state.getCurrentIntent())
 					.setIsFinal(true)
 					.build();
-			
+
 			responseObserver.onNext(finalResponse);
 			responseObserver.onCompleted();
-			
+
 			logger.info("[ChatSession] gRPC streaming message processing completed successfully");
 
 		} catch (Exception e) {
@@ -855,8 +847,7 @@ public class ChatSessionService {
 	 * Check if user message contains location information and context suggests location query
 	 */
 	private boolean shouldProvideLocationData(SessionState state, String userMessage) {
-		// Check if previous intent or current context suggests location query
-		String intent = state.getCurrentIntent();
+		state.getCurrentIntent();
 		List<Turn> transcript = state.getTranscript();
 
 		// Look at last few turns for location-related keywords

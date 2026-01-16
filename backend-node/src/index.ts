@@ -3,12 +3,14 @@ import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
 import session from 'express-session';
+import RedisStore from 'connect-redis';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
 import { connectDB } from './config/database';
+import { connectRedis, redisClient } from './config/redis';
 import { initializeSocketIO } from './config/socket';
 import authRoutes, { ensureDevTenant } from './routes/auth';
 import userRoutes from './routes/user';
@@ -26,10 +28,17 @@ import assistantChannelsRoutes from './routes/assistant-channels-routes-v2';
 import promptRoutes from './routes/prompt-routes-v2';
 import subscriptionsRoutes from './routes/subscriptions-routes';
 import circuitRoutes from './routes/circuit-routes';
+import healthRoutes from './routes/health-routes';
 import './config/passport';
+import logger from './utils/logger';
+import { correlationIdMiddleware, requestLoggerMiddleware, errorLoggerMiddleware } from './middleware/requestLogger';
 
 dotenv.config();
-console.log("Environment:", process.env.NODE_ENV);
+logger.info('Application starting', { 
+  environment: process.env.NODE_ENV,
+  port: process.env.PORT || 5000,
+  nodeVersion: process.version
+});
 
 const app = express();
 const httpServer = createServer(app);
@@ -44,12 +53,26 @@ app.locals.io = io;
 // Initialize MongoDB connection
 connectDB()
   .then(async () => {
+    logger.info('MongoDB connected successfully');
     // Initialize development tenant after DB connection
     await ensureDevTenant();
+    logger.info('Development tenant initialized');
   })
   .catch(err => {
-    console.error('Failed to connect to MongoDB:', err);
+    logger.error('Failed to connect to MongoDB', { error: err.message, stack: err.stack });
+    console.error('MongoDB Error:', err);
     process.exit(1);
+  });
+
+// Initialize Redis connection (async, non-blocking)
+connectRedis()
+  .then(() => {
+    // Redis connected successfully
+    // Update session store if needed (requires server restart to pick up)
+    logger.info('Redis available for session storage');
+  })
+  .catch(err => {
+    logger.warn('Redis connection failed - using memory store for sessions', { error: err.message });
   });
 
 // Middleware
@@ -59,7 +82,13 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(session({
+
+// Add correlation ID and request logging
+app.use(correlationIdMiddleware);
+app.use(requestLoggerMiddleware);
+
+// Configure Redis store for sessions
+const sessionConfig: session.SessionOptions = {
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
@@ -70,7 +99,31 @@ app.use(session({
     sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
-}));
+};
+
+// Use Redis store if connected, otherwise fallback to memory store
+// Note: Redis connection is async, so this checks current state at startup
+setTimeout(() => {
+  if (redisClient.isReady) {
+    logger.info('Redis is ready - sessions will be stored in Redis');
+  } else {
+    logger.warn('Redis not ready - sessions are using memory store');
+  }
+}, 2000);
+
+// Configure session store
+if (redisClient.isOpen) {
+  sessionConfig.store = new RedisStore({
+    client: redisClient,
+    prefix: 'sess:',
+    ttl: 86400 // 24 hours in seconds
+  });
+  logger.info('Configuring Redis for session storage');
+} else {
+  logger.warn('Redis not yet connected - using memory store for sessions (not recommended for production)');
+}
+
+app.use(session(sessionConfig));
 
 // Passport middleware (works with or without OAuth configured)
 app.use(passport.initialize());
@@ -93,6 +146,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/assistant-channels', assistantChannelsRoutes);
 app.use('/api/prompts', promptRoutes);
 app.use('/api/circuit', circuitRoutes);
+app.use('/api/health', healthRoutes);
 
 // Load OpenAPI specification
 const openapiPath = path.join(__dirname, '..', 'openapi.yaml');
@@ -104,13 +158,19 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
   customSiteTitle: 'AI Services Platform API Documentation'
 }));
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
+// Legacy health check endpoint (kept for backward compatibility)
+app.get('/health', (req, res) => {
+  res.redirect(301, '/api/health');
 });
 
+// Error logging middleware (before error handlers)
+app.use(errorLoggerMiddleware);
+
 httpServer.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
-  console.log(`Socket.IO enabled for real-time communication`);
+  logger.info('Server started successfully', {
+    port: PORT,
+    apiDocs: `http://localhost:${PORT}/api-docs`,
+    socketIO: 'enabled',
+    environment: process.env.NODE_ENV
+  });
 });

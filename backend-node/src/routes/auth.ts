@@ -9,6 +9,7 @@ import { getDB } from '../config/database';
 import { Tenant } from '../models/Tenant';
 import { UserDocument } from '../models/User';
 import { sendVerificationEmail, sendCompanySetupCompleteEmail } from '../services/email.service';
+import logger from '../utils/logger';
 
 const router = express.Router();
 
@@ -45,12 +46,12 @@ export const ensureDevTenant = async () => {
         };
         
         await db.collection<Tenant>('tenants').insertOne(devTenant as any);
-        console.log(`✓ Development tenant created: ${DEV_TENANT_ID}`);
+        logger.info(`✓ Development tenant created: ${DEV_TENANT_ID}`);
       } else {
-        console.log(`✓ Development tenant exists: ${DEV_TENANT_ID}`);
+        logger.info(`✓ Development tenant exists: ${DEV_TENANT_ID}`);
       }
     } catch (error) {
-      console.error('Failed to create development tenant:', error);
+      logger.error('Failed to create development tenant:', error);
     }
   }
 };

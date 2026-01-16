@@ -9,7 +9,7 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { CircuitBreaker } from './circuitBreaker';
+import { CircuitBreaker, registerCircuitBreaker } from './circuitBreaker';
 
 export interface ApiClientConfig {
   baseURL: string;
@@ -72,6 +72,9 @@ export class ApiClient {
       successThreshold: config.circuitBreakerConfig?.successThreshold || 2,
       timeout: config.circuitBreakerConfig?.timeout || 60000, // 1 minute
     });
+
+    // Register circuit breaker for health checks
+    registerCircuitBreaker(this.name, this.circuitBreaker);
   }
 
   /**

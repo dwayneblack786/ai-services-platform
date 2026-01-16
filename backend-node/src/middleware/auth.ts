@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { users } from '../config/passport';
 import { getDB } from '../config/database';
 import { UserDocument } from '../models/User';
-
+import logger from '../utils/logger';
 /**
  * Verify JWT token and return decoded payload
  * Used by both Express middleware and Socket.IO
@@ -15,11 +15,14 @@ export const verifyToken = (token: string) => {
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.token;
 
-  console.log('==== Auth Middleware ====');
-  console.log('Has token:', !!token);
+  // console.log('==== Auth Middleware ====');
+  // console.log('Has token:', !!token);
 
   if (!token) {
-    console.log('❌ No token in cookies');
+    logger.warn('Authentication failed - No token in cookies', {
+      url: req.originalUrl,
+      ip: req.ip
+    });
     return res.status(401).json({ error: 'Authentication required' });
   }
 
@@ -27,12 +30,12 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as { id: string; email: string };
     let user = users.get(decoded.id);
     
-    console.log('Decoded JWT:', decoded);
-    console.log('Found user in memory map:', !!user);
+    // console.log('Decoded JWT:', decoded);
+    // console.log('Found user in memory map:', !!user);
     
     // If user not in memory, try loading from database
     if (!user) {
-      console.log('User not in memory, checking database...');
+      logger.debug('User not in memory, checking database', { userId: decoded.id, email: decoded.email });
       const db = getDB();
       const userDoc = await db.collection<UserDocument>('users').findOne({ 
         $or: [
@@ -43,7 +46,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       });
       
       if (userDoc) {
-        console.log('✓ User found in database:', userDoc.email);
+        logger.info('User found in database and cached', { email: userDoc.email, userId: userDoc.id });
         // Convert UserDocument to User and cache in memory
         user = {
           id: userDoc.id || userDoc._id?.toString() || decoded.id,
@@ -63,16 +66,25 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     }
     
     if (!user) {
-      console.log('❌ User not found in database for:', decoded);
-      console.log('Available user IDs in memory:', Array.from(users.keys()));
+      logger.error('User not found in database', {
+        decoded,
+        availableUserIds: Array.from(users.keys())
+      });
       return res.status(401).json({ error: 'User not found' });
     }
-    console.log('✓✓✓✓✓✓✓✓✓✓✓ User requested route :', req.originalUrl,'✓✓✓✓✓✓✓✓✓✓✓✓✓');
-    // console.log('✓ User authenticated:', { id: user.id, email: user.email, tenantId: user.tenantId });
+    logger.info('User authenticated successfully', {
+      userId: user.id,
+      email: user.email,
+      tenantId: user.tenantId,
+      route: req.originalUrl
+    });
     req.user = user;
     next();
   } catch (error) {
-    console.log('❌ Token verification failed:', error);
+    logger.error('Token verification failed', {
+      error: error instanceof Error ? error.message : String(error),
+      url: req.originalUrl
+    });
     return res.status(403).json({ error: 'Invalid token' });
   }
 };
