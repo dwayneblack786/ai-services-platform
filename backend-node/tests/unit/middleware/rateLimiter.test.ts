@@ -4,6 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { UserRole } from '../../../shared/types';
 import {
   streamRateLimiter,
   trackTokenUsage,
@@ -63,7 +64,7 @@ describe('Rate Limiter Middleware', () => {
     id: 'user-123',
     email: 'test@example.com',
     name: 'Test User',
-    role: 'user' as const,
+    role: UserRole.CLIENT,
     tenantId: 'tenant-123',
     emailVerified: true,
     companyDetailsCompleted: true,
