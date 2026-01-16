@@ -106,7 +106,7 @@ const Products = () => {
     if (hasProduct(productId)) {
       navigate(`/products/${productId}/configure`);
     } else {
-      navigate(`/products/${productId}/signup`);
+      navigate(`/products/${productId}/explore`);
     }
   };
 
@@ -404,7 +404,7 @@ const Products = () => {
                 onMouseEnter={(e) => e.currentTarget.style.background = '#45a049'}
                 onMouseLeave={(e) => e.currentTarget.style.background = '#4CAF50'}
               >
-                Sign Up
+                Explore
               </button>
             )}
           </div>

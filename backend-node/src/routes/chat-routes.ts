@@ -1,7 +1,9 @@
 import express, { Request, Response } from 'express';
 import { authenticateToken } from '../middleware/auth';
+import { streamRateLimiter, trackTokenUsage } from '../middleware/rateLimiter';
 import { getDB } from '../config/database';
 import { javaVAClient } from '../services/apiClient';
+import fetch from 'node-fetch';
 
 const router = express.Router();
 
@@ -238,12 +240,115 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
       requiresAction: response.requiresAction
     });
 
+    return res.json(response);
+
   } catch (error) {
     console.error('[Chat Message] Error:', error);
     return res.status(500).json({ 
       error: 'Failed to process message',
       circuitState: javaVAClient.getCircuitState()
     });
+  }
+});
+
+// GET /chat/message/stream
+// Stream chat messages with SSE (Server-Sent Events)
+router.get('/message/stream', authenticateToken, streamRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { sessionId, message } = req.query;
+
+    console.log('[Chat Stream]', { sessionId, messageLength: (message as string)?.length });
+
+    if (!sessionId || !message) {
+      return res.status(400).json({ 
+        error: 'Missing required query params: sessionId and message' 
+      });
+    }
+
+    const userId = (req as any).user?.id || (req as any).user?.email || 'anonymous';
+    let tokenCount = 0;
+
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+
+    // Forward to Java VA service SSE endpoint
+    const javaUrl = `${process.env.JAVA_VA_SERVICE_URL || 'http://localhost:8136'}/chat/message/stream?sessionId=${sessionId}&message=${encodeURIComponent(message as string)}`;
+    
+    console.log('[Chat Stream] Connecting to Java SSE:', javaUrl);
+
+    const javaResponse = await fetch(javaUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/event-stream',
+      },
+    });
+
+    if (!javaResponse.ok) {
+      console.error('[Chat Stream] Java service error:', javaResponse.status);
+      res.write(`event: error\ndata: ${JSON.stringify({ error: 'Service error' })}\n\n`);
+      res.end();
+      return;
+    }
+
+    console.log('[Chat Stream] Connected to Java SSE, streaming...');
+
+    let streamClosed = false;
+
+    // Stream response from Java to client
+    javaResponse.body?.on('data', (chunk: Buffer) => {
+      if (!streamClosed) {
+        // Count tokens (rough estimate - each "token" event)
+        const chunkStr = chunk.toString();
+        if (chunkStr.includes('event: token')) {
+          tokenCount++;
+        }
+        res.write(chunk);
+      }
+    });
+
+    javaResponse.body?.on('end', () => {
+      if (!streamClosed) {
+        console.log('[Chat Stream] Stream completed');
+        streamClosed = true;
+        
+        // Track token usage for rate limiting
+        trackTokenUsage(userId, tokenCount);
+        
+        res.end();
+      }
+    });
+
+    javaResponse.body?.on('error', (error: Error) => {
+      if (!streamClosed) {
+        console.error('[Chat Stream] Stream error:', error);
+        streamClosed = true;
+        res.write(`event: error\ndata: ${JSON.stringify({ error: 'Stream error' })}\n\n`);
+        res.end();
+      }
+    });
+
+    // Handle client disconnect
+    req.on('close', () => {
+      console.log('[Chat Stream] Client disconnected');
+      streamClosed = true;
+      
+      // Track token usage even on disconnect
+      if (tokenCount > 0) {
+        trackTokenUsage(userId, tokenCount);
+      }
+    });
+
+  } catch (error) {
+    console.error('[Chat Stream] Error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Failed to stream message',
+        circuitState: javaVAClient.getCircuitState()
+      });
+    }
   }
 });
 
@@ -312,6 +417,33 @@ router.get('/history/:sessionId', authenticateToken, async (req: Request, res: R
   } catch (error) {
     console.error('[Chat History] Error:', error);
     return res.status(500).json({ error: 'Failed to retrieve history' });
+  }
+});
+
+// GET /chat/rate-limit/stats
+// Get rate limiting statistics for current user (or all users if admin)
+router.get('/rate-limit/stats', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id || (req as any).user?.email || 'anonymous';
+    const { getUserStats, getRateLimiterConfig } = await import('../middleware/rateLimiter');
+    
+    const userStats = getUserStats(userId);
+    
+    // Only admins can see global stats
+    const isAdmin = (req as any).user?.role === 'admin';
+    const response: any = {
+      userId,
+      stats: userStats
+    };
+    
+    if (isAdmin) {
+      response.global = getRateLimiterConfig();
+    }
+    
+    res.json(response);
+  } catch (error) {
+    console.error('[Chat Rate Limit Stats] Error:', error);
+    res.status(500).json({ error: 'Failed to get rate limit stats' });
   }
 });
 

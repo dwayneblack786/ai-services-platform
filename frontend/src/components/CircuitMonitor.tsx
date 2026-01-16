@@ -23,18 +23,35 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
   const [showFullStats, setShowFullStats] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const updateStats = () => {
-    const circuitState = apiClient.getCircuitState();
-    const circuitStats = apiClient.getStats();
-    
-    setStats({
-      state: circuitState as 'CLOSED' | 'OPEN' | 'HALF_OPEN',
-      failureCount: circuitStats.failureCount,
-      successCount: circuitStats.successCount,
-      totalRequests: circuitStats.totalRequests,
-      lastFailureTime: circuitStats.lastFailureTime,
-      nextRetryTime: null
-    });
+  const updateStats = async () => {
+    try {
+      // Call backend circuit stats API
+      const response = await apiClient.get('/api/circuit/stats');
+      const backendStats = response.data.stats;
+      
+      setStats({
+        state: backendStats.state as 'CLOSED' | 'OPEN' | 'HALF_OPEN',
+        failureCount: backendStats.failureCount,
+        successCount: backendStats.successCount,
+        totalRequests: backendStats.totalRequests,
+        lastFailureTime: backendStats.lastFailureTime,
+        nextRetryTime: backendStats.nextAttemptTime
+      });
+    } catch (error) {
+      console.error('[CircuitMonitor] Failed to fetch circuit stats from backend:', error);
+      // Fallback to frontend circuit breaker state
+      const circuitState = apiClient.getCircuitState();
+      const circuitStats = apiClient.getStats();
+      
+      setStats({
+        state: circuitState as 'CLOSED' | 'OPEN' | 'HALF_OPEN',
+        failureCount: circuitStats.failureCount,
+        successCount: circuitStats.successCount,
+        totalRequests: circuitStats.totalRequests,
+        lastFailureTime: circuitStats.lastFailureTime,
+        nextRetryTime: null
+      });
+    }
   };
 
   useEffect(() => {
@@ -126,9 +143,17 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
             </div>
             
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                apiClient.resetCircuit();
+                try {
+                  // Call backend circuit reset API
+                  await apiClient.post('/api/circuit/reset');
+                  console.log('[CircuitMonitor] Circuit breaker reset successfully');
+                } catch (error) {
+                  console.error('[CircuitMonitor] Failed to reset circuit breaker:', error);
+                  // Fallback to frontend reset
+                  apiClient.resetCircuit();
+                }
                 // Force immediate update
                 setTimeout(() => updateStats(), 0);
               }}

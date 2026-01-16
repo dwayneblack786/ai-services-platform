@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.ai.va.model.ChatRequest;
 import com.ai.va.model.ChatResponse;
@@ -87,6 +88,30 @@ public class ChatSessionController {
 			logger.error("[ChatController] ERROR processing message for session {}: {}", request.getSessionId(), e.getMessage(), e);
 			throw new RuntimeException("Failed to process chat message: " + e.getMessage(), e);
 		}
+	}
+
+	/**
+	 * Process a chat message with SSE streaming
+	 * Streams tokens in real-time for improved UX
+	 * 
+	 * @param sessionId The session identifier
+	 * @param message The user's message
+	 * @return SseEmitter for streaming response tokens
+	 */
+	@GetMapping("/message/stream")
+	public SseEmitter streamMessage(@RequestParam String sessionId, @RequestParam String message) {
+		logger.info("[ChatController] Starting streaming message - sessionId: {}, message length: {}", sessionId, message.length());
+		
+		SseEmitter emitter = new SseEmitter(60000L); // 60 second timeout
+		
+		ChatRequest request = new ChatRequest();
+		request.setSessionId(sessionId);
+		request.setMessage(message);
+		
+		// Process message asynchronously with streaming
+		chatSessionService.processMessageStreaming(request, emitter);
+		
+		return emitter;
 	}
 
 	/**

@@ -7,6 +7,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -335,6 +337,163 @@ public class LlmClient {
         } catch (Exception e) {
             logger.error("[LLMClient] Connection test failed: {}", e.getMessage(), e);
             return false;
+        }
+    }
+
+    /**
+     * Stream chat completion with token-by-token callback
+     * Uses Server-Sent Events (SSE) format for real-time streaming
+     * 
+     * @param systemPrompt System-level instructions for the LLM
+     * @param userMessage User's message/query
+     * @param temperature Temperature setting (0.0 to 1.0)
+     * @param tokenCallback Consumer function called for each token
+     * @return Complete accumulated response text
+     */
+    public String streamChatCompletion(String systemPrompt, String userMessage, double temperature, Consumer<String> tokenCallback) throws Exception {
+        return streamChatCompletion(systemPrompt, userMessage, temperature, defaultModel, 2000, tokenCallback);
+    }
+
+    /**
+     * Stream chat completion with full configuration and token-by-token callback
+     * 
+     * @param systemPrompt System-level instructions for the LLM
+     * @param userMessage User's message/query
+     * @param temperature Temperature setting (0.0 to 1.0)
+     * @param model Model identifier
+     * @param maxTokens Maximum tokens to generate
+     * @param tokenCallback Consumer function called for each token
+     * @return Complete accumulated response text
+     */
+    public String streamChatCompletion(String systemPrompt, String userMessage, double temperature, String model, int maxTokens, Consumer<String> tokenCallback) throws Exception {
+        LogFactory.logEntry(logger, "streamChatCompletion", 
+            String.format("model=%s, temp=%.2f, maxTokens=%d", model, temperature, maxTokens));
+        
+        try {
+            // Validate inputs
+            if (userMessage == null || userMessage.trim().isEmpty()) {
+                logger.warn("[LLMClient] Empty user message provided");
+                throw new IllegalArgumentException("User message cannot be empty");
+            }
+            
+            String effectiveModel = model != null ? model : defaultModel;
+            
+            // Build messages array with system and user messages
+            List<Map<String, String>> messages = List.of(
+                Map.of("role", "system", "content", systemPrompt != null ? systemPrompt : "You are a helpful AI assistant."),
+                Map.of("role", "user", "content", userMessage)
+            );
+
+            // IMPORTANT: Add stream=true to enable SSE streaming
+            Map<String, Object> requestBody = Map.of(
+                "model", effectiveModel,
+                "messages", messages,
+                "temperature", temperature,
+                "max_tokens", maxTokens,
+                "stream", true  // Enable streaming mode
+            );
+
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
+            
+            LogFactory.debug(logger, "[LLMClient] Sending streaming request to: {} with model: {}", apiUrl, effectiveModel);
+            LogFactory.debug(logger, "[LLMClient] System prompt length: {} chars", systemPrompt != null ? systemPrompt.length() : 0);
+            LogFactory.debug(logger, "[LLMClient] User message length: {} chars", userMessage.length());
+
+            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "text/event-stream")  // SSE format
+                    .timeout(Duration.ofSeconds(timeout))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
+
+            // Add API key if provided and not default LM Studio value
+            if (apiKey != null && !apiKey.isEmpty() && !apiKey.equals("lm-studio")) {
+                requestBuilder.header("Authorization", "Bearer " + apiKey);
+            }
+
+            HttpRequest request = requestBuilder.build();
+            
+            long startTime = System.currentTimeMillis();
+            logger.info("[LLMClient] Starting streaming request...");
+            
+            // Use ofLines() to process response line-by-line as it arrives
+            HttpResponse<Stream<String>> response = httpClient.send(request, 
+                HttpResponse.BodyHandlers.ofLines());
+            
+            if (response.statusCode() != 200) {
+                String errorMsg = String.format("LLM API streaming request failed with status %d", response.statusCode());
+                logger.error("[LLMClient] Streaming error: {}", errorMsg);
+                throw new RuntimeException(errorMsg);
+            }
+
+            logger.info("[LLMClient] Streaming response started - Status: {}", response.statusCode());
+            
+            StringBuilder fullResponse = new StringBuilder();
+            
+            // Process SSE stream line by line
+            response.body().forEach(line -> {
+                try {
+                    if (line.isEmpty()) {
+                        return; // Skip empty lines
+                    }
+                    
+                    // SSE format: "data: {json}"
+                    if (line.startsWith("data: ")) {
+                        String data = line.substring(6); // Remove "data: " prefix
+                        
+                        // Check for stream end marker
+                        if (data.equals("[DONE]")) {
+                            logger.info("[LLMClient] Stream completed");
+                            return;
+                        }
+                        
+                        // Parse the JSON chunk
+                        Map<String, Object> chunk = objectMapper.readValue(data, Map.class);
+                        List<Map<String, Object>> choices = (List<Map<String, Object>>) chunk.get("choices");
+                        
+                        if (choices != null && !choices.isEmpty()) {
+                            Map<String, Object> firstChoice = choices.get(0);
+                            Map<String, Object> delta = (Map<String, Object>) firstChoice.get("delta");
+                            
+                            if (delta != null && delta.containsKey("content")) {
+                                String token = (String) delta.get("content");
+                                if (token != null && !token.isEmpty()) {
+                                    fullResponse.append(token);
+                                    
+                                    // Call token callback for real-time processing
+                                    if (tokenCallback != null) {
+                                        tokenCallback.accept(token);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("[LLMClient] Error processing SSE line: {}", e.getMessage());
+                }
+            });
+            
+            long duration = System.currentTimeMillis() - startTime;
+            String completeResponse = fullResponse.toString();
+            
+            logger.info("[LLMClient] Streaming completed ({}ms, {} chars)", duration, completeResponse.length());
+            LogFactory.logExit(logger, "streamChatCompletion", "success");
+            
+            return completeResponse;
+            
+        } catch (java.net.http.HttpTimeoutException e) {
+            logger.error("[LLMClient] Streaming request timed out after {} seconds", timeout);
+            throw new RuntimeException("LLM streaming request timed out after " + timeout + " seconds", e);
+        } catch (java.io.IOException e) {
+            logger.error("[LLMClient] Network error during streaming: {}", e.getMessage(), e);
+            throw new RuntimeException("Network error during streaming: " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("[LLMClient] Streaming request interrupted");
+            throw new RuntimeException("LLM streaming request was interrupted", e);
+        } catch (Exception e) {
+            logger.error("[LLMClient] Unexpected error in streamChatCompletion: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to stream chat completion: " + e.getMessage(), e);
         }
     }
 }

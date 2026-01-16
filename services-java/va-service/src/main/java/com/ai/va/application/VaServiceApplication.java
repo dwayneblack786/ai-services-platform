@@ -1,4 +1,4 @@
-package com.customer_service_ai.demo;
+package com.ai.va.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,17 +6,19 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.customer_service_ai", "com.ai.va"})
-public class CustomerServiceAiApplication {
+@EnableAsync
+@ComponentScan(basePackages = {"com.ai.va"})
+public class VaServiceApplication {
 
 	@Autowired
 	private Environment environment;
 
 	public static void main(String[] args) {
-		SpringApplication.run(CustomerServiceAiApplication.class, args);
+		SpringApplication.run(VaServiceApplication.class, args);
 	}
 
 	@EventListener(ApplicationReadyEvent.class)
@@ -48,6 +50,7 @@ public class CustomerServiceAiApplication {
 			"║  Chat Endpoints:                                             ║\n" +
 			"║    POST /chat/session    - Initialize chat session           ║\n" +
 			"║    POST /chat/message    - Process chat message              ║\n" +
+			"║    GET  /chat/message/stream - Stream chat (SSE)             ║\n" +
 			"║    POST /chat/end        - End chat session                  ║\n" +
 			"║    GET  /chat/history    - Get session history               ║\n" +
 			"║                                                              ║\n" +

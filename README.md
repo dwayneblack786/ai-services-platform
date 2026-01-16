@@ -127,7 +127,6 @@ A full-stack AI services platform with React (TypeScript) frontend, Node.js Expr
 │   └── tsconfig.json
 ├── services-java/          # Java Spring Boot microservices
 │   ├── common-libs/        # Shared libraries and utilities
-│   ├── _common-libs/       # Legacy shared libraries (deprecated)
 │   ├── cv-service/         # Computer Vision AI service
 │   ├── idp-service/        # Intelligent Document Processing service
 │   └── va-service/         # Virtual Assistant service

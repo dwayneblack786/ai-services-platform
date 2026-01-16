@@ -6,10 +6,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import io.grpc.stub.StreamObserver;
 
 import com.ai.common.logging.LogFactory;
 import com.ai.va.config.ApiEndpointsConfig;
@@ -582,6 +587,218 @@ public class ChatSessionService {
 			logger.error("[ChatSession] Error message: {}", e.getMessage());
 			logger.error("[ChatSession] ============================================", e);
 			throw new RuntimeException("Error processing chat message for sessionId: " + sessionId + " - " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * Process message with streaming support
+	 * Streams tokens via SSE while accumulating full response
+	 * 
+	 * @param request Chat request with sessionId and message
+	 * @param emitter SSE emitter for streaming tokens
+	 */
+	@Async
+	public void processMessageStreaming(ChatRequest request, SseEmitter emitter) {
+		String sessionId = request.getSessionId();
+		String userMessage = request.getMessage();
+
+		SessionState state = activeSessions.get(sessionId);
+		if (state == null) {
+			try {
+				emitter.completeWithError(new IllegalStateException("Session not found: " + sessionId));
+			} catch (Exception e) {
+				logger.error("[ChatSession] Error completing emitter with error: {}", e.getMessage());
+			}
+			return;
+		}
+
+		try {
+			logger.info("[ChatSession] Processing streaming message for session: {}", sessionId);
+
+			// Save user message to MongoDB
+			com.ai.va.model.ChatMessage userMsg = new com.ai.va.model.ChatMessage("user", userMessage);
+			saveChatHistory(sessionId, state.getCustomerId(), state.getProductId(), userMsg);
+
+			// 1. Add user message to conversation
+			state.addTurn(Turn.caller(userMessage));
+			logger.debug("[ChatSession] User message added, turn count: {}", state.getTranscript().size());
+
+			// 2. Process user input: detect intent and extract slots
+			logger.debug("[ChatSession] Processing user input through dialog manager...");
+			dialogManager.processUserInput(state, userMessage);
+			logger.debug("[ChatSession] Intent detected: {}", state.getCurrentIntent());
+
+			// 3. Build prompt
+			logger.debug("[ChatSession] Building prompt...");
+			String prompt = dialogManager.buildPrompt(state);
+			logger.debug("[ChatSession] Prompt length: {} characters", prompt.length());
+
+			// 4. Get channel configuration for system prompt
+			ChannelConfiguration config = configurationService.getChatConfiguration(
+					state.getCustomerId(), state.getProductId());
+			String systemPrompt = buildSystemPrompt(config, state);
+
+			// 5. Stream LLM response with token callback
+			logger.debug("[ChatSession] Starting LLM streaming...");
+			StringBuilder fullResponse = new StringBuilder();
+			
+			String completeResponse = llmClient.streamChatCompletion(
+				systemPrompt,
+				prompt,
+				0.7,
+				(token) -> {
+					// Send each token as SSE event
+					try {
+						Map<String, String> tokenData = new HashMap<>();
+						tokenData.put("token", token);
+						tokenData.put("sessionId", sessionId);
+						emitter.send(SseEmitter.event()
+								.name("token")
+								.data(tokenData));
+						fullResponse.append(token);
+					} catch (Exception e) {
+						logger.error("[ChatSession] Error sending token: {}", e.getMessage());
+					}
+				}
+			);
+
+			logger.debug("[ChatSession] Streaming completed, full response length: {}", completeResponse.length());
+
+			// 6. Add assistant response to conversation
+			state.addTurn(Turn.assistant(completeResponse));
+			saveState(sessionId, state);
+
+			// Save assistant message to MongoDB
+			com.ai.va.model.ChatMessage assistantMsg = new com.ai.va.model.ChatMessage(
+					"assistant", completeResponse, state.getCurrentIntent());
+			saveChatHistory(sessionId, state.getCustomerId(), state.getProductId(), assistantMsg);
+
+			// 7. Send completion event
+			Map<String, Object> completionData = new HashMap<>();
+			completionData.put("sessionId", sessionId);
+			completionData.put("intent", state.getCurrentIntent());
+			completionData.put("complete", true);
+			
+			emitter.send(SseEmitter.event()
+					.name("complete")
+					.data(completionData));
+			
+			emitter.complete();
+			logger.info("[ChatSession] Streaming message processing completed successfully");
+
+		} catch (Exception e) {
+			logger.error("[ChatSession] ERROR in streaming message for session: {}", sessionId, e);
+			try {
+				Map<String, String> errorData = new HashMap<>();
+				errorData.put("error", e.getMessage());
+				emitter.send(SseEmitter.event()
+						.name("error")
+						.data(errorData));
+				emitter.completeWithError(e);
+			} catch (Exception sendError) {
+				logger.error("[ChatSession] Error sending error event: {}", sendError.getMessage());
+			}
+		}
+	}
+
+	/**
+	 * Process message with gRPC streaming support
+	 * Streams tokens via gRPC StreamObserver while accumulating full response
+	 * 
+	 * @param sessionId Session identifier
+	 * @param userMessage User's message
+	 * @param responseObserver gRPC StreamObserver for streaming tokens
+	 */
+	@Async
+	public void processMessageStreamingGrpc(String sessionId, String userMessage, 
+			StreamObserver<com.ai.va.grpc.ChatResponse> responseObserver) {
+		
+		SessionState state = activeSessions.get(sessionId);
+		if (state == null) {
+			responseObserver.onError(io.grpc.Status.NOT_FOUND
+					.withDescription("Session not found: " + sessionId)
+					.asRuntimeException());
+			return;
+		}
+
+		try {
+			logger.info("[ChatSession] Processing gRPC streaming message for session: {}", sessionId);
+
+			// Save user message to MongoDB
+			com.ai.va.model.ChatMessage userMsg = new com.ai.va.model.ChatMessage("user", userMessage);
+			saveChatHistory(sessionId, state.getCustomerId(), state.getProductId(), userMsg);
+
+			// 1. Add user message to conversation
+			state.addTurn(Turn.caller(userMessage));
+			logger.debug("[ChatSession] User message added, turn count: {}", state.getTranscript().size());
+
+			// 2. Process user input: detect intent and extract slots
+			logger.debug("[ChatSession] Processing user input through dialog manager...");
+			dialogManager.processUserInput(state, userMessage);
+			logger.debug("[ChatSession] Intent detected: {}", state.getCurrentIntent());
+
+			// 3. Build prompt
+			logger.debug("[ChatSession] Building prompt...");
+			String prompt = dialogManager.buildPrompt(state);
+			logger.debug("[ChatSession] Prompt length: {} characters", prompt.length());
+
+			// 4. Get channel configuration for system prompt
+			ChannelConfiguration config = configurationService.getChatConfiguration(
+					state.getCustomerId(), state.getProductId());
+			String systemPrompt = buildSystemPrompt(config, state);
+
+			// 5. Stream LLM response with token callback for gRPC
+			logger.debug("[ChatSession] Starting LLM streaming via gRPC...");
+			
+			String completeResponse = llmClient.streamChatCompletion(
+				systemPrompt,
+				prompt,
+				0.7,
+				(token) -> {
+					// Send each token as gRPC message
+					try {
+						com.ai.va.grpc.ChatResponse tokenResponse = com.ai.va.grpc.ChatResponse.newBuilder()
+								.setSessionId(sessionId)
+								.setMessage(token)
+								.setIsFinal(false)
+								.build();
+						
+						responseObserver.onNext(tokenResponse);
+					} catch (Exception e) {
+						logger.error("[ChatSession] Error sending gRPC token: {}", e.getMessage());
+					}
+				}
+			);
+
+			logger.debug("[ChatSession] gRPC streaming completed, full response length: {}", completeResponse.length());
+
+			// 6. Add assistant response to conversation
+			state.addTurn(Turn.assistant(completeResponse));
+			saveState(sessionId, state);
+
+			// Save assistant message to MongoDB
+			com.ai.va.model.ChatMessage assistantMsg = new com.ai.va.model.ChatMessage(
+					"assistant", completeResponse, state.getCurrentIntent());
+			saveChatHistory(sessionId, state.getCustomerId(), state.getProductId(), assistantMsg);
+
+			// 7. Send final completion message
+			com.ai.va.grpc.ChatResponse finalResponse = com.ai.va.grpc.ChatResponse.newBuilder()
+					.setSessionId(sessionId)
+					.setMessage(completeResponse)
+					.setIntent(state.getCurrentIntent())
+					.setIsFinal(true)
+					.build();
+			
+			responseObserver.onNext(finalResponse);
+			responseObserver.onCompleted();
+			
+			logger.info("[ChatSession] gRPC streaming message processing completed successfully");
+
+		} catch (Exception e) {
+			logger.error("[ChatSession] ERROR in gRPC streaming message for session: {}", sessionId, e);
+			responseObserver.onError(io.grpc.Status.INTERNAL
+					.withDescription("Error processing message: " + e.getMessage())
+					.asRuntimeException());
 		}
 	}
 

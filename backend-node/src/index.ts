@@ -25,6 +25,7 @@ import chatRoutes from './routes/chat-routes';
 import assistantChannelsRoutes from './routes/assistant-channels-routes-v2';
 import promptRoutes from './routes/prompt-routes-v2';
 import subscriptionsRoutes from './routes/subscriptions-routes';
+import circuitRoutes from './routes/circuit-routes';
 import './config/passport';
 
 dotenv.config();
@@ -91,6 +92,7 @@ app.use('/api/usage', usageRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/assistant-channels', assistantChannelsRoutes);
 app.use('/api/prompts', promptRoutes);
+app.use('/api/circuit', circuitRoutes);
 
 // Load OpenAPI specification
 const openapiPath = path.join(__dirname, '..', 'openapi.yaml');

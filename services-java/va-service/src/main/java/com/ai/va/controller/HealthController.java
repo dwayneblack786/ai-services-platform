@@ -1,4 +1,4 @@
-package com.customer_service_ai.common.controller;
+package com.ai.va.controller;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +12,7 @@ import java.util.Map;
 
 /**
  * Health Check and Root Controller
- * Common controller shared across all services
- * Provides server status and health check endpoints
+ * Provides server status and health check endpoints for VA service
  */
 @RestController
 public class HealthController {

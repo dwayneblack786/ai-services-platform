@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Products from './pages/Products';
 import ProductSignup from './pages/ProductSignup';
+import ProductExplore from './pages/ProductExplore';
 import ProductConfiguration from './pages/ProductConfiguration';
 import VirtualAssistantConfig from './pages/VirtualAssistantConfig';
 import IdpConfig from './pages/IdpConfig';
@@ -61,6 +62,14 @@ function App() {
             element={
               <Layout>
                 <Products />
+              </Layout>
+            }
+          />
+          <Route
+            path="/products/:productId/explore"
+            element={
+              <Layout>
+                <ProductExplore />
               </Layout>
             }
           />

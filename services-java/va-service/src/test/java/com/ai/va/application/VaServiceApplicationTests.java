@@ -1,10 +1,10 @@
-package com.customer_service_ai.demo;
+package com.ai.va.application;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CustomerServiceAiApplicationTests {
+class VaServiceApplicationTests {
 
 	@Test
 	void testHelloWorld() {

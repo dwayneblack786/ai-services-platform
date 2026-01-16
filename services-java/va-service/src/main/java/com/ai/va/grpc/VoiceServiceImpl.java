@@ -9,14 +9,17 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 /**
  * gRPC implementation of VoiceService
  * Provides voice conversation capabilities
  * Note: Full bidirectional streaming implementation pending - requires STT/TTS integration
+ * DISABLED: Waiting for VoiceSessionService and related models to be implemented
  */
 @Service
+@Profile("voice")  // Only activate when 'voice' profile is enabled
 public class VoiceServiceImpl extends VoiceServiceImplBase {
 
     private static final Logger logger = LogFactory.getLogger(VoiceServiceImpl.class);

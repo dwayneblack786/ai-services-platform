@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../services/apiClient';
 import { useSocket } from '../hooks/useSocket';
 
@@ -51,7 +51,7 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Socket.IO connection
-  const { socket, isConnected, connect, disconnect } = useSocket({
+  const { socket, isConnected } = useSocket({
     autoConnect: useWebSocket,
     onConnect: () => {
       console.log('[Chat] WebSocket connected');
@@ -240,7 +240,11 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       
       // If resuming session, load history
       if (response.data.status === 'resumed' && response.data.messages) {
-        setMessages(response.data.messages.map(msg => normalizeMessage(msg)));
+        setMessages(response.data.messages.map((msg: any) => normalizeMessage({
+          role: msg.role,
+          content: msg.content,
+          intent: msg.intent
+        })));
       } else {
         // New session - show greeting
         const greeting = response.data.chatConfig?.greeting || 
@@ -339,48 +343,73 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         });
         // Loading will be cleared when response is received
       } else {
-        // Fallback to REST API
-        console.log('[Chat] Sending via REST API');
-        const response = await apiClient.post<ChatResponse>('/api/chat/message', {
-          sessionId,
-          message: messageToSend
+        // Use SSE streaming for progressive response
+        console.log('[Chat] Sending via SSE streaming');
+        
+        // Create placeholder message for streaming
+        const streamingMessage: Message = {
+          role: 'assistant',
+          content: '',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, streamingMessage]);
+        
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const eventSource = new EventSource(
+          `${apiUrl}/api/chat/message/stream?sessionId=${sessionId}&message=${encodeURIComponent(messageToSend)}`,
+          { withCredentials: true }
+        );
+
+        let accumulatedContent = '';
+
+        eventSource.addEventListener('token', (event) => {
+          const data = JSON.parse(event.data);
+          accumulatedContent += data.token;
+          
+          // Update the last message with accumulated content
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              content: accumulatedContent
+            };
+            return updated;
+          });
         });
 
-        console.log('Chat response from send message:', response);
-        
-        // Handle multiple messages (proactive follow-ups)
-        if (response.data.messages && response.data.messages.length > 0) {
-          // Display messages sequentially with delay
-          for (let i = 0; i < response.data.messages.length; i++) {
-            await new Promise(resolve => setTimeout(resolve, i === 0 ? 0 : 1500)); // 1.5s delay between messages
-            
-            const assistantMessage = normalizeMessage({
-              role: 'assistant',
-              content: response.data.messages[i] || '',
-              intent: i === 0 ? response.data.intent : undefined
-            });
-            
-            setMessages(prev => [...prev, assistantMessage]);
-          }
-        } else {
-          // Single message (backward compatibility)
-          const assistantMessage = normalizeMessage({
-            role: 'assistant',
-            content: response.data.message || '',
-            intent: response.data.intent
+        eventSource.addEventListener('complete', (event) => {
+          const data = JSON.parse(event.data);
+          console.log('[Chat] Stream complete:', data);
+          
+          // Update final message with intent
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              content: accumulatedContent,
+              intent: data.intent
+            };
+            return updated;
           });
+          
+          setIsLoading(false);
+          eventSource.close();
+        });
 
-          setMessages(prev => [...prev, assistantMessage]);
-        }
+        eventSource.addEventListener('error', (event) => {
+          console.error('[Chat] SSE error:', event);
+          setError('Stream connection error. Please try again.');
+          setIsLoading(false);
+          eventSource.close();
+        });
 
-        // Handle special actions
-        if (response.data.requiresAction) {
-          setRequiresAction(true);
-          setSuggestedAction(response.data.suggestedAction || 'unknown');
-          console.log('Action required:', response.data.suggestedAction);
-        }
-        
-        setIsLoading(false);
+        eventSource.onerror = (error) => {
+          console.error('[Chat] EventSource error:', error);
+          setError('Failed to stream response. Please try again.');
+          setIsLoading(false);
+          eventSource.close();
+        };
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.error || 'Failed to send message. Please try again.';

@@ -2,7 +2,6 @@ package com.ai.va.config;
 
 import com.ai.common.logging.LogFactory;
 import com.ai.va.grpc.ChatServiceImpl;
-import com.ai.va.grpc.VoiceServiceImpl;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import org.slf4j.Logger;
@@ -11,8 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 
 /**
@@ -30,28 +29,38 @@ public class GrpcServerConfig {
     @Autowired
     private ChatServiceImpl chatService;
 
-    @Autowired
-    private VoiceServiceImpl voiceService;
-
     private Server grpcServer;
 
+    public GrpcServerConfig() {
+        logger.info("🔧 GrpcServerConfig constructor called - bean is being created");
+    }
+
     @PostConstruct
-    public void startGrpcServer() throws IOException {
-        grpcServer = ServerBuilder.forPort(grpcPort)
-            .addService(chatService)
-            .addService(voiceService)
-            .build()
-            .start();
+    public void startGrpcServer() {
+        try {
+            logger.info("Initializing gRPC Server on port {}...", grpcPort);
+            
+            grpcServer = ServerBuilder.forPort(grpcPort)
+                .addService(chatService)
+                .build()
+                .start();
 
-        logger.info("✅ gRPC Server started on port {}", grpcPort);
+            logger.info("✅ gRPC Server started successfully on port {}", grpcPort);
 
-        // Graceful shutdown hook
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.info("Shutting down gRPC server");
-            if (grpcServer != null) {
-                grpcServer.shutdown();
-            }
-        }));
+            // Graceful shutdown hook
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                logger.info("Shutting down gRPC server");
+                if (grpcServer != null) {
+                    grpcServer.shutdown();
+                }
+            }));
+        } catch (IOException e) {
+            logger.error("❌ Failed to start gRPC server on port {}: {}", grpcPort, e.getMessage(), e);
+            throw new RuntimeException("Failed to start gRPC server", e);
+        } catch (Exception e) {
+            logger.error("❌ Unexpected error starting gRPC server: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to start gRPC server", e);
+        }
     }
 
     @PreDestroy

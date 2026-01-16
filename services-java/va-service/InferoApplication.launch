@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-        <listEntry value="/infero/src/main/java/com/customer_service_ai/demo/CustomerServiceAiApplication.java"/>
+        <listEntry value="/va-service/src/main/java/com/ai/va/application/VaServiceApplication.java"/>
     </listAttribute>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="1"/>
@@ -10,8 +10,8 @@
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_SHOW_CODEDETAILS_IN_EXCEPTION_MESSAGES" value="true"/>
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
     <stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.m2e.launchconfig.classpathProvider"/>
-    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.customer_service_ai.demo.CustomerServiceAiApplication"/>
-    <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="infero"/>
-    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="infero"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.ai.va.application.VaServiceApplication"/>
+    <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="va-service"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="va-service"/>
     <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
 </launchConfiguration>

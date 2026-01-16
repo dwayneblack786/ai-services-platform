@@ -62,34 +62,12 @@ public class ChatServiceImpl extends ChatServiceImplBase {
             logger.info("gRPC SendMessageStream - sessionId: {}, message: {}", 
                 request.getSessionId(), request.getMessage());
 
-            // Convert gRPC request to internal model
-            com.ai.va.model.ChatRequest internalRequest = new com.ai.va.model.ChatRequest();
-            internalRequest.setSessionId(request.getSessionId());
-            internalRequest.setMessage(request.getMessage());
-            
-            // Process message using existing service
-            com.ai.va.model.ChatResponse internalResponse = chatSessionService.processMessage(internalRequest);
-            
-            // For now, just send complete response (token streaming requires LLM client modification)
-            ChatResponse.Builder builder = ChatResponse.newBuilder()
-                .setSessionId(request.getSessionId())
-                .setMessage(internalResponse.getMessage())
-                .setIsFinal(true);
-            
-            if (internalResponse.getIntent() != null) {
-                builder.setIntent(internalResponse.getIntent());
-            }
-            
-            if (internalResponse.isRequiresAction()) {
-                builder.setRequiresAction(true);
-                if (internalResponse.getSuggestedAction() != null) {
-                    builder.setSuggestedAction(internalResponse.getSuggestedAction());
-                }
-            }
-            
-            // TODO: Implement actual token-by-token streaming when LLM client supports it
-            responseObserver.onNext(builder.build());
-            responseObserver.onCompleted();
+            // Use async processing to avoid blocking gRPC thread
+            chatSessionService.processMessageStreamingGrpc(
+                request.getSessionId(),
+                request.getMessage(),
+                responseObserver
+            );
 
         } catch (Exception e) {
             logger.error("Error in sendMessageStream gRPC", e);
