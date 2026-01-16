@@ -1,0 +1,39 @@
+[
+  {
+    "id": "test-user-001",
+    "email": "admin@test.com",
+    "name": "Test Admin",
+    "role": "admin",
+    "tenantId": "test-tenant-001",
+    "emailVerified": true,
+    "companyDetailsCompleted": true,
+    "authProvider": "local",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "test-user-002",
+    "email": "user@test.com",
+    "name": "Test User",
+    "role": "user",
+    "tenantId": "test-tenant-001",
+    "emailVerified": true,
+    "companyDetailsCompleted": true,
+    "authProvider": "local",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "test-user-003",
+    "email": "manager@test.com",
+    "name": "Test Manager",
+    "role": "manager",
+    "tenantId": "test-tenant-002",
+    "emailVerified": true,
+    "companyDetailsCompleted": true,
+    "authProvider": "google",
+    "picture": "https://example.com/picture.jpg",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z"
+  }
+]

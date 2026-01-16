@@ -13,7 +13,7 @@ router.get('/active', authenticateToken, async (req, res) => {
   try {
     const user = req.user as any;
     
-    if (!user || !user.tenantId) {
+    if (!user?.tenantId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
@@ -86,7 +86,7 @@ router.get('/virtual-assistant', authenticateToken, async (req, res) => {
   try {
     const user = req.user as any;
     
-    if (!user || !user.tenantId) {
+    if (!user?.tenantId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 

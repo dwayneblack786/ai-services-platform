@@ -123,7 +123,7 @@ router.post('/', async (req, res) => {
 router.delete('/:productId', async (req, res) => {
   try {
     const user = req.user as any;
-    if (!user || user.role !== 'ADMIN') {
+    if (user?.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Admin access required' });
     }
 

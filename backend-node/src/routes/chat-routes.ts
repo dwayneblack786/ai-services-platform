@@ -127,7 +127,7 @@ router.post('/session', authenticateToken, async (req: Request, res: Response) =
     // Call Java VA service to initialize session
     // Java service will fetch full configuration from MongoDB via ConfigurationService
     const javaResponse = await javaVAClient.post(
-      `/chat/session`,
+      '/chat/session',
       { 
         customerId,
         productId: actualProductId 
@@ -221,7 +221,7 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
 
     // Forward to Java VA service
     const javaResponse = await javaVAClient.post<ChatResponse>(
-      `/chat/message`,
+      '/chat/message',
       { sessionId, message },
       { timeout: 30000 },
       () => ({
@@ -366,7 +366,7 @@ router.post('/end', authenticateToken, async (req: Request, res: Response) => {
 
     // Call Java VA service to end session
     await javaVAClient.post(
-      `/chat/end`,
+      '/chat/end',
       null,
       {
         params: { sessionId },

@@ -209,7 +209,7 @@ router.get('/:productId',
                     category: product.category,
                     description: product.description
                 } : null
-            }
+            };
 
             return res.json(reponse);
 

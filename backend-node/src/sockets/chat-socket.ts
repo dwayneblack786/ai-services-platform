@@ -83,7 +83,7 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
 
         // Forward to Java VA service
         const javaResponse = await javaVAClient.post(
-          `/chat/message`,
+          '/chat/message',
           { sessionId, message },
           { timeout: 30000 },
           () => ({
@@ -181,7 +181,7 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
 
         // Call Java VA service to end session
         await javaVAClient.post(
-          `/chat/end`,
+          '/chat/end',
           null,
           {
             params: { sessionId },

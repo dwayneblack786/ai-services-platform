@@ -205,10 +205,10 @@ router.patch('/:paymentMethodId', async (req, res) => {
     // Build update object
     const updateFields: any = { updatedAt: new Date() };
     
-    if (billingName) updateFields.billingName = billingName;
-    if (billingEmail) updateFields.billingEmail = billingEmail;
-    if (cardExpMonth) updateFields.cardExpMonth = parseInt(cardExpMonth);
-    if (cardExpYear) updateFields.cardExpYear = parseInt(cardExpYear);
+    if (billingName) {updateFields.billingName = billingName;}
+    if (billingEmail) {updateFields.billingEmail = billingEmail;}
+    if (cardExpMonth) {updateFields.cardExpMonth = parseInt(cardExpMonth);}
+    if (cardExpYear) {updateFields.cardExpYear = parseInt(cardExpYear);}
 
     // Check if card is expired with new expiration date
     if (cardExpMonth || cardExpYear) {

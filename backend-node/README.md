@@ -7,6 +7,7 @@ Node.js Express TypeScript middleware server that handles authentication, manage
 - [Structure](#structure)
 - [Installation](#installation)
 - [Environment Variables](#environment-variables)
+  - [Environment Configuration Guide](docs/ENVIRONMENT.md) 📖
 - [Running](#running)
   - [Development Mode](#development-mode)
   - [Production Mode](#production-mode)
@@ -26,6 +27,7 @@ Node.js Express TypeScript middleware server that handles authentication, manage
 
 ## Features
 
+- **Environment Validation** - Type-safe, validated configuration with startup checks ([Configuration Guide](docs/ENVIRONMENT.md))
 - **Circuit Breaker Pattern** - Automatic failure detection and recovery for Java microservice calls ([Implementation Guide](CIRCUIT_BREAKER_IMPLEMENTATION.md))
 - **Resilient API Client** - Exponential backoff retry logic with fallback responses
 - Google OAuth2 authentication with Passport.js
@@ -33,7 +35,7 @@ Node.js Express TypeScript middleware server that handles authentication, manage
 - JWT token-based session management
 - API proxy layer to Java microservices with fault tolerance
 - CORS configuration
-- TypeScript support
+- TypeScript support with strict type safety
 - Comprehensive API documentation (Swagger/OpenAPI)
 
 ## Structure
@@ -42,6 +44,7 @@ Node.js Express TypeScript middleware server that handles authentication, manage
 backend-node/
 ├── src/
 │   ├── config/
+│   │   ├── env.ts             # Environment validation & type-safe access ⭐ NEW
 │   │   ├── passport.ts        # Passport OAuth configuration
 │   │   ├── database.ts        # MongoDB connection
 │   │   └── socket.ts          # Socket.IO configuration
@@ -80,17 +83,73 @@ npm install
 
 ## Environment Variables
 
-Create a `.env` file in the server directory:
+> 📖 **[Complete Environment Configuration Guide](docs/ENVIRONMENT.md)** - Detailed documentation of all 30+ environment variables, validation, and security best practices.
+
+The application uses a comprehensive **environment validation system** that:
+- ✅ Validates all required variables on startup
+- ✅ Provides type-safe access (no more `process.env.VAR || 'default'`)
+- ✅ Validates formats (URLs, secrets, MongoDB URIs)
+- ✅ Warns about insecure settings in production
+- ✅ Fails fast with clear error messages
+
+### Quick Start
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Update required variables in `.env`:
 
 ```env
-PORT=5000
-GOOGLE_CLIENT_ID=your_google_client_id_here
-GOOGLE_CLIENT_SECRET=your_google_client_secret_here
-SESSION_SECRET=your_session_secret_here
-JWT_SECRET=your_jwt_secret_here
-CLIENT_URL=http://localhost:5173
+# Database & Cache
+MONGODB_URI=mongodb://localhost:27017/ai_platform
+REDIS_URL=redis://localhost:6379
+
+# Authentication (minimum 32 characters each)
+SESSION_SECRET=your-session-secret-here-min-32-chars
+JWT_SECRET=your-jwt-secret-here-min-32-chars
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_CALLBACK_URL=http://localhost:3001/api/auth/google/callback
+
+# Frontend
+FRONTEND_URL=http://localhost:5173
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+
+# Server
 NODE_ENV=development
+PORT=3001
+LOG_LEVEL=info
 ```
+
+3. The application will validate all variables on startup and exit with clear error messages if any are missing or invalid.
+
+### Validation Output
+
+**Success:**
+```
+✅ Environment validation passed
+   - Environment: development
+   - Port: 3001
+   - Database: mongodb://***:***@localhost:27017/ai_platform
+   - Redis: redis://localhost:6379
+   - Frontend: http://localhost:5173
+   - Rate Limiting: Enabled
+```
+
+**Failure:**
+```
+❌ Environment validation failed:
+   - Missing required environment variable: MONGODB_URI
+   - SESSION_SECRET must be at least 32 characters long for security
+
+Please check your .env file and ensure all required variables are set correctly.
+```
+
+See [.env.example](.env.example) for all available configuration options.
 
 ## Running
 
@@ -230,9 +289,50 @@ const response = await javaApi.users.getUsers();
 
 - JWT tokens stored in HTTP-only cookies
 - CORS configured for specific origin
-- Session secrets should be strong random strings
+- Session secrets should be strong random strings (minimum 32 characters)
 - OAuth credentials kept in environment variables
+- **Environment validation** ensures secure configuration in production
 - In production, set `NODE_ENV=production` and use HTTPS
+- Secure cookies automatically enabled in production (`SESSION_COOKIE_SECURE=true`)
+
+## TypeScript & Type Safety
+
+The codebase uses **TypeScript strict mode** with comprehensive type safety improvements:
+
+### Type-Safe Configuration
+```typescript
+import { env } from './config/env';
+
+// Before: process.env.PORT || 3001
+// After:  env.PORT  // typed as number
+
+// Before: process.env.RATE_LIMIT_ENABLED !== 'false'
+// After:  env.RATE_LIMIT_ENABLED  // typed as boolean
+```
+
+### Eliminated `any` Types
+Replaced 30+ `any` type instances with proper TypeScript interfaces:
+
+- **JWTPayload** - Type-safe JWT token structure ([src/types/jwt.types.ts](src/types/jwt.types.ts))
+- **LogMetadata** - Structured logging metadata ([src/utils/logger.ts](src/utils/logger.ts))
+- **Error Guards** - Type-safe error handling ([src/utils/error-guards.ts](src/utils/error-guards.ts))
+- **Express Extensions** - Typed `req.user` property via module augmentation
+- **API Client Generics** - Removed default `any` types, forcing explicit typing
+
+### Code Quality
+- **ESLint** configured with TypeScript rules
+- Warns on `any` usage
+- Enforces nullish coalescing over `||` operator
+- Catches floating promises
+- 79 passing tests with Jest
+
+Run quality checks:
+```bash
+npm run lint          # Check for issues
+npm run lint:fix      # Auto-fix what's possible
+npm test              # Run test suite
+npm run test:coverage # Check test coverage
+```
 
 ## Dependencies
 

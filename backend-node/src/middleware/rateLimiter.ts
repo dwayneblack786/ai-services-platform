@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
+import { env } from '../config/env';
 
 /**
  * Rate Limiter Configuration
@@ -14,11 +15,11 @@ interface RateLimitConfig {
 }
 
 const config: RateLimitConfig = {
-  maxConcurrentStreams: parseInt(process.env.RATE_LIMIT_CONCURRENT_STREAMS || '5'),
-  maxMessagesPerHour: parseInt(process.env.RATE_LIMIT_MESSAGES_PER_HOUR || '100'),
-  maxMessagesPerDay: parseInt(process.env.RATE_LIMIT_MESSAGES_PER_DAY || '1000'),
-  maxTokensPerDay: parseInt(process.env.RATE_LIMIT_TOKENS_PER_DAY || '50000'),
-  enabled: process.env.RATE_LIMIT_ENABLED !== 'false' // Enabled by default
+  maxConcurrentStreams: env.RATE_LIMIT_CONCURRENT_STREAMS,
+  maxMessagesPerHour: env.RATE_LIMIT_MESSAGES_PER_HOUR,
+  maxMessagesPerDay: env.RATE_LIMIT_MESSAGES_PER_DAY,
+  maxTokensPerDay: env.RATE_LIMIT_TOKENS_PER_DAY,
+  enabled: env.RATE_LIMIT_ENABLED
 };
 
 /**
@@ -110,7 +111,7 @@ export function streamRateLimiter(req: Request, res: Response, next: NextFunctio
     return next();
   }
 
-  const userId = (req as any).user?.id || (req as any).user?.email || 'anonymous';
+  const userId = req.user?.id || req.user?.email || 'anonymous';
   const limits = getUserLimits(userId);
   const currentHour = getCurrentHour();
   const currentDate = getCurrentDate();
@@ -208,7 +209,7 @@ export function streamRateLimiter(req: Request, res: Response, next: NextFunctio
  * Track token usage (call this when stream completes)
  */
 export function trackTokenUsage(userId: string, tokenCount: number) {
-  if (!config.enabled) return;
+  if (!config.enabled) {return;}
 
   const limits = getUserLimits(userId);
   const currentDate = getCurrentDate();
@@ -237,7 +238,7 @@ export function trackTokenUsage(userId: string, tokenCount: number) {
  * Check if user has exceeded token limit (optional check before starting stream)
  */
 export function checkTokenLimit(userId: string): boolean {
-  if (!config.enabled) return true;
+  if (!config.enabled) {return true;}
 
   const limits = getUserLimits(userId);
   const currentDate = getCurrentDate();

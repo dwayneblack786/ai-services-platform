@@ -271,11 +271,11 @@ router.put('/custom/:id',
         updatedAt: new Date()
       };
 
-      if (name) updates.name = name;
-      if (description !== undefined) updates.description = description;
-      if (industry) updates.industry = industry.toLowerCase();
-      if (voice) updates.voice = voice;
-      if (chat) updates.chat = chat;
+      if (name) {updates.name = name;}
+      if (description !== undefined) {updates.description = description;}
+      if (industry) {updates.industry = industry.toLowerCase();}
+      if (voice) {updates.voice = voice;}
+      if (chat) {updates.chat = chat;}
 
       const result = await db.collection('prompts').findOneAndUpdate(
         { _id: new ObjectId(id), tenantId },

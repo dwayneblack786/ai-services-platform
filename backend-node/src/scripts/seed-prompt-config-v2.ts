@@ -241,7 +241,7 @@ async function seedPromptConfiguration() {
       _id: existingChannel._id
     });
 
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${  '='.repeat(60)}`);
     console.log('✅ CONFIGURATION UPDATED SUCCESSFULLY!');
     console.log('='.repeat(60));
     console.log('\n📋 Basic Info:');
@@ -274,7 +274,7 @@ async function seedPromptConfiguration() {
     console.log('  RAG Sources:', updated?.voice?.ragConfig?.sources?.length, 'items');
     console.log('  Max Results:', updated?.voice?.ragConfig?.maxResults);
     console.log('  Confidence Threshold:', updated?.voice?.ragConfig?.confidenceThreshold);
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${  '='.repeat(60)}`);
 
   } catch (error) {
     console.error('\n❌ Error seeding prompt configuration:', error);

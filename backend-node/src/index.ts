@@ -1,4 +1,3 @@
-import * as dotenv from "dotenv";
 import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
@@ -9,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
+import { env, validateEnv } from './config/env';
 import { connectDB } from './config/database';
 import { connectRedis, redisClient } from './config/redis';
 import { initializeSocketIO } from './config/socket';
@@ -33,16 +33,18 @@ import './config/passport';
 import logger from './utils/logger';
 import { correlationIdMiddleware, requestLoggerMiddleware, errorLoggerMiddleware } from './middleware/requestLogger';
 
-dotenv.config();
+// Validate environment variables before starting
+validateEnv();
+
 logger.info('Application starting', { 
-  environment: process.env.NODE_ENV,
-  port: process.env.PORT || 5000,
+  environment: env.NODE_ENV,
+  port: env.PORT,
   nodeVersion: process.version
 });
 
 const app = express();
 const httpServer = createServer(app);
-const PORT = process.env.PORT || 5000;
+const PORT = env.PORT;
 
 // Initialize Socket.IO
 const io = initializeSocketIO(httpServer);
@@ -77,7 +79,7 @@ connectRedis()
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: env.CORS_ORIGINS,
   credentials: true
 }));
 app.use(express.json());
@@ -89,15 +91,15 @@ app.use(requestLoggerMiddleware);
 
 // Configure Redis store for sessions
 const sessionConfig: session.SessionOptions = {
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  secret: env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   name: 'ai_platform.sid',
   cookie: {
-    secure: false, // Set to false for localhost development
+    secure: env.SESSION_COOKIE_SECURE,
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: env.SESSION_COOKIE_MAX_AGE
   }
 };
 

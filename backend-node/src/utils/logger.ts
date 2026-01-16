@@ -9,6 +9,7 @@
 
 import winston from 'winston';
 import path from 'path';
+import { env } from '../config/env';
 
 const { combine, timestamp, printf, errors, json, colorize } = winston.format;
 
@@ -27,8 +28,8 @@ const consoleFormat = printf(({ level, message, timestamp, service, ...metadata 
 // Create logs directory if it doesn't exist
 const logsDir = path.join(__dirname, '../../logs');
 
-// Determine log level based on environment
-const logLevel = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
+// Use validated environment configuration
+const logLevel = env.LOG_LEVEL;
 
 // Create the logger
 const logger = winston.createLogger({
@@ -98,31 +99,57 @@ export const createModuleLogger = (module: string) => {
   return logger.child({ module });
 };
 
+/**
+ * Structured metadata for logging
+ * Allows additional fields but provides type safety for common fields
+ */
+export interface LogMetadata {
+  userId?: string;
+  tenantId?: string;
+  correlationId?: string;
+  component?: string;
+  duration?: number;
+  statusCode?: number;
+  method?: string;
+  path?: string;
+  error?: string;
+  stack?: string;
+  code?: string | number;
+  [key: string]: unknown; // Allow additional fields
+}
+
 // Export convenience methods
 export default logger;
 
 // Export typed logging methods
-export const logInfo = (message: string, meta?: Record<string, any>) => {
+export const logInfo = (message: string, meta?: LogMetadata) => {
   logger.info(message, meta);
 };
 
-export const logError = (message: string, error?: Error | any, meta?: Record<string, any>) => {
-  logger.error(message, {
+export const logError = (message: string, error?: Error | unknown, meta?: LogMetadata) => {
+  const errorInfo: LogMetadata = {
     ...meta,
-    error: error?.message,
-    stack: error?.stack,
-    code: error?.code,
-  });
+  };
+  
+  if (error instanceof Error) {
+    errorInfo.error = error.message;
+    errorInfo.stack = error.stack;
+    errorInfo.code = (error as any).code;
+  } else if (error) {
+    errorInfo.error = String(error);
+  }
+  
+  logger.error(message, errorInfo);
 };
 
-export const logWarn = (message: string, meta?: Record<string, any>) => {
+export const logWarn = (message: string, meta?: LogMetadata) => {
   logger.warn(message, meta);
 };
 
-export const logDebug = (message: string, meta?: Record<string, any>) => {
+export const logDebug = (message: string, meta?: LogMetadata) => {
   logger.debug(message, meta);
 };
 
-export const logHttp = (message: string, meta?: Record<string, any>) => {
+export const logHttp = (message: string, meta?: LogMetadata) => {
   logger.http(message, meta);
 };

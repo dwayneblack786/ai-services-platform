@@ -267,7 +267,7 @@ async function seedPromptTemplates() {
     // ============================================
     // SUMMARY
     // ============================================
-    console.log('\n' + '='.repeat(70));
+    console.log(`\n${  '='.repeat(70)}`);
     console.log('✅ SEED COMPLETED SUCCESSFULLY');
     console.log('='.repeat(70));
     console.log('\n📚 Templates Created:');
@@ -285,7 +285,7 @@ async function seedPromptTemplates() {
     console.log('\n📦 Collections:');
     console.log('  - prompt_templates: Read-only defaults (2 documents)');
     console.log('  - assistant_channels: User customizations (created on first save)');
-    console.log('\n' + '='.repeat(70) + '\n');
+    console.log(`\n${  '='.repeat(70)  }\n`);
 
   } catch (error) {
     console.error('\n❌ Error seeding templates:', error);

@@ -1,6 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
+import { env } from '../config/env';
 
 // Proto file paths
 const PROTO_PATH = path.join(__dirname, '../../proto');
@@ -8,7 +9,7 @@ const CHAT_PROTO = path.join(PROTO_PATH, 'chat.proto');
 const VOICE_PROTO = path.join(PROTO_PATH, 'voice.proto');
 
 // gRPC server address
-const GRPC_SERVER = process.env.VA_GRPC_SERVER || 'localhost:50051';
+const GRPC_SERVER = env.GRPC_VA_SERVICE_URL;
 
 // Proto loader options
 const packageDefinition = protoLoader.loadSync(

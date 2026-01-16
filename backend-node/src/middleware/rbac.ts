@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { User, UserRole } from '../../../shared/types';
+import { JWTPayload } from '../types/jwt.types';
 import jwt from 'jsonwebtoken';
 
 // Extend Express Request to include user and tenant info
@@ -24,7 +25,7 @@ export const requireRole = (...allowedRoles: UserRole[]) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as any;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as JWTPayload;
       const { users } = require('../config/passport');
       const user = users.get(decoded.id);
 
@@ -61,11 +62,11 @@ export const requireTenant = (req: Request, res: Response, next: NextFunction) =
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as JWTPayload;
     const { users } = require('../config/passport');
     const user = users.get(decoded.id);
 
-    if (!user || !user.tenantId) {
+    if (!user?.tenantId) {
       return res.status(401).json({ error: 'Tenant information missing' });
     }
 
@@ -101,7 +102,7 @@ export const requireTenantOrAdmin = (req: Request, res: Response, next: NextFunc
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as JWTPayload;
     const { users } = require('../config/passport');
     const user = users.get(decoded.id);
 
@@ -133,7 +134,7 @@ export const requireProjectAdmin = (req: Request, res: Response, next: NextFunct
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as JWTPayload;
     const { users } = require('../config/passport');
     const user = users.get(decoded.id);
 

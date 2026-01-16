@@ -49,15 +49,15 @@ export const requestLoggerMiddleware = (req: Request, res: Response, next: NextF
     url: req.originalUrl,
     ip: req.ip || req.socket.remoteAddress,
     userAgent: req.headers['user-agent'],
-    userId: (req.user as any)?.id,
-    tenantId: (req.user as any)?.tenantId,
+    userId: req.user?.id,
+    tenantId: req.user?.tenantId,
   });
 
   // Capture response
   const originalSend = res.send;
-  let responseBody: any;
+  let responseBody: unknown;
 
-  res.send = function (body: any): Response {
+  res.send = function (body: unknown): Response {
     responseBody = body;
     return originalSend.call(this, body);
   };
@@ -75,8 +75,8 @@ export const requestLoggerMiddleware = (req: Request, res: Response, next: NextF
       statusCode: res.statusCode,
       duration: `${duration}ms`,
       contentLength: res.get('content-length'),
-      userId: (req.user as any)?.id,
-      tenantId: (req.user as any)?.tenantId,
+      userId: req.user?.id,
+      tenantId: req.user?.tenantId,
     });
   });
 
@@ -98,8 +98,8 @@ export const errorLoggerMiddleware = (
     url: req.originalUrl,
     error: err.message,
     stack: err.stack,
-    userId: (req.user as any)?.id,
-    tenantId: (req.user as any)?.tenantId,
+    userId: req.user?.id,
+    tenantId: req.user?.tenantId,
   });
 
   next(err);

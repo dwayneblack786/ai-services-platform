@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb';
  * Middleware to check if user is a tenant admin
  */
 export const requireTenantAdmin = (req: Request, res: Response, next: NextFunction) => {
-  const user = req.user as any;
+  const user = req.user;
 
   if (!user) {
     return res.status(401).json({ error: 'Authentication required' });
@@ -32,7 +32,7 @@ export const requireVirtualAssistantSubscription = async (
   res: Response,
   next: NextFunction
 ) => {
-  const user = req.user as any;
+  const user = req.user;
 
   if (!user) {
     return res.status(401).json({ error: 'Authentication required' });
@@ -42,7 +42,7 @@ export const requireVirtualAssistantSubscription = async (
     const db = getDB();
     
     // Try to find subscriptions by tenantId first, then by customerId (for backward compatibility)
-    let activeSubscriptions: any[] = [];
+    let activeSubscriptions: unknown[] = [];
     
     if (user.tenantId) {
       activeSubscriptions = await db.collection('subscriptions').find({

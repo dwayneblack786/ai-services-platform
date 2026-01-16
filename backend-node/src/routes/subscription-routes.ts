@@ -404,7 +404,7 @@ router.post('/', async (req, res) => {
 router.patch('/:subscriptionId', async (req, res) => {
   try {
     const user = req.user as any;
-    if (!user || user.role !== 'ADMIN') {
+    if (user?.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
@@ -417,9 +417,9 @@ router.patch('/:subscriptionId', async (req, res) => {
       updatedAt: new Date()
     };
     
-    if (status) updateData.status = status;
-    if (autoRenew !== undefined) updateData.autoRenew = autoRenew;
-    if (status === 'cancelled') updateData.cancelledDate = new Date();
+    if (status) {updateData.status = status;}
+    if (autoRenew !== undefined) {updateData.autoRenew = autoRenew;}
+    if (status === 'cancelled') {updateData.cancelledDate = new Date();}
 
     const result = await db.collection<ProductSubscription>('product_subscriptions')
       .findOneAndUpdate(
@@ -469,7 +469,7 @@ router.get('/:subscriptionId/billing', async (req, res) => {
 router.post('/:subscriptionId/billing', async (req, res) => {
   try {
     const user = req.user as any;
-    if (!user || user.role !== 'ADMIN') {
+    if (user?.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Admin access required' });
     }
 

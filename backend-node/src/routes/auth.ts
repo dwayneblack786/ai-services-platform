@@ -147,7 +147,7 @@ router.post('/signup', async (req, res) => {
 
     console.log('Creating user with verification token:', {
       email,
-      tokenPreview: verificationToken.substring(0, 10) + '...',
+      tokenPreview: `${verificationToken.substring(0, 10)  }...`,
       expiresAt: tokenExpires.toISOString()
     });
 
@@ -207,7 +207,7 @@ router.post('/verify-email', async (req, res) => {
   try {
     const { token } = req.body;
     
-    console.log('Verify email request received:', { token: token?.substring(0, 10) + '...' });
+    console.log('Verify email request received:', { token: `${token?.substring(0, 10)  }...` });
     
     if (!token) {
       console.log('Error: No token provided');

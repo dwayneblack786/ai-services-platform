@@ -1,11 +1,10 @@
 import { createClient } from 'redis';
 import logger from '../utils/logger';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { env } from './env';
+import { getErrorMessage } from '../utils/error-guards';
 
 const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
+  url: env.REDIS_URL,
   socket: {
     reconnectStrategy: (retries) => {
       if (retries > 10) {
@@ -42,9 +41,9 @@ redisClient.on('end', () => {
 export const connectRedis = async () => {
   try {
     await redisClient.connect();
-    logger.info('Connected to Redis', { url: process.env.REDIS_URL || 'redis://127.0.0.1:6379' });
-  } catch (error: any) {
-    logger.error('Failed to connect to Redis', { error: error?.message, stack: error?.stack });
+    logger.info('Connected to Redis', { url: env.REDIS_URL });
+  } catch (error: unknown) {
+    logger.error('Failed to connect to Redis', { error: getErrorMessage(error) });
     // Don't exit process - allow app to run without Redis (fallback to memory store)
   }
 };

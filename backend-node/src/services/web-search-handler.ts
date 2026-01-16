@@ -161,7 +161,7 @@ export async function processMessageWithSearch(llmMessage: string): Promise<stri
     
   } catch (error) {
     console.error('[WebSearch] Search failed:', error);
-    return detection.cleanMessage + '\n\n(Search temporarily unavailable)';
+    return `${detection.cleanMessage  }\n\n(Search temporarily unavailable)`;
   }
 }
 

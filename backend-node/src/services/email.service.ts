@@ -34,7 +34,7 @@ export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
       
       fs.writeFileSync(filepath, options.html);
       console.log(`✓ Email saved to: ${filepath}`);
-      console.log(`  You can open this file in your browser to test the verification link.\n`);
+      console.log('  You can open this file in your browser to test the verification link.\n');
     } catch (error) {
       console.error('Failed to save email to file:', error);
     }

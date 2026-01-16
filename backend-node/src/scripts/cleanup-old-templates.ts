@@ -86,9 +86,9 @@ async function cleanupOldTemplates() {
     console.log('='.repeat(70));
     console.log('✅ CLEANUP COMPLETE');
     console.log('='.repeat(70));
-    console.log(`\n📊 Final State:`);
+    console.log('\n📊 Final State:');
     console.log(`   Total templates: ${remainingTemplates.length}`);
-    console.log(`   All templates have comprehensive structure: ✅\n`);
+    console.log('   All templates have comprehensive structure: ✅\n');
 
     remainingTemplates.forEach((t, i) => {
       console.log(`${i + 1}. ${t.name}`);
@@ -99,7 +99,7 @@ async function cleanupOldTemplates() {
       console.log('');
     });
 
-    console.log('='.repeat(70) + '\n');
+    console.log(`${'='.repeat(70)  }\n`);
 
   } catch (error) {
     console.error('❌ Error cleaning up templates:', error);

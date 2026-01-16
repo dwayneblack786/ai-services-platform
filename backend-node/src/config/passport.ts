@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as LocalStrategy } from 'passport-local';
@@ -6,55 +5,49 @@ import bcrypt from 'bcrypt';
 import { User, UserRole } from '../../../shared/types';
 import { getDB } from './database';
 import { UserDocument } from '../models/User';
-dotenv.config();
+import { env } from './env';
 
 // In-memory user store (replace with database in production)
 const users: Map<string, User> = new Map();
-// Only configure OAuth if credentials are provided
-const hasOAuthCredentials = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
 
-if (hasOAuthCredentials) {
-  console.log('✓ Google OAuth configured');
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID!,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        callbackURL: '/api/auth/google/callback'
-      },
-      (accessToken, refreshToken, profile, done) => {
-        // Find or create user
-        let user = users.get(profile.id);
+// Configure Google OAuth strategy
+console.log('✓ Google OAuth configured');
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+      callbackURL: env.GOOGLE_CALLBACK_URL
+    },
+    (accessToken, refreshToken, profile, done) => {
+      // Find or create user
+      let user = users.get(profile.id);
+      
+      if (!user) {
+        // Generate tenant for new OAuth user
+        const tenantId = `tenant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const now = new Date();
         
-        if (!user) {
-          // Generate tenant for new OAuth user
-          const tenantId = `tenant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          const now = new Date();
-          
-          user = {
-            id: profile.id,
-            email: profile.emails?.[0]?.value || '',
-            name: profile.displayName,
-            picture: profile.photos?.[0]?.value || '',
-            role: UserRole.CLIENT, // Default role for OAuth users
-            tenantId,
-            emailVerified: true, // OAuth users are auto-verified
-            companyDetailsCompleted: false,
-            authProvider: 'google',
-            createdAt: now,
-            updatedAt: now
-          };
-          users.set(profile.id, user);
-        }
-        
-        return done(null, user);
+        user = {
+          id: profile.id,
+          email: profile.emails?.[0]?.value || '',
+          name: profile.displayName,
+          picture: profile.photos?.[0]?.value || '',
+          role: UserRole.CLIENT, // Default role for OAuth users
+          tenantId,
+          emailVerified: true, // OAuth users are auto-verified
+          companyDetailsCompleted: false,
+          authProvider: 'google',
+          createdAt: now,
+          updatedAt: now
+        };
+        users.set(profile.id, user);
       }
-    )
-  );
-} else {
-  console.log('⚠ Google OAuth not configured (credentials missing)');
-  console.log('  → Use dev-login endpoint for development');
-}
+      
+      return done(null, user);
+    }
+  )
+);
 
 // Local Strategy (Email/Password)
 passport.use(

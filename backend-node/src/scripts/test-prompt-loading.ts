@@ -80,7 +80,7 @@ async function testPromptLoading() {
     }
 
     // Step 3: Show both templates
-    console.log('\n' + '='.repeat(70));
+    console.log(`\n${  '='.repeat(70)}`);
     console.log('📚 Available Templates:');
     console.log('='.repeat(70));
     
@@ -97,7 +97,7 @@ async function testPromptLoading() {
       console.log('   - Services:', t.promptContext?.servicesOffered?.length, 'items');
     });
 
-    console.log('\n' + '='.repeat(70));
+    console.log(`\n${  '='.repeat(70)}`);
     console.log('🔄 Workflow Summary:');
     console.log('='.repeat(70));
     console.log('\n1️⃣  GET /api/assistant-channels');
@@ -111,7 +111,7 @@ async function testPromptLoading() {
     console.log('\n4️⃣  Future GET requests');
     console.log('   → Load from assistant_channels (user\'s version)');
     console.log('   → prompt_templates remains as read-only defaults');
-    console.log('\n' + '='.repeat(70) + '\n');
+    console.log(`\n${  '='.repeat(70)  }\n`);
 
   } catch (error) {
     console.error('❌ Error:', error);

@@ -81,7 +81,7 @@ function isWithinBusinessHours(businessHours?: BusinessHours): boolean {
   
   const dayHours = businessHours[currentDay] as BusinessHoursDay | undefined;
   
-  if (!dayHours || !dayHours.open || !dayHours.close) {
+  if (!dayHours?.open || !dayHours.close) {
     return false; // Closed if no hours defined for this day
   }
 
@@ -257,7 +257,7 @@ router.post('/stream', async (req: Request, res: Response) => {
     // Forward audio to Java VA service
     console.log('[Voice Stream] Forwarding to Java VA service');
     const javaResponse = await javaVAClient.post(
-      `/voice/process`,
+      '/voice/process',
       {
         callId,
         audioChunk

@@ -179,7 +179,7 @@ export class ApiClient {
               status: 200,
               statusText: 'OK (Fallback)',
               headers: {},
-              config: {} as any,
+              config: {} as AxiosRequestConfig,
             } as AxiosResponse<T>;
           }
         : undefined
@@ -189,7 +189,7 @@ export class ApiClient {
   /**
    * GET request
    */
-  async get<T = any>(
+  async get<T>(
     url: string,
     config?: AxiosRequestConfig,
     fallback?: () => T | Promise<T>
@@ -203,9 +203,9 @@ export class ApiClient {
   /**
    * POST request
    */
-  async post<T = any>(
+  async post<T>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig,
     fallback?: () => T | Promise<T>
   ): Promise<AxiosResponse<T>> {
@@ -218,9 +218,9 @@ export class ApiClient {
   /**
    * PUT request
    */
-  async put<T = any>(
+  async put<T>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig,
     fallback?: () => T | Promise<T>
   ): Promise<AxiosResponse<T>> {
@@ -233,9 +233,9 @@ export class ApiClient {
   /**
    * PATCH request
    */
-  async patch<T = any>(
+  async patch<T>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig,
     fallback?: () => T | Promise<T>
   ): Promise<AxiosResponse<T>> {
@@ -248,7 +248,7 @@ export class ApiClient {
   /**
    * DELETE request
    */
-  async delete<T = any>(
+  async delete<T>(
     url: string,
     config?: AxiosRequestConfig,
     fallback?: () => T | Promise<T>

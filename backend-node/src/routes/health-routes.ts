@@ -236,7 +236,7 @@ async function checkJavaVAService(): Promise<ServiceHealth> {
       name.includes('java') || name.includes('va')
     );
 
-    if (javaVACircuit && javaVACircuit[1].state === 'OPEN') {
+    if (javaVACircuit?.[1].state === 'OPEN') {
       return {
         status: 'degraded',
         message: 'Java VA service circuit breaker is OPEN'
@@ -268,8 +268,8 @@ function getCircuitBreakerHealth(): CircuitBreakerHealth {
       totalRequests: circuitStats.totalRequests
     };
 
-    if (circuitStats.state === 'OPEN') openCount++;
-    if (circuitStats.state === 'HALF_OPEN') halfOpenCount++;
+    if (circuitStats.state === 'OPEN') {openCount++;}
+    if (circuitStats.state === 'HALF_OPEN') {halfOpenCount++;}
   }
 
   let status: CircuitBreakerHealth['status'];
