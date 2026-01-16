@@ -207,14 +207,13 @@ public class GrpcServerConfig {
     @Autowired
     private ChatServiceImpl chatService;
     
-    @Autowired
-    private VoiceServiceImpl voiceService;
+    // NOTE: VoiceServiceImpl currently disabled - requires voice.proto protobuf
+    // compilation and 'voice' Spring profile to be active
     
     @PostConstruct
     public void startGrpcServer() throws IOException {
         Server server = ServerBuilder.forPort(grpcPort)
             .addService(chatService)    // Register ChatService
-            .addService(voiceService)   // Register VoiceService
             .build()
             .start();
         

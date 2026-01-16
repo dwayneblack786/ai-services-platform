@@ -51,8 +51,8 @@ Infero/
 ├── src/
 │   ├── main/
 │   │   ├── java/
-│   │   │   └── com/customer_service_ai/demo/
-│   │   │       ├── CustomerServiceAiApplication.java  # Main application
+│   │   │   └── com/ai/va/application/
+│   │   │       ├── VaServiceApplication.java  # Main application
 │   │   │       ├── controller/
 │   │   │       │   ├── HomeController.java
 │   │   │       │   ├── UserController.java
@@ -65,8 +65,8 @@ Infero/
 │   │       └── application.yaml                       # Application configuration
 │   └── test/
 │       └── java/
-│           └── com/customer_service_ai/demo/
-│               └── CustomerServiceAiApplicationTests.java
+│           └── com/ai/va/application/
+│               └── VaServiceApplicationTests.java
 ├── pom.xml                                            # Maven configuration
 ├── mvnw                                               # Maven wrapper (Unix)
 ├── mvnw.cmd                                           # Maven wrapper (Windows)

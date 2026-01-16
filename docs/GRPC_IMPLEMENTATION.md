@@ -798,7 +798,7 @@ The gRPC client will automatically connect when backend starts. Check logs for:
   - ✨ Added `processMessageStreamingGrpc()` for gRPC token streaming
   - Added StreamObserver import
 - ✅ `src/main/java/com/ai/va/controller/ChatSessionController.java`: Added `/message/stream` endpoint
-- ✅ `src/main/java/com/customer_service_ai/demo/CustomerServiceAiApplication.java`: Added `@EnableAsync`
+- ✅ `src/main/java/com/ai/va/application/VaServiceApplication.java`: Added `@EnableAsync`
 
 ### Node.js Backend
 - ✅ `proto/chat.proto`: Copied from Java
