@@ -88,65 +88,339 @@ A full-stack AI services platform with React (TypeScript) frontend, Node.js Expr
 ## Project Structure
 
 ```
-.
-├── frontend/               # React frontend (Vite + TypeScript)
+ai-services-platform/
+│
+├── .github/
+│   └── copilot-instructions.md
+│
+├── .vscode/
+│   └── tasks.json
+│
+├── frontend/                           # React + Vite + TypeScript
 │   ├── src/
-│   │   ├── components/     # React components (Layout, Sidebar, CircuitMonitor, etc.)
-│   │   ├── config/         # Configuration files
-│   │   ├── context/        # Auth context with role-based access control
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── pages/          # Page components (Dashboard, Products, Tenants, etc.)
-│   │   ├── services/       # API service clients
-│   │   ├── styles/         # Emotion-styled component styles
-│   │   ├── types/          # TypeScript type definitions
-│   │   ├── utils/          # Utility functions
+│   │   ├── components/
+│   │   │   ├── CircuitMonitor.tsx
+│   │   │   ├── Layout.tsx
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   ├── SettingsDropdown.tsx
+│   │   │   └── Sidebar.tsx
+│   │   ├── config/
+│   │   │   └── api.ts
+│   │   ├── context/
+│   │   │   └── AuthContext.tsx
+│   │   ├── hooks/
+│   │   │   └── useCircuitBreaker.ts
+│   │   ├── pages/
+│   │   │   ├── Billing.tsx
+│   │   │   ├── Customers.tsx
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Login.tsx
+│   │   │   ├── Products.tsx
+│   │   │   ├── Reports.tsx
+│   │   │   ├── Settings.tsx
+│   │   │   └── Users.tsx
+│   │   ├── services/
+│   │   │   ├── apiClient.ts
+│   │   │   └── circuitBreaker.ts
+│   │   ├── styles/
+│   │   │   ├── Billing.styles.ts
+│   │   │   ├── CircuitMonitor.styles.ts
+│   │   │   ├── Customers.styles.ts
+│   │   │   ├── Dashboard.styles.ts
+│   │   │   ├── Layout.styles.ts
+│   │   │   ├── Login.styles.ts
+│   │   │   ├── Products.styles.ts
+│   │   │   ├── Reports.styles.ts
+│   │   │   ├── Settings.styles.ts
+│   │   │   ├── SettingsDropdown.styles.ts
+│   │   │   ├── Sidebar.styles.ts
+│   │   │   └── Users.styles.ts
+│   │   ├── types/
+│   │   │   └── index.ts
+│   │   ├── utils/
+│   │   │   └── formatters.ts
 │   │   ├── App.tsx
+│   │   ├── index.css
 │   │   └── main.tsx
 │   ├── index.html
 │   ├── package.json
 │   ├── tsconfig.json
-│   └── vite.config.ts
-├── backend-node/           # Node.js Express backend
+│   ├── tsconfig.node.json
+│   ├── vite.config.ts
+│   └── README.md
+│
+├── backend-node/                       # Node.js + Express + TypeScript
 │   ├── src/
-│   │   ├── config/         # Passport OAuth2 configuration
-│   │   ├── grpc/           # gRPC client implementations
-│   │   ├── middleware/     # Authentication & authorization middleware
-│   │   ├── models/         # MongoDB data models
-│   │   ├── routes/         # API routes (auth, products, billing, chat, voice, etc.)
-│   │   ├── scripts/        # Utility scripts (separate from root scripts/)
-│   │   ├── services/       # External API clients & circuit breaker
-│   │   ├── sockets/        # WebSocket/Socket.IO handlers
-│   │   ├── types/          # TypeScript type definitions
-│   │   └── index.ts        # Express app with Swagger UI integration
-│   ├── emails/             # Email templates and logs
-│   ├── proto/              # Protocol buffer definitions
-│   ├── scripts/            # Database setup and utility scripts
-│   ├── openapi.yaml        # OpenAPI 3.0.3 API documentation
-│   ├── CIRCUIT_BREAKER_IMPLEMENTATION.md  # Circuit breaker technical guide
+│   │   ├── config/
+│   │   │   ├── database.ts
+│   │   │   ├── passport.ts
+│   │   │   └── redis.ts
+│   │   ├── grpc/
+│   │   │   └── va-client.ts
+│   │   ├── middleware/
+│   │   │   ├── auth.ts
+│   │   │   └── rbac.ts
+│   │   ├── models/
+│   │   │   ├── AssistantChannels.ts
+│   │   │   ├── ChatSession.ts
+│   │   │   ├── PaymentMethod.ts
+│   │   │   ├── Product.ts
+│   │   │   ├── ProductConfiguration.ts
+│   │   │   ├── PromptTemplate.ts
+│   │   │   ├── Subscription.ts
+│   │   │   ├── Transaction.ts
+│   │   │   ├── User.ts
+│   │   │   └── UserProduct.ts
+│   │   ├── routes/
+│   │   │   ├── agent-routes.ts
+│   │   │   ├── assistant-channels-routes-v2.ts
+│   │   │   ├── auth.ts
+│   │   │   ├── billing-routes.ts
+│   │   │   ├── chat-routes.ts
+│   │   │   ├── circuit-routes.ts
+│   │   │   ├── customers-routes.ts
+│   │   │   ├── health-routes.ts
+│   │   │   ├── home-routes.ts
+│   │   │   ├── payment-methods-routes.ts
+│   │   │   ├── products-routes.ts
+│   │   │   ├── prompt-routes.ts
+│   │   │   ├── reports-routes.ts
+│   │   │   ├── subscription-routes.ts
+│   │   │   ├── subscriptions-routes.ts
+│   │   │   ├── tenants-routes.ts
+│   │   │   ├── transactions-routes.ts
+│   │   │   ├── usage-routes.ts
+│   │   │   ├── user-products-routes.ts
+│   │   │   ├── user.ts
+│   │   │   ├── Users-routes.ts
+│   │   │   └── voice-routes.ts
+│   │   ├── scripts/
+│   │   │   └── mongo/
+│   │   │       ├── seed-templates.ts
+│   │   │       └── setup-indexes.ts
+│   │   ├── services/
+│   │   │   ├── apiClient.ts
+│   │   │   ├── assistant-service.ts
+│   │   │   ├── circuitBreaker.ts
+│   │   │   └── infero-api.ts
+│   │   ├── sockets/
+│   │   │   └── handlers.ts
+│   │   ├── types/
+│   │   │   └── api.types.ts
+│   │   ├── utils/
+│   │   │   └── logger.ts
+│   │   └── index.ts
+│   ├── emails/
+│   │   ├── templates/
+│   │   └── logs/
+│   ├── proto/
+│   │   └── assistant.proto
+│   ├── openapi.yaml
 │   ├── package.json
-│   └── tsconfig.json
-├── services-java/          # Java Spring Boot microservices
-│   ├── common-libs/        # Shared libraries and utilities
-│   ├── cv-service/         # Computer Vision AI service
-│   ├── idp-service/        # Intelligent Document Processing service
-│   └── va-service/         # Virtual Assistant service
-├── Infero/                 # Legacy Infero service (Spring Boot)
-├── shared/                 # Shared TypeScript types across frontend and backend
+│   ├── tsconfig.json
+│   ├── CIRCUIT_BREAKER_IMPLEMENTATION.md
+│   ├── IMPLEMENTATION_SUMMARY.md
+│   ├── MONGODB_PROMPT_SCHEMA.md
+│   ├── PAYMENT_TESTING.md
+│   ├── PROMPT_ARCHITECTURE.md
+│   ├── SEED_SUCCESS_REPORT.md
+│   ├── WORKFLOW_TEST.md
+│   └── README.md
+│
+├── services-java/                      # Java Spring Boot Microservices
+│   ├── _common-libs/                   # Shared Java libraries
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   └── java/com/ai/common/
+│   │   │   └── test/
+│   │   ├── target/
+│   │   ├── pom.xml
+│   │   ├── mvnw
+│   │   ├── mvnw.cmd
+│   │   └── README.md
+│   │
+│   ├── cv-service/                     # Computer Vision Service
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/ai/cv/
+│   │   │   │   ├── proto/
+│   │   │   │   └── resources/
+│   │   │   └── test/
+│   │   ├── target/
+│   │   ├── pom.xml
+│   │   ├── mvnw
+│   │   ├── mvnw.cmd
+│   │   └── README.md
+│   │
+│   ├── idp-service/                    # Intelligent Document Processing
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/ai/idp/
+│   │   │   │   ├── proto/
+│   │   │   │   └── resources/
+│   │   │   └── test/
+│   │   ├── target/
+│   │   ├── pom.xml
+│   │   ├── mvnw
+│   │   ├── mvnw.cmd
+│   │   └── README.md
+│   │
+│   ├── va-service/                     # Virtual Assistant Service
+│   │   ├── src/
+│   │   │   ├── main/
+│   │   │   │   ├── java/com/ai/va/
+│   │   │   │   │   ├── config/
+│   │   │   │   │   ├── controller/
+│   │   │   │   │   ├── dto/
+│   │   │   │   │   ├── grpc/
+│   │   │   │   │   ├── model/
+│   │   │   │   │   ├── repository/
+│   │   │   │   │   ├── service/
+│   │   │   │   │   └── VaServiceApplication.java
+│   │   │   │   ├── proto/
+│   │   │   │   │   └── assistant.proto
+│   │   │   │   └── resources/
+│   │   │   │       ├── application.yml
+│   │   │   │       ├── application-dev.yml
+│   │   │   │       └── log4j2.xml
+│   │   │   └── test/
+│   │   ├── target/
+│   │   │   ├── classes/
+│   │   │   ├── generated-sources/
+│   │   │   │   └── protobuf/
+│   │   │   │       ├── grpc-java/
+│   │   │   │       └── java/
+│   │   │   └── va-service-0.0.1-SNAPSHOT.jar
+│   │   ├── .eclipse/
+│   │   │   ├── VA Service - Maven Run.launch
+│   │   │   ├── VA Service - Maven Debug.launch
+│   │   │   ├── VA Service - Java Application.launch
+│   │   │   └── VA Service - Remote Debug.launch
+│   │   ├── pom.xml
+│   │   ├── mvnw
+│   │   ├── mvnw.cmd
+│   │   ├── MONGODB_COMMON.md
+│   │   ├── PROMPT_BUILDER_USAGE.md
+│   │   └── README.md
+│   │
+│   ├── DEBUG_LOGGING_CONTROL.md
+│   ├── LOGGING_IMPLEMENTATION_COMPLETE.md
+│   └── LOGGING_MIGRATION_STATUS.md
+│
+├── shared/                             # Shared TypeScript types
 │   ├── types.ts
 │   ├── types.d.ts
 │   └── types.js
-├── docs/                   # Project documentation
-│   ├── DEVELOPER_SETUP.md
-│   ├── TECHNOLOGY_FEATURES.md
-│   ├── CIRCUIT_BREAKER_USER_GUIDE.md
-│   ├── CIRCUIT_BREAKER_TASK_BREAKDOWN.md
+│
+├── docs/                               # Documentation
+│   ├── architecture/
+│   │   ├── COMPONENT_INTEGRATION_GUIDE.md
+│   │   ├── high-level-assistant-arch.md
+│   │   ├── Platform Architecture Diagram.ini
+│   │   └── CHANNELS_ARCHITECTURE_DIAGRAM.md
+│   ├── backend/
+│   │   ├── BACKEND_ARCHITECTURE.md
+│   │   ├── SERVICE_PATTERNS.md
+│   │   ├── DATABASE_PATTERNS.md
+│   │   ├── MIDDLEWARE_GUIDE.md
+│   │   ├── CACHING_STRATEGIES.md
+│   │   ├── SESSION_MANAGEMENT.md
+│   │   ├── BATCH_PROCESSING.md
+│   │   ├── EXTERNAL_APIS.md
+│   │   ├── WEBHOOK_HANDLING.md
+│   │   └── LOGGING_MONITORING.md
+│   ├── frontend/
+│   │   ├── FRONTEND_ARCHITECTURE.md
+│   │   ├── STATE_MANAGEMENT.md
+│   │   ├── COMPONENT_PATTERNS.md
+│   │   ├── HOOKS_CONVENTIONS.md
+│   │   ├── PERFORMANCE_OPTIMIZATION.md
+│   │   ├── TESTING_STRATEGY.md
+│   │   ├── ROUTING_PATTERNS.md
+│   │   ├── FORM_HANDLING.md
+│   │   ├── STYLING_ARCHITECTURE.md
+│   │   └── ERROR_HANDLING.md
+│   ├── integration/
+│   │   ├── WEBSOCKET_DETAILED_FLOW.md
+│   │   ├── GRPC_STREAMING_FLOW.md
+│   │   ├── METHOD_HANDLERS_REFERENCE.md
+│   │   ├── END_TO_END_INTEGRATION_GUIDE.md
+│   │   └── ERROR_HANDLING_PATTERNS.md
+│   ├── features/
+│   │   ├── PRODUCT_CONFIGURATION_GUIDE.md
+│   │   ├── PRODUCT_BASED_ACCESS_CONTROL.md
+│   │   ├── PAYMENT_SYSTEM.md
+│   │   ├── ASSISTANT_CHANNELS.md
+│   │   ├── CHAT_SESSION_MANAGEMENT.md
+│   │   └── TENANT_VALIDATION_AND_REDIRECT.md
+│   ├── setup/
+│   │   ├── DEVELOPER_SETUP.md
+│   │   ├── ECLIPSE_SETUP.md
+│   │   ├── TROUBLESHOOTING.md
+│   │   └── mongo.md
+│   ├── apis/
+│   │   ├── API_DESIGN_STANDARDS.md
+│   │   ├── openapi.yaml
+│   │   ├── assistant_calls.jsonc
+│   │   └── assistant_setting_schema.jsonc
+│   ├── websocket/
+│   │   ├── WEBSOCKET_SUMMARY.md
+│   │   ├── WEBSOCKET_IMPLEMENTATION.md
+│   │   ├── WEBSOCKET_CONFIGURATION.md
+│   │   ├── WEBSOCKET_CONFIG_REFERENCE.md
+│   │   └── WEBSOCKET_QUICK_START.md
+│   ├── circuit-breaker/
+│   │   ├── CIRCUIT_BREAKER_TASK_BREAKDOWN.md
+│   │   ├── CIRCUIT_BREAKER_USER_GUIDE.md
+│   │   └── TECHNOLOGY_FEATURES.md
+│   ├── java/
+│   │   ├── GRPC_IMPLEMENTATION.md
+│   │   └── JAVA_VA_VERIFICATION.md
+│   ├── database/
+│   │   ├── MONGODB_CHANGES_SUMMARY.md
+│   │   └── Entity relationship diagram for MongoDB.docx
+│   ├── product/
+│   │   ├── ai product roadman.docx
+│   │   ├── 📅 AI Services Product Roadmap Timeline.docx
+│   │   ├── Phased Product Rollout Strategy.docx
+│   │   ├── Technical requirements document.docx
+│   │   └── Optimized Technical Requirements.docx
 │   ├── PROJECT_OVERVIEW.md
-│   └── (50+ additional documentation files)
-├── .github/                # GitHub configuration
-│   └── copilot-instructions.md
-└── .vscode/                # VS Code workspace configuration
-    └── tasks.json
+│   ├── RepositoryStrucutre.md
+│   ├── SECURITY_ARCHITECTURE.md
+│   ├── IMPLEMENTATION_VERIFICATION.md
+│   ├── REACT_FRONTEND_VERIFICATION.md
+│   ├── MOBILE_RESPONSIVE.md
+│   ├── REDIS_IMPLEMENTATION_GUIDE.md
+│   └── Frontend Requirements Document.docx
+│
+├── Infero/                             # Legacy Infero Service (Spring Boot)
+│   ├── src/
+│   ├── pom.xml
+│   └── mvnw
+│
+├── README.md
+├── .gitignore
+└── package.json
 ```
+
+**Key Directories:**
+
+- **frontend/** - React SPA with TypeScript, Vite, Socket.IO client, circuit breaker monitoring
+- **backend-node/** - Express API gateway with OAuth2, WebSocket, gRPC clients, circuit breaker, Redis
+- **services-java/** - Spring Boot microservices (VA, IDP, CV) with gRPC servers and Protocol Buffers
+- **shared/** - TypeScript type definitions shared between frontend and backend
+- **docs/** - Comprehensive documentation (90+ files) organized by category
+- **Infero/** - Legacy service (scheduled for deprecation)
+
+**Port Allocation:**
+- Frontend: `5173`
+- Backend-Node: `5000` (REST), `/api-docs` (Swagger UI)
+- VA Service: `8136` (REST), `9090` (gRPC)
+- IDP Service: `8137`
+- CV Service: `8138`
+- MongoDB: `27017`
+- Redis: `6379`
 
 ## Tech Stack
 
