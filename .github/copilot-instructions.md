@@ -11,7 +11,7 @@ This is a full-stack application with React (TypeScript) frontend and Node.js Ex
 
 ## Tech Stack
 - Frontend: React, TypeScript, Vite, React Router, Axios ,websockets.io
-- Backend: Node.js, Express, TypeScript, Passport.js, OAuth2, gRPC 
+- Backend: Node.js, Express, TypeScript, Passport.js, OAuth2, gRPC , python
 - Database: MongoDB with Mongoose
 - Authentication: Google OAuth2, JWT tokens, express-session
 

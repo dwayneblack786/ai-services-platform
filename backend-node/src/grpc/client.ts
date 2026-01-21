@@ -57,6 +57,20 @@ interface VoiceServiceClient extends grpc.Client {
     request: any,
     callback: (error: grpc.ServiceError | null, response: any) => void
   ): grpc.ClientUnaryCall;
+  
+  Transcribe(
+    request: any,
+    callback: (error: grpc.ServiceError | null, response: any) => void
+  ): grpc.ClientUnaryCall;
+  
+  TranscribeStream(request: any): grpc.ClientReadableStream<any>;
+  
+  Synthesize(
+    request: any,
+    callback: (error: grpc.ServiceError | null, response: any) => void
+  ): grpc.ClientUnaryCall;
+  
+  SynthesizeStream(request: any): grpc.ClientReadableStream<any>;
 }
 
 /**
@@ -202,6 +216,96 @@ class GrpcClient {
   streamVoiceConversation(): grpc.ClientDuplexStream<any, any> {
     console.log('gRPC starting voice stream');
     return this.voiceClient.StreamVoiceConversation();
+  }
+
+  /**
+   * Transcribe audio (single request)
+   * Converts audio to text using STT service
+   */
+  async transcribe(sessionId: string, audioData: Buffer, format: string = 'webm', customerId: string = 'default'): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.voiceClient.Transcribe(
+        {
+          session_id: sessionId,
+          audio_data: audioData,
+          format: format,
+          timestamp: Date.now(),
+          customer_id: customerId,
+          is_final_chunk: true
+        },
+        (error: grpc.ServiceError | null, response: any) => {
+          if (error) {
+            console.error('gRPC Transcribe error:', error);
+            reject(error);
+          } else {
+            console.log(`gRPC transcription received: ${response.text?.substring(0, 50)}...`);
+            resolve(response);
+          }
+        }
+      );
+    });
+  }
+
+  /**
+   * Synthesize text to speech (single request)
+   * Converts text to audio using TTS service
+   */
+  async synthesize(
+    sessionId: string,
+    text: string,
+    language: string = 'en-US',
+    voiceName: string = 'en-US-JennyNeural',
+    format: string = 'mp3',
+    customerId: string = 'default'
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.voiceClient.Synthesize(
+        {
+          session_id: sessionId,
+          text: text,
+          language: language,
+          voice_name: voiceName,
+          format: format,
+          customer_id: customerId
+        },
+        (error: grpc.ServiceError | null, response: any) => {
+          if (error) {
+            console.error('gRPC Synthesize error:', error);
+            reject(error);
+          } else {
+            console.log(`gRPC TTS synthesis completed: ${response.audio_data?.length || 0} bytes`);
+            resolve(response);
+          }
+        }
+      );
+    });
+  }
+
+  /**
+   * Synthesize text to speech (streaming)
+   * Converts text chunks to audio stream using TTS service
+   */
+  synthesizeStream(
+    sessionId: string,
+    text: string,
+    language: string = 'en-US',
+    voiceName: string = 'en-US-JennyNeural',
+    format: string = 'mp3',
+    customerId: string = 'default'
+  ): grpc.ClientReadableStream<any> {
+    const request = {
+      session_id: sessionId,
+      text: text,
+      language: language,
+      voice_name: voiceName,
+      format: format,
+      customer_id: customerId,
+      sequence_number: 0,
+      is_final_chunk: true
+    };
+    
+    console.log(`gRPC SynthesizeStream: session=${sessionId}, text length=${text.length}`);
+    return this.voiceClient.SynthesizeStream(request);
   }
 
   /**

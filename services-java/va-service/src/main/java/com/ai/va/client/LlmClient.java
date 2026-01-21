@@ -26,22 +26,28 @@ public class LlmClient {
 
     private static final Logger logger = LogFactory.getLogger(LlmClient.class);
     
+    private final String provider;
     private final String apiUrl;
     private final String apiKey;
     private final String defaultModel;
+    private final String deployment;
     private final int timeout;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     public LlmClient(
+            @Value("${api.endpoints.llm.provider:lm-studio}") String provider,
             @Value("${api.endpoints.llm.url}") String apiUrl,
             @Value("${api.endpoints.llm.api-key:lm-studio}") String apiKey,
             @Value("${api.endpoints.llm.model:google/gemma-2-9b}") String defaultModel,
+            @Value("${api.endpoints.llm.deployment:}") String deployment,
             @Value("${api.client.timeout:300}") int timeout) {
         
+        this.provider = provider;
         this.apiUrl = apiUrl;
         this.apiKey = apiKey;
         this.defaultModel = defaultModel;
+        this.deployment = deployment;
         this.timeout = timeout;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(30))  // Connection timeout
@@ -50,8 +56,12 @@ public class LlmClient {
                 .build();
         this.objectMapper = new ObjectMapper();
         
-        logger.info("[LLMClient] Initialized with URL: {}", apiUrl);
+        logger.info("[LLMClient] Initialized with provider: {}", provider);
+        logger.info("[LLMClient] URL: {}", apiUrl);
         logger.info("[LLMClient] Default model: {}", defaultModel);
+        if ("azure-openai".equals(provider)) {
+            logger.info("[LLMClient] Azure deployment: {}", deployment);
+        }
         logger.info("[LLMClient] Connect timeout: 30 seconds");
         logger.info("[LLMClient] Request timeout: {} seconds", timeout);
     }
@@ -121,44 +131,39 @@ public class LlmClient {
             
             String effectiveModel = model != null ? model : defaultModel;
             
+            // Build the request URL (different for Azure vs LM Studio)
+            String requestUrl = buildRequestUrl();
+            
             // Build messages array with system and user messages
             List<Map<String, String>> messages = List.of(
                 Map.of("role", "system", "content", systemPrompt != null ? systemPrompt : "You are a helpful AI assistant."),
                 Map.of("role", "user", "content", userMessage)
             );
 
-            Map<String, Object> requestBody = Map.of(
-                "model", effectiveModel,
-                "messages", messages,
-                "temperature", temperature,
-                "max_tokens", maxTokens
-            );
+            // Build request body (Azure doesn't need model field in body)
+            Map<String, Object> requestBody = buildRequestBody(messages, temperature, maxTokens, effectiveModel);
 
             String jsonBody = objectMapper.writeValueAsString(requestBody);
             
-            LogFactory.debug(logger, "[LLMClient] Sending request to: {} with model: {}", apiUrl, effectiveModel);
+            LogFactory.debug(logger, "[LLMClient] Sending request to: {} with model: {}", requestUrl, effectiveModel);
+            LogFactory.debug(logger, "[LLMClient] Provider: {}", provider);
             LogFactory.debug(logger, "[LLMClient] System prompt length: {} chars", systemPrompt != null ? systemPrompt.length() : 0);
             LogFactory.debug(logger, "[LLMClient] User message length: {} chars", userMessage.length());
             LogFactory.debug(logger, "[LLMClient] Request body: {}", jsonBody);
 
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(apiUrl))
+                    .uri(URI.create(requestUrl))
                     .header("Content-Type", "application/json")
                     .timeout(Duration.ofSeconds(timeout))
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
 
-            // Add API key if provided and not default LM Studio value
-            if (apiKey != null && !apiKey.isEmpty() && !apiKey.equals("lm-studio")) {
-                requestBuilder.header("Authorization", "Bearer " + apiKey);
-                LogFactory.debug(logger, "[LLMClient] Using API key authentication");
-            } else {
-                LogFactory.debug(logger, "[LLMClient] No API key authentication (LM Studio mode)");
-            }
+            // Add authentication headers based on provider
+            addAuthHeaders(requestBuilder);
 
             HttpRequest request = requestBuilder.build();
             
             // Generate and log curl command for debugging
-            String curlCommand = generateCurlCommand(apiUrl, jsonBody, apiKey);
+            String curlCommand = generateCurlCommand(requestUrl, jsonBody);
             logger.info("[LLMClient] ============================================");
             logger.info("[LLMClient] CURL COMMAND FOR DEBUGGING:");
             logger.info(curlCommand);
@@ -226,17 +231,18 @@ public class LlmClient {
      * Generate curl command for debugging
      * @param url API endpoint URL
      * @param jsonBody Request body JSON
-     * @param apiKey API key (optional)
      * @return Formatted curl command
      */
-    private String generateCurlCommand(String url, String jsonBody, String apiKey) {
+    private String generateCurlCommand(String url, String jsonBody) {
         StringBuilder curl = new StringBuilder();
         curl.append("curl -X POST \\").append("\n");
         curl.append("  '").append(url).append("' \\").append("\n");
         curl.append("  -H 'Content-Type: application/json' \\").append("\n");
         
-        // Add authorization header if API key is present and not LM Studio default
-        if (apiKey != null && !apiKey.isEmpty() && !apiKey.equals("lm-studio")) {
+        // Add authorization headers based on provider
+        if ("azure-openai".equals(provider)) {
+            curl.append("  -H 'api-key: ").append(apiKey).append("' \\").append("\n");
+        } else if (apiKey != null && !apiKey.isEmpty() && !apiKey.equals("lm-studio") && !apiKey.equals("not-needed")) {
             curl.append("  -H 'Authorization: Bearer ").append(apiKey).append("' \\").append("\n");
         }
         
@@ -245,6 +251,74 @@ public class LlmClient {
         curl.append("  -d '").append(escapedBody).append("'");
         
         return curl.toString();
+    }
+    
+    /**
+     * Build the request URL based on provider type
+     * @return Complete API endpoint URL
+     */
+    private String buildRequestUrl() {
+        if ("azure-openai".equals(provider)) {
+            // Azure format: {endpoint}/openai/deployments/{deployment}/chat/completions?api-version=2024-02-01
+            String baseUrl = apiUrl;
+            // Remove trailing slash if present
+            if (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+            }
+            // Check if URL already contains the full path
+            if (baseUrl.contains("/chat/completions")) {
+                return baseUrl.contains("api-version") ? baseUrl : baseUrl + "?api-version=2024-02-01";
+            }
+            // Build full Azure URL
+            String deploymentName = deployment != null && !deployment.isEmpty() ? deployment : defaultModel;
+            return String.format("%s/openai/deployments/%s/chat/completions?api-version=2024-02-01",
+                               baseUrl, deploymentName);
+        } else {
+            // LM Studio / OpenAI format: {endpoint}/chat/completions (or full URL as-is)
+            return apiUrl;
+        }
+    }
+    
+    /**
+     * Build request body based on provider type
+     * @param messages Chat messages
+     * @param temperature Temperature setting
+     * @param maxTokens Max tokens to generate
+     * @param model Model name
+     * @return Request body map
+     */
+    private Map<String, Object> buildRequestBody(List<Map<String, String>> messages, 
+                                                   double temperature, int maxTokens, String model) {
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("messages", messages);
+        body.put("temperature", temperature);
+        body.put("max_tokens", maxTokens);
+        
+        // Only include model for non-Azure providers (Azure uses deployment in URL)
+        if (!"azure-openai".equals(provider)) {
+            body.put("model", model);
+        }
+        
+        return body;
+    }
+    
+    /**
+     * Add authentication headers based on provider type
+     * @param requestBuilder HTTP request builder
+     */
+    private void addAuthHeaders(HttpRequest.Builder requestBuilder) {
+        if ("azure-openai".equals(provider)) {
+            // Azure uses api-key header
+            requestBuilder.header("api-key", apiKey);
+            LogFactory.debug(logger, "[LLMClient] Using Azure api-key authentication");
+        } else if (apiKey != null && !apiKey.isEmpty() && 
+                   !apiKey.equals("lm-studio") && !apiKey.equals("not-needed")) {
+            // OpenAI-style Bearer token
+            requestBuilder.header("Authorization", "Bearer " + apiKey);
+            LogFactory.debug(logger, "[LLMClient] Using Bearer token authentication");
+        } else {
+            LogFactory.debug(logger, "[LLMClient] No authentication (LM Studio mode)");
+        }
     }
 
     /**
@@ -378,38 +452,35 @@ public class LlmClient {
             
             String effectiveModel = model != null ? model : defaultModel;
             
+            // Build the request URL (different for Azure vs LM Studio)
+            String requestUrl = buildRequestUrl();
+            
             // Build messages array with system and user messages
             List<Map<String, String>> messages = List.of(
                 Map.of("role", "system", "content", systemPrompt != null ? systemPrompt : "You are a helpful AI assistant."),
                 Map.of("role", "user", "content", userMessage)
             );
 
-            // IMPORTANT: Add stream=true to enable SSE streaming
-            Map<String, Object> requestBody = Map.of(
-                "model", effectiveModel,
-                "messages", messages,
-                "temperature", temperature,
-                "max_tokens", maxTokens,
-                "stream", true  // Enable streaming mode
-            );
+            // Build request body with streaming enabled
+            Map<String, Object> requestBody = buildRequestBody(messages, temperature, maxTokens, effectiveModel);
+            requestBody.put("stream", true);  // Enable streaming mode
 
             String jsonBody = objectMapper.writeValueAsString(requestBody);
             
-            LogFactory.debug(logger, "[LLMClient] Sending streaming request to: {} with model: {}", apiUrl, effectiveModel);
+            LogFactory.debug(logger, "[LLMClient] Sending streaming request to: {} with model: {}", requestUrl, effectiveModel);
+            LogFactory.debug(logger, "[LLMClient] Provider: {}", provider);
             LogFactory.debug(logger, "[LLMClient] System prompt length: {} chars", systemPrompt != null ? systemPrompt.length() : 0);
             LogFactory.debug(logger, "[LLMClient] User message length: {} chars", userMessage.length());
 
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(apiUrl))
+                    .uri(URI.create(requestUrl))
                     .header("Content-Type", "application/json")
                     .header("Accept", "text/event-stream")  // SSE format
                     .timeout(Duration.ofSeconds(timeout))
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody));
 
-            // Add API key if provided and not default LM Studio value
-            if (apiKey != null && !apiKey.isEmpty() && !apiKey.equals("lm-studio")) {
-                requestBuilder.header("Authorization", "Bearer " + apiKey);
-            }
+            // Add authentication headers based on provider
+            addAuthHeaders(requestBuilder);
 
             HttpRequest request = requestBuilder.build();
             

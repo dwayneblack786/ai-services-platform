@@ -1,6 +1,15 @@
 # Development Environment Configuration
 # This file is automatically loaded when running with --spring.profiles.active=dev
 
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/va-service-dev
+      # Alternative configuration:
+      # host: localhost
+      # port: 27017
+      # database: va-service-dev
+
 api:
   endpoints:
     llm:

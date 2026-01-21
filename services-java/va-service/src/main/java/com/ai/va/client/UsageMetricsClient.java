@@ -9,20 +9,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Node Backend Client
- * HTTP client for communicating with Node.js backend
+ * Usage Metrics Client
+ * HTTP client for reporting usage metrics to Node.js backend for billing
  */
 @Component
-public class NodeBackendClient {
+public class UsageMetricsClient {
 
-    private static final Logger logger = LogFactory.getLogger(NodeBackendClient.class);
+    private static final Logger logger = LogFactory.getLogger(UsageMetricsClient.class);
 
     @Value("${node.backend.url:http://localhost:5000}")
     private String nodeBackendUrl;
 
     private final RestTemplate restTemplate;
 
-    public NodeBackendClient() {
+    public UsageMetricsClient() {
         this.restTemplate = new RestTemplate();
     }
 

@@ -23,156 +23,156 @@ import io.grpc.stub.StreamObserver;
 @Service
 public class ChatServiceImpl extends ChatServiceImplBase {
 
-    private static final Logger logger = LogFactory.getLogger(ChatServiceImpl.class);
+	private static final Logger logger = LogFactory.getLogger(ChatServiceImpl.class);
 
-    @Autowired
-    private ChatSessionService chatSessionService;
+	@Autowired
+	private ChatSessionService chatSessionService;
 
-    @Override
-    public void startSession(SessionRequest request, StreamObserver<SessionResponse> responseObserver) {
-        try {
-            logger.info("gRPC StartSession - customerId: {}, productId: {}", 
-                request.getCustomerId(), request.getProductId());
+	@Override
+	public void endSession(com.ai.va.grpc.EndSessionRequest request, StreamObserver<com.ai.va.grpc.EndSessionResponse> responseObserver) {
+		try {
+			logger.info("gRPC EndSession - sessionId: {}", request.getSessionId());
 
-            Map<String, String> result = chatSessionService.startSession(
-                request.getCustomerId(),
-                request.getProductId()
-            );
+			chatSessionService.endSession(request.getSessionId());
 
-            SessionResponse response = SessionResponse.newBuilder()
-                .setSessionId(result.get("sessionId"))
-                .setGreeting(result.getOrDefault("greeting", "Hello! How can I assist you today?"))
-                .setSuccess(true)
-                .build();
+			com.ai.va.grpc.EndSessionResponse response = com.ai.va.grpc.EndSessionResponse.newBuilder()
+					.setSuccess(true)
+					.build();
 
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
 
-        } catch (Exception e) {
-            logger.error("Error in startSession gRPC", e);
-            responseObserver.onError(Status.INTERNAL
-                .withDescription("Failed to start session: " + e.getMessage())
-                .asRuntimeException());
-        }
-    }
+		} catch (Exception e) {
+			logger.error("Error in endSession gRPC", e);
+			responseObserver.onError(Status.INTERNAL
+					.withDescription("Failed to end session: " + e.getMessage())
+					.asRuntimeException());
+		}
+	}
 
-    @Override
-    public void sendMessageStream(ChatRequest request, StreamObserver<ChatResponse> responseObserver) {
-        try {
-            logger.info("gRPC SendMessageStream - sessionId: {}, message: {}", 
-                request.getSessionId(), request.getMessage());
+	@Override
+	public void getHistory(com.ai.va.grpc.HistoryRequest request, StreamObserver<com.ai.va.grpc.HistoryResponse> responseObserver) {
+		try {
+			logger.info("gRPC GetHistory - sessionId: {}", request.getSessionId());
 
-            // Use async processing to avoid blocking gRPC thread
-            chatSessionService.processMessageStreamingGrpc(
-                request.getSessionId(),
-                request.getMessage(),
-                responseObserver
-            );
+			SessionState session = chatSessionService.getSession(request.getSessionId());
+			if (session == null) {
+				responseObserver.onError(Status.NOT_FOUND
+						.withDescription("Session not found")
+						.asRuntimeException());
+				return;
+			}
 
-        } catch (Exception e) {
-            logger.error("Error in sendMessageStream gRPC", e);
-            responseObserver.onError(Status.INTERNAL
-                .withDescription("Failed to process message: " + e.getMessage())
-                .asRuntimeException());
-        }
-    }
+			List<Turn> turns = session.getTranscript();
+			com.ai.va.grpc.HistoryResponse.Builder builder = com.ai.va.grpc.HistoryResponse.newBuilder();
 
-    @Override
-    public void sendMessage(ChatRequest request, StreamObserver<ChatResponse> responseObserver) {
-        try {
-            logger.info("gRPC SendMessage (non-streaming) - sessionId: {}, message: {}", 
-                request.getSessionId(), request.getMessage());
+			for (Turn turn : turns) {
+				com.ai.va.grpc.HistoryMessage message = com.ai.va.grpc.HistoryMessage.newBuilder()
+						.setRole(turn.getSpeaker())
+						.setContent(turn.getText())
+						.setTimestamp((long) turn.getTimestamp())
+						.build();
+				builder.addMessages(message);
+			}
 
-            // Convert gRPC request to internal model
-            com.ai.va.model.ChatRequest internalRequest = new com.ai.va.model.ChatRequest();
-            internalRequest.setSessionId(request.getSessionId());
-            internalRequest.setMessage(request.getMessage());
-            
-            // Process message using existing service
-            com.ai.va.model.ChatResponse internalResponse = chatSessionService.processMessage(internalRequest);
+			responseObserver.onNext(builder.build());
+			responseObserver.onCompleted();
 
-            ChatResponse.Builder builder = ChatResponse.newBuilder()
-                .setSessionId(request.getSessionId())
-                .setMessage(internalResponse.getMessage())
-                .setIsFinal(true);
-            
-            if (internalResponse.getIntent() != null) {
-                builder.setIntent(internalResponse.getIntent());
-            }
+		} catch (Exception e) {
+			logger.error("Error in getHistory gRPC", e);
+			responseObserver.onError(Status.INTERNAL
+					.withDescription("Failed to get history: " + e.getMessage())
+					.asRuntimeException());
+		}
+	}
 
-            if (internalResponse.isRequiresAction()) {
-                builder.setRequiresAction(true);
-                if (internalResponse.getSuggestedAction() != null) {
-                    builder.setSuggestedAction(internalResponse.getSuggestedAction());
-                }
-            }
+	@Override
+	public void sendMessage(com.ai.va.grpc.ChatRequest request, StreamObserver<com.ai.va.grpc.ChatResponse> responseObserver) {
+		try {
+			logger.info("gRPC SendMessage (non-streaming) - sessionId: {}, message: {}",
+					request.getSessionId(), request.getMessage());
 
-            responseObserver.onNext(builder.build());
-            responseObserver.onCompleted();
+			// Convert gRPC request to internal model
+			com.ai.va.model.ChatRequest internalRequest = new com.ai.va.model.ChatRequest();
+			internalRequest.setSessionId(request.getSessionId());
+			internalRequest.setMessage(request.getMessage());
 
-        } catch (Exception e) {
-            logger.error("Error in sendMessage gRPC", e);
-            responseObserver.onError(Status.INTERNAL
-                .withDescription("Failed to process message: " + e.getMessage())
-                .asRuntimeException());
-        }
-    }
+			// Process message using existing service
+			com.ai.va.model.ChatResponse internalResponse = chatSessionService.processMessage(internalRequest);
 
-    @Override
-    public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
-        try {
-            logger.info("gRPC EndSession - sessionId: {}", request.getSessionId());
+			com.ai.va.grpc.ChatResponse.Builder builder = com.ai.va.grpc.ChatResponse.newBuilder()
+					.setSessionId(request.getSessionId())
+					.setMessage(internalResponse.getMessage())
+					.setIsFinal(true);
 
-            chatSessionService.endSession(request.getSessionId());
+			if (internalResponse.getIntent() != null) {
+				builder.setIntent(internalResponse.getIntent());
+			}
 
-            EndSessionResponse response = EndSessionResponse.newBuilder()
-                .setSuccess(true)
-                .build();
+			if (internalResponse.isRequiresAction()) {
+				builder.setRequiresAction(true);
+				if (internalResponse.getSuggestedAction() != null) {
+					builder.setSuggestedAction(internalResponse.getSuggestedAction());
+				}
+			}
 
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
+			responseObserver.onNext(builder.build());
+			responseObserver.onCompleted();
 
-        } catch (Exception e) {
-            logger.error("Error in endSession gRPC", e);
-            responseObserver.onError(Status.INTERNAL
-                .withDescription("Failed to end session: " + e.getMessage())
-                .asRuntimeException());
-        }
-    }
+		} catch (Exception e) {
+			logger.error("Error in sendMessage gRPC", e);
+			responseObserver.onError(Status.INTERNAL
+					.withDescription("Failed to process message: " + e.getMessage())
+					.asRuntimeException());
+		}
+	}
 
-    @Override
-    public void getHistory(HistoryRequest request, StreamObserver<HistoryResponse> responseObserver) {
-        try {
-            logger.info("gRPC GetHistory - sessionId: {}", request.getSessionId());
+	@Override
+	public void sendMessageStream(com.ai.va.grpc.ChatRequest request, StreamObserver<com.ai.va.grpc.ChatResponse> responseObserver) {
+		try {
+			logger.info("gRPC SendMessageStream - sessionId: {}, message: {}",
+					request.getSessionId(), request.getMessage());
 
-            SessionState session = chatSessionService.getSession(request.getSessionId());
-            if (session == null) {
-                responseObserver.onError(Status.NOT_FOUND
-                    .withDescription("Session not found")
-                    .asRuntimeException());
-                return;
-            }
+			// Use async processing to avoid blocking gRPC thread
+			chatSessionService.processMessageStreamingGrpc(
+					request.getSessionId(),
+					request.getMessage(),
+					responseObserver
+					);
 
-            List<Turn> turns = session.getTranscript();
-            HistoryResponse.Builder builder = HistoryResponse.newBuilder();
+		} catch (Exception e) {
+			logger.error("Error in sendMessageStream gRPC", e);
+			responseObserver.onError(Status.INTERNAL
+					.withDescription("Failed to process message: " + e.getMessage())
+					.asRuntimeException());
+		}
+	}
 
-            for (Turn turn : turns) {
-                HistoryMessage message = HistoryMessage.newBuilder()
-                    .setRole(turn.getSpeaker())
-                    .setContent(turn.getText())
-                    .setTimestamp((long) turn.getTimestamp())
-                    .build();
-                builder.addMessages(message);
-            }
+	@Override
+	public void startSession(com.ai.va.grpc.SessionRequest request, StreamObserver<com.ai.va.grpc.SessionResponse> responseObserver) {
+		try {
+			logger.info("gRPC StartSession - customerId: {}, productId: {}",
+					request.getCustomerId(), request.getProductId());
 
-            responseObserver.onNext(builder.build());
-            responseObserver.onCompleted();
+			Map<String, String> result = chatSessionService.startSession(
+					request.getCustomerId(),
+					request.getProductId()
+					);
 
-        } catch (Exception e) {
-            logger.error("Error in getHistory gRPC", e);
-            responseObserver.onError(Status.INTERNAL
-                .withDescription("Failed to get history: " + e.getMessage())
-                .asRuntimeException());
-        }
-    }
+			com.ai.va.grpc.SessionResponse response = com.ai.va.grpc.SessionResponse.newBuilder()
+					.setSessionId(result.get("sessionId"))
+					.setGreeting(result.getOrDefault("greeting", "Hello! How can I assist you today?"))
+					.setSuccess(true)
+					.build();
+
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+
+		} catch (Exception e) {
+			logger.error("Error in startSession gRPC", e);
+			responseObserver.onError(Status.INTERNAL
+					.withDescription("Failed to start session: " + e.getMessage())
+					.asRuntimeException());
+		}
+	}
 }

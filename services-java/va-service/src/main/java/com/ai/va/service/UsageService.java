@@ -1,6 +1,6 @@
 package com.ai.va.service;
 
-import com.ai.va.client.NodeBackendClient;
+import com.ai.va.client.UsageMetricsClient;
 import com.ai.va.config.UsageConfig;
 import com.ai.va.model.LlmResult;
 import com.ai.va.model.UsageUpdate;
@@ -25,7 +25,7 @@ public class UsageService {
     private static final Logger logger = LoggerFactory.getLogger(UsageService.class);
 
     @Autowired
-    private NodeBackendClient nodeBackendClient;
+    private UsageMetricsClient usageMetricsClient;
 
     @Autowired
     private UsageConfig usageConfig;
@@ -81,7 +81,7 @@ public class UsageService {
     private void emitUsageUpdate(String callId, UsageMetrics metrics) {
         try {
             UsageUpdate update = buildUsageUpdate(callId, metrics);
-            nodeBackendClient.postUsageMetrics(update);
+            usageMetricsClient.postUsageMetrics(update);
         } catch (Exception e) {
             System.err.println("Failed to emit usage update: " + e.getMessage());
         }
@@ -180,7 +180,7 @@ public class UsageService {
             // Final usage push to Node backend
             if ("http".equals(usageConfig.getReportingMode())) {
                 UsageUpdate update = buildUsageUpdate(callId, metrics);
-                nodeBackendClient.postUsageMetrics(update);
+                usageMetricsClient.postUsageMetrics(update);
             }
             // TODO: Emit Kafka/Redis event for other reporting modes
         }

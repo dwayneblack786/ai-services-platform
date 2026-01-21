@@ -28,7 +28,7 @@ public class TtsService {
      */
     public String synthesize(String text, VoiceSettings voiceSettings) {
         try {
-            String voiceId = voiceSettings != null ? voiceSettings.getVoiceId() : ttsConfig.getVoiceId();
+            String voiceId = voiceSettings != null ? voiceSettings.getVoiceId() : ttsConfig.getGoogle().getVoiceId();
             String language = voiceSettings != null ? voiceSettings.getLanguage() : ttsConfig.getLanguage();
             double speechRate = voiceSettings != null ? voiceSettings.getSpeechRate() : ttsConfig.getSpeechRate();
 
@@ -50,7 +50,7 @@ public class TtsService {
         try {
             return ttsClient.synthesize(
                 text,
-                ttsConfig.getVoiceId(),
+                ttsConfig.getGoogle().getVoiceId(),
                 ttsConfig.getLanguage(),
                 ttsConfig.getSpeechRate()
             );

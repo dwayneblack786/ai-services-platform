@@ -4,7 +4,7 @@
  */
 
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, Document } from 'mongodb';
 
 let mongoServer: MongoMemoryServer | null = null;
 let mongoClient: MongoClient | null = null;
@@ -71,7 +71,7 @@ export function getMockDatabase(): Db {
 /**
  * Seed test data into collection
  */
-export async function seedCollection<T>(collectionName: string, data: T[]): Promise<void> {
+export async function seedCollection<T extends Document>(collectionName: string, data: T[]): Promise<void> {
   if (!db) {
     throw new Error('Database not initialized. Call startMockDatabase() first.');
   }

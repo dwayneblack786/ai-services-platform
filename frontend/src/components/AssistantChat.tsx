@@ -48,7 +48,11 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [requiresAction, setRequiresAction] = useState(false);
   const [suggestedAction, setSuggestedAction] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   
   // Socket.IO connection
   const { socket, isConnected } = useSocket({
@@ -332,6 +336,9 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
     setInputMessage('');
     setIsLoading(true);
     setError(null);
+    
+    // Focus input after sending
+    setTimeout(() => inputRef.current?.focus(), 100);
 
     try {
       if (useWebSocket && socket && isConnected) {
@@ -343,73 +350,32 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         });
         // Loading will be cleared when response is received
       } else {
-        // Use SSE streaming for progressive response
-        console.log('[Chat] Sending via SSE streaming');
+        // Use agent endpoint for AI-powered responses
+        console.log('[Chat] Sending via agent API');
         
-        // Create placeholder message for streaming
-        const streamingMessage: Message = {
-          role: 'assistant',
-          content: '',
-          timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, streamingMessage]);
-        
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const eventSource = new EventSource(
-          `${apiUrl}/api/chat/message/stream?sessionId=${sessionId}&message=${encodeURIComponent(messageToSend)}`,
-          { withCredentials: true }
-        );
-
-        let accumulatedContent = '';
-
-        eventSource.addEventListener('token', (event) => {
-          const data = JSON.parse(event.data);
-          accumulatedContent += data.token;
-          
-          // Update the last message with accumulated content
-          setMessages(prev => {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              ...updated[updated.length - 1],
-              content: accumulatedContent
-            };
-            return updated;
-          });
-        });
-
-        eventSource.addEventListener('complete', (event) => {
-          const data = JSON.parse(event.data);
-          console.log('[Chat] Stream complete:', data);
-          
-          // Update final message with intent
-          setMessages(prev => {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              ...updated[updated.length - 1],
-              content: accumulatedContent,
-              intent: data.intent
-            };
-            return updated;
+        try {
+          const response = await apiClient.post('/api/agent/execute', {
+            sessionId,
+            message: messageToSend,
+            context: {
+              productId: productId || 'va-service'
+            }
           });
           
+          const assistantMessage: Message = {
+            role: 'assistant',
+            content: response.data.message || 'No response from agent',
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, assistantMessage]);
           setIsLoading(false);
-          eventSource.close();
-        });
-
-        eventSource.addEventListener('error', (event) => {
-          console.error('[Chat] SSE error:', event);
-          setError('Stream connection error. Please try again.');
+        } catch (error: any) {
+          console.error('[Chat] Agent API error:', error);
+          const errorMsg = error.response?.data?.error || 'Failed to get response from agent';
+          setError(errorMsg);
           setIsLoading(false);
-          eventSource.close();
-        });
-
-        eventSource.onerror = (error) => {
-          console.error('[Chat] EventSource error:', error);
-          setError('Failed to stream response. Please try again.');
-          setIsLoading(false);
-          eventSource.close();
-        };
+        }
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.error || 'Failed to send message. Please try again.';
@@ -420,11 +386,126 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Ctrl+Enter or Cmd+Enter to send
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       sendMessage();
     }
+    // Allow Enter for new lines without modifier keys
   };
+
+  // Voice streaming functions
+  const startVoiceRecording = async () => {
+    try {
+      // Request microphone permission
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 16000
+        } 
+      });
+      
+      setAudioStream(stream);
+      setIsRecording(true);
+
+      // Create MediaRecorder
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      mediaRecorderRef.current = mediaRecorder;
+
+      // Emit start streaming event
+      if (socket && sessionId) {
+        socket.emit('voice:start', { sessionId });
+        console.log('[Voice] Started streaming for session:', sessionId);
+      }
+
+      // Send audio chunks as they become available
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0 && socket && sessionId) {
+          // Convert Blob to ArrayBuffer for efficient transmission
+          event.data.arrayBuffer().then(buffer => {
+            socket.emit('voice:chunk', {
+              sessionId,
+              audio: buffer,
+              timestamp: Date.now()
+            });
+            console.log('[Voice] Sent audio chunk:', buffer.byteLength, 'bytes');
+          });
+        }
+      };
+
+      // Handle recording stop
+      mediaRecorder.onstop = () => {
+        console.log('[Voice] Recording stopped');
+        if (socket && sessionId) {
+          socket.emit('voice:end', { sessionId });
+        }
+      };
+
+      // Start recording with 100ms chunks for real-time streaming
+      mediaRecorder.start(100);
+
+    } catch (error) {
+      console.error('[Voice] Error accessing microphone:', error);
+      setError('Could not access microphone. Please check permissions.');
+      setIsRecording(false);
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+
+    if (audioStream) {
+      audioStream.getTracks().forEach(track => track.stop());
+      setAudioStream(null);
+    }
+
+    setIsRecording(false);
+    console.log('[Voice] Recording stopped and cleaned up');
+  };
+
+  const toggleVoiceRecording = () => {
+    if (isRecording) {
+      stopVoiceRecording();
+    } else {
+      startVoiceRecording();
+    }
+  };
+
+  // Listen for voice transcription from server
+  useEffect(() => {
+    if (socket) {
+      socket.on('voice:transcription', (data: { text: string }) => {
+        console.log('[Voice] Received transcription:', data.text);
+        // Update the input field with the transcribed text
+        setInputMessage(prev => prev + (prev ? ' ' : '') + data.text);
+      });
+
+      socket.on('voice:error', (data: { error: string }) => {
+        console.error('[Voice] Server error:', data.error);
+        setError(`Voice streaming error: ${data.error}`);
+        stopVoiceRecording();
+      });
+
+      return () => {
+        socket.off('voice:transcription');
+        socket.off('voice:error');
+      };
+    }
+  }, [socket]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (isRecording) {
+        stopVoiceRecording();
+      }
+    };
+  }, [isRecording]);
 
   return (
     <>
@@ -686,22 +767,60 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         borderTop: '1px solid #e5e7eb',
         backgroundColor: '#ffffff'
       }}>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input
-            type="text"
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+          <textarea
+            ref={inputRef}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
+            onKeyDown={handleKeyPress}
+            placeholder="Type your message... (Ctrl+Enter to send)"
             disabled={!sessionId || isLoading}
+            rows={3}
             style={{
               flex: 1,
               padding: '12px',
               border: '1px solid #d1d5db',
               borderRadius: '6px',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontFamily: 'inherit',
+              resize: 'vertical',
+              minHeight: '60px'
             }}
           />
+          {useWebSocket && (
+            <button
+              onClick={toggleVoiceRecording}
+              disabled={!sessionId || isLoading}
+              title={isRecording ? 'Stop recording' : 'Start voice recording'}
+              style={{
+                padding: '12px',
+                backgroundColor: isRecording ? '#ef4444' : '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                opacity: (!sessionId || isLoading) ? 0.5 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '48px',
+                transition: 'all 0.2s'
+              }}
+            >
+              {isRecording ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                  <line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+              )}
+            </button>
+          )}
           <button
             onClick={sendMessage}
             disabled={!sessionId || isLoading || !inputMessage.trim()}

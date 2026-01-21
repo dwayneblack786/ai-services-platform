@@ -2,6 +2,7 @@ import { Server as HTTPServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { verifyToken } from '../middleware/auth';
 import { setupChatHandlers } from '../sockets/chat-socket';
+import { setupVoiceHandlers } from '../sockets/voice-socket';
 
 export interface AuthenticatedSocket extends Socket {
   user?: {
@@ -72,6 +73,9 @@ export function initializeSocketIO(httpServer: HTTPServer): Server {
 
     // Setup chat-specific event handlers
     setupChatHandlers(socket);
+
+    // Setup voice streaming event handlers
+    setupVoiceHandlers(socket);
 
     // Handle disconnection
     socket.on('disconnect', (reason) => {

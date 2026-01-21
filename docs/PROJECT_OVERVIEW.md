@@ -52,11 +52,20 @@
 
 ## Documentation
 
+### 🗺️ Documentation Guide
+- **[Documentation Map](DOCUMENTATION_MAP.md) - Visual guide to all Spring AI Agent documentation**
+
 ### Architecture & Design
 - [Repository Structure](RepositoryStrucutre.md) - Complete folder structure and organization
 - [Chat Message Architecture](CHAT_MESSAGE_ARCHITECTURE.md) - Session-based MongoDB schema
 - [Circuit Breaker Implementation](../backend-node/CIRCUIT_BREAKER_IMPLEMENTATION.md) - Fault tolerance guide
 - [Redis Implementation Guide](REDIS_IMPLEMENTATION_GUIDE.md) - Session storage and caching
+
+### Spring AI Agent (NEW)
+- **[Spring AI Agent Implementation](SPRING_AI_AGENT_IMPLEMENTATION.md) - ⭐ Start here - Complete overview**
+- **[Provider-Agnostic Design](PROVIDER_AGNOSTIC_DESIGN.md) - Why LM Studio + Azure is perfect**
+- **[Azure Deployment Guide](AZURE_DEPLOYMENT_GUIDE.md) - Production deployment instructions**
+- **[Quick Start Guide](../services-java/va-service/QUICKSTART.md) - Get started in 5 minutes**
 
 ### Product & Requirements
 - [Optimized Technical Requirements](Optimized%20Technical%20Requirements.docx)

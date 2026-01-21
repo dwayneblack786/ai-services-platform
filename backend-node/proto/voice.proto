@@ -14,33 +14,159 @@ service VoiceService {
   
   // Single request/response for voice (non-streaming fallback)
   rpc ProcessVoice(VoiceRequest) returns (VoiceResponse);
+  
+  // STT-specific: Transcribe audio chunks (streaming)
+  rpc TranscribeStream(stream AudioChunk) returns (stream TranscriptionResponse);
+  
+  // STT-specific: Transcribe single audio file (non-streaming)
+  rpc Transcribe(AudioChunk) returns (TranscriptionResponse);
+  
+  // TTS-specific: Synthesize text to speech (single request)
+  rpc Synthesize(SynthesisRequest) returns (AudioResponse);
+  
+  // TTS-specific: Synthesize text to speech (streaming)
+  rpc SynthesizeStream(stream TextChunk) returns (stream AudioResponse);
+}
+
+// Health check service
+service HealthService {
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
 }
 
 // Voice request with audio data
 message VoiceRequest {
   string session_id = 1;
-  bytes audio_data = 2;         // Audio chunk in bytes
+  bytes audio_data = 2;
   AudioFormat format = 3;
-  bool is_final_chunk = 4;      // Indicates end of audio stream
+  bool is_final_chunk = 4;
   string customer_id = 5;
 }
 
 // Audio format specification
 message AudioFormat {
-  string encoding = 1;          // e.g., "LINEAR16", "MULAW", "WEBM_OPUS"
-  int32 sample_rate = 2;        // e.g., 16000, 8000
-  int32 channels = 3;           // 1 for mono, 2 for stereo
+  string encoding = 1;
+  int32 sample_rate = 2;
+  int32 channels = 3;
 }
 
 // Voice response with transcription and assistant reply
 message VoiceResponse {
   string session_id = 1;
-  string transcription = 2;     // What user said
-  string response_text = 3;     // Assistant's text response
-  bytes response_audio = 4;     // Assistant's audio response (TTS)
-  bool is_interim = 5;          // True for interim transcription results
-  bool is_final = 6;            // True for final response
+  string transcription = 2;
+  string response_text = 3;
+  bytes response_audio = 4;
+  bool is_interim = 5;
+  bool is_final = 6;
   string intent = 7;
   bool requires_action = 8;
   string suggested_action = 9;
+}
+
+// ============================================================================
+// STT (Speech-to-Text) Messages
+// ============================================================================
+
+// Audio chunk for STT processing
+message AudioChunk {
+  string session_id = 1;
+  bytes audio_data = 2;
+  string format = 3;
+  int64 timestamp = 4;
+  int32 sequence_number = 5;
+  string customer_id = 6;
+  bool is_final_chunk = 7;
+}
+
+// Transcription response from STT service
+message TranscriptionResponse {
+  string session_id = 1;
+  string text = 2;
+  double confidence = 3;
+  bool is_final = 4;
+  int64 duration_ms = 5;
+  string language = 6;
+  TranscriptionMetadata metadata = 7;
+}
+
+// Metadata about the transcription process
+message TranscriptionMetadata {
+  string provider = 1;
+  int64 processing_time_ms = 2;
+  repeated WordTimestamp words = 3;
+  string model = 4;
+  bool streaming = 5;
+}
+
+// Word-level timestamp information
+message WordTimestamp {
+  string word = 1;
+  int64 start_ms = 2;
+  int64 end_ms = 3;
+  double confidence = 4;
+}
+
+// ============================================================================
+// TTS (Text-to-Speech) Messages
+// ============================================================================
+
+// Synthesis request for TTS
+message SynthesisRequest {
+  string session_id = 1;
+  string text = 2;
+  string language = 3;
+  string voice_name = 4;
+  string format = 5;
+  string customer_id = 6;
+}
+
+// Text chunk for streaming TTS
+message TextChunk {
+  string session_id = 1;
+  string text = 2;
+  string language = 3;
+  string voice_name = 4;
+  int32 sequence_number = 5;
+  bool is_final_chunk = 6;
+  string customer_id = 7;
+  string format = 8;
+}
+
+// Audio response from TTS service
+message AudioResponse {
+  string session_id = 1;
+  bytes audio_data = 2;
+  string format = 3;
+  AudioMetadata metadata = 4;
+}
+
+// Metadata about the synthesis process
+message AudioMetadata {
+  string voice_name = 1;
+  string language = 2;
+  int64 duration_ms = 3;
+  int32 sample_rate = 4;
+  int32 bitrate = 5;
+  string provider = 6;
+  int64 processing_time_ms = 7;
+  bool success = 8;
+  string error_message = 9;
+}
+
+// ============================================================================
+// Health Check
+// ============================================================================
+
+message HealthCheckRequest {
+  string service = 1;
+}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+  }
+  ServingStatus status = 1;
+  string message = 2;
+  map<string, string> details = 3;
 }

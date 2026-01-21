@@ -29,6 +29,7 @@ import promptRoutes from './routes/prompt-routes-v2';
 import subscriptionsRoutes from './routes/subscriptions-routes';
 import circuitRoutes from './routes/circuit-routes';
 import healthRoutes from './routes/health-routes';
+import agentRoutes from './routes/agent-routes';
 import './config/passport';
 import logger from './utils/logger';
 import { correlationIdMiddleware, requestLoggerMiddleware, errorLoggerMiddleware } from './middleware/requestLogger';
@@ -66,17 +67,6 @@ connectDB()
     process.exit(1);
   });
 
-// Initialize Redis connection (async, non-blocking)
-connectRedis()
-  .then(() => {
-    // Redis connected successfully
-    // Update session store if needed (requires server restart to pick up)
-    logger.info('Redis available for session storage');
-  })
-  .catch(err => {
-    logger.warn('Redis connection failed - using memory store for sessions', { error: err.message });
-  });
-
 // Middleware
 app.use(cors({
   origin: env.CORS_ORIGINS,
@@ -89,7 +79,7 @@ app.use(cookieParser());
 app.use(correlationIdMiddleware);
 app.use(requestLoggerMiddleware);
 
-// Configure Redis store for sessions
+// Configure session store based on environment
 const sessionConfig: session.SessionOptions = {
   secret: env.SESSION_SECRET,
   resave: false,
@@ -103,26 +93,44 @@ const sessionConfig: session.SessionOptions = {
   }
 };
 
-// Use Redis store if connected, otherwise fallback to memory store
-// Note: Redis connection is async, so this checks current state at startup
-setTimeout(() => {
-  if (redisClient.isReady) {
-    logger.info('Redis is ready - sessions will be stored in Redis');
-  } else {
-    logger.warn('Redis not ready - sessions are using memory store');
-  }
-}, 2000);
-
-// Configure session store
-if (redisClient.isOpen) {
-  sessionConfig.store = new RedisStore({
-    client: redisClient,
-    prefix: 'sess:',
-    ttl: 86400 // 24 hours in seconds
-  });
-  logger.info('Configuring Redis for session storage');
+// Use Redis in production, memory store in development
+if (env.NODE_ENV === 'production') {
+  // Initialize Redis connection (required in production)
+  connectRedis()
+    .then(() => {
+      logger.info('✅ Redis connected successfully - sessions will persist');
+    })
+    .catch(err => {
+      logger.error('❌ Redis connection failed in production - this is critical!', { error: err.message });
+      process.exit(1); // Fail fast in production if Redis is not available
+    });
+  
+  // Wait a moment for Redis to connect, then configure session store
+  setTimeout(() => {
+    if (redisClient.isReady) {
+      sessionConfig.store = new RedisStore({
+        client: redisClient,
+        prefix: 'sess:',
+        ttl: 86400 // 24 hours in seconds
+      });
+      logger.info('📝 Production: Using Redis for session storage');
+    } else {
+      logger.error('❌ Redis not ready after connection attempt');
+      process.exit(1);
+    }
+  }, 1000);
 } else {
-  logger.warn('Redis not yet connected - using memory store for sessions (not recommended for production)');
+  // Development: Use memory store (sessions will be lost on restart)
+  logger.info('💾 Development: Using memory store for sessions (sessions lost on restart)');
+  
+  // Still try to connect to Redis in background (optional for dev)
+  connectRedis()
+    .then(() => {
+      logger.info('ℹ️  Redis available in development (not used for sessions)');
+    })
+    .catch(err => {
+      logger.info('ℹ️  Redis not available in development - using memory store', { error: err.message });
+    });
 }
 
 app.use(session(sessionConfig));
@@ -149,6 +157,7 @@ app.use('/api/assistant-channels', assistantChannelsRoutes);
 app.use('/api/prompts', promptRoutes);
 app.use('/api/circuit', circuitRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/agent', agentRoutes); // Spring AI Agent routes
 
 // Load OpenAPI specification
 const openapiPath = path.join(__dirname, '..', 'openapi.yaml');

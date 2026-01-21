@@ -3,6 +3,7 @@ import { AuthenticatedSocket } from '../config/socket';
 import { getDB } from '../config/database';
 import { javaVAClient } from '../services/apiClient';
 import logger, { createModuleLogger } from '../utils/logger';
+import { assistantService } from '../services/assistant-service';
 
 const socketLogger = createModuleLogger('chat-socket');
 
@@ -81,28 +82,29 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
         // Show typing indicator for assistant
         socket.emit('chat:typing', { isTyping: true });
 
-        // Forward to Java VA service
-        const javaResponse = await javaVAClient.post(
-          '/chat/message',
-          { sessionId, message },
-          { timeout: 30000 },
-          () => ({
-            sessionId,
-            message: 'I apologize, but I\'m temporarily unable to process your message. Our service will be back shortly.',
-            intent: 'system_error',
-            requiresAction: false
-          })
-        );
+        // Process message through unified assistant service
+        const response = await assistantService.processMessage({
+          sessionId,
+          message,
+          userId: user.id,
+          userEmail: user.email,
+          tenantId: user.tenantId,
+          source: 'text',
+          context: {
+            productId: 'va-service',
+            userRole: (user as any).role,
+            userName: (user as any).name
+          }
+        });
 
         // Stop typing indicator
         socket.emit('chat:typing', { isTyping: false });
 
-        const response = javaResponse.data as ChatResponse;
-
-        socketLogger.debug('Response from Java VA', {
+        socketLogger.debug('Response from assistant service', {
           sessionId: response.sessionId,
           intent: response.intent,
           requiresAction: response.requiresAction,
+          source: response.metadata?.source,
           socketId: socket.id
         });
 
@@ -116,22 +118,15 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
           suggestedAction: response.suggestedAction
         });
 
-        // Handle multiple messages (proactive follow-ups)
-        if (response.messages && Array.isArray(response.messages)) {
-          for (const msg of response.messages) {
-            socket.emit('chat:message-received', {
-              role: 'assistant',
-              content: msg,
-              timestamp: new Date()
-            });
-          }
-        }
-
+        // Note: Multi-message support removed - use single message approach
+        // If needed, send multiple responses by calling processMessage multiple times
       } catch (error: any) {
         socketLogger.error('Error processing message', { 
           sessionId, 
           userId: user.id,
           error: error.message,
+          source: error.source || 'text',
+          statusCode: error.statusCode,
           stack: error.stack,
           socketId: socket.id
         });
@@ -141,9 +136,9 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
 
         // Send error to client
         socket.emit('chat:error', {
-          error: 'Failed to process message',
-          canRetry: javaVAClient.getCircuitState() !== 'OPEN',
-          circuitState: javaVAClient.getCircuitState()
+          error: error.message || 'Failed to process message',
+          canRetry: true,
+          statusCode: error.statusCode || 500
         });
       }
     });

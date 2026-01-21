@@ -1,6 +1,8 @@
 package com.ai.va.service;
 
 import com.ai.va.model.*;
+import com.ai.va.service.stt.SttService;
+import com.ai.va.service.stt.SttServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,7 @@ public class VoiceSessionService {
     private static final Logger logger = LoggerFactory.getLogger(VoiceSessionService.class);
 
     @Autowired
-    private SttService sttService;
+    private SttServiceFactory sttServiceFactory;
 
     @Autowired
     private LlmService llmService;
@@ -37,6 +39,9 @@ public class VoiceSessionService {
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private TranscriptService transcriptService;
 
     // In-memory session storage (consider Redis for production)
     private final Map<String, SessionState> activeSessions = new ConcurrentHashMap<>();
@@ -114,6 +119,24 @@ public class VoiceSessionService {
         
         activeSessions.put(callId, session);
         
+        // Initialize transcript in MongoDB
+        try {
+            VoiceTranscript transcript = transcriptService.createOrGetTranscript(callId, customerId, customerId);
+            
+            // Update metadata
+            if (transcript.getMetadata() != null) {
+                transcript.getMetadata().setTenantId(tenantId);
+                transcript.getMetadata().setProductId(productId);
+                transcript.getMetadata().setSttProvider("whisper"); // Default, can be configured
+                transcriptService.saveTranscript(transcript);
+            }
+            
+            logger.info("Initialized transcript for session: {}", callId);
+        } catch (Exception e) {
+            logger.error("Failed to initialize transcript for session: {}", callId, e);
+            // Continue without transcript - non-fatal error
+        }
+        
         logger.info("Started voice session: {} for tenant: {} product: {}", callId, tenantId, productId);
         return session;
     }
@@ -150,8 +173,9 @@ public class VoiceSessionService {
             // Decode audio from base64
             byte[] audio = Base64.getDecoder().decode(audioChunkBase64);
 
-            // 1. STT: Speech-to-Text
-            String userText = sttService.transcribe(audioChunkBase64);
+            // 1. STT: Speech-to-Text (using factory to get active provider)
+            SttService sttService = sttServiceFactory.getSttService();
+            String userText = sttService.transcribe(audio, "webm", callId).getText();
             
             if (userText == null || userText.trim().isEmpty()) {
                 // No speech detected, return empty response
@@ -160,6 +184,13 @@ public class VoiceSessionService {
 
             // 2. Load and update session state
             state.addTurn(Turn.caller(userText));
+
+            // Save user transcript segment
+            try {
+                transcriptService.addSegment(callId, "user", userText, null);
+            } catch (Exception e) {
+                logger.error("Failed to save user transcript segment: {}", e.getMessage());
+            }
 
             // Process user input: detect intent and extract slots
             dialogManager.processUserInput(state, userText);
@@ -171,6 +202,13 @@ public class VoiceSessionService {
 
             state.addTurn(Turn.assistant(assistantText));
             saveState(callId, state);
+
+            // Save assistant transcript segment
+            try {
+                transcriptService.addSegment(callId, "assistant", assistantText, null);
+            } catch (Exception e) {
+                logger.error("Failed to save assistant transcript segment: {}", e.getMessage());
+            }
 
             // 4. TTS: Text-to-Speech
             String ttsAudio = ttsService.synthesize(assistantText, state.getVoiceSettings());
@@ -220,6 +258,14 @@ public class VoiceSessionService {
     public void endSession(String callId) {
         SessionState session = activeSessions.remove(callId);
         if (session != null) {
+            // Finalize transcript
+            try {
+                transcriptService.finalizeTranscript(callId);
+                logger.info("Finalized transcript for session: {}", callId);
+            } catch (Exception e) {
+                logger.error("Failed to finalize transcript for session: {}", callId, e);
+            }
+            
             // Perform cleanup
             dialogManager.clearContext(callId);
             usageService.finalizeMetrics(callId);
