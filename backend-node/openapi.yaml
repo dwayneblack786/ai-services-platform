@@ -42,6 +42,12 @@ tags:
     description: User product subscriptions
   - name: Usage
     description: Usage metrics and reporting
+  - name: Circuit Breaker
+    description: Circuit breaker monitoring and control
+  - name: Health
+    description: Service health and readiness checks
+  - name: AI Agent
+    description: Spring AI agentic workflow for complex multi-step tasks
 
 paths:
   # Authentication Endpoints
@@ -1886,6 +1892,373 @@ paths:
         '401':
           description: Unauthorized
 
+  # Circuit Breaker Endpoints
+  /api/circuit/stats:
+    get:
+      summary: Get circuit breaker statistics
+      tags: [Circuit Breaker]
+      security:
+        - cookieAuth: []
+      description: Returns current state and statistics of all circuit breakers in the system
+      responses:
+        '200':
+          description: Circuit breaker statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  stats:
+                    type: object
+                    properties:
+                      state:
+                        type: string
+                        enum: [CLOSED, OPEN, HALF_OPEN]
+                        description: Current circuit state
+                      failureCount:
+                        type: integer
+                        description: Number of consecutive failures
+                      successCount:
+                        type: integer
+                        description: Number of successful requests
+                      totalRequests:
+                        type: integer
+                        description: Total number of requests
+                      lastSuccessTime:
+                        type: integer
+                        description: Timestamp of last successful request
+                      lastFailureTime:
+                        type: integer
+                        description: Timestamp of last failed request
+                      isHealthy:
+                        type: boolean
+                        description: Whether circuit is in healthy state (CLOSED)
+                      uptime:
+                        type: integer
+                        nullable: true
+                        description: Time since last success in milliseconds
+                      timeSinceLastFailure:
+                        type: integer
+                        nullable: true
+                        description: Time since last failure in milliseconds
+        '401':
+          description: Unauthorized
+        '500':
+          description: Failed to get circuit breaker statistics
+
+  /api/circuit/reset:
+    post:
+      summary: Manually reset the circuit breaker
+      tags: [Circuit Breaker]
+      security:
+        - cookieAuth: []
+      description: Forces the circuit breaker back to CLOSED state and resets all counters
+      responses:
+        '200':
+          description: Circuit breaker reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  stats:
+                    type: object
+                    description: Current circuit breaker statistics after reset
+        '401':
+          description: Unauthorized
+        '500':
+          description: Failed to reset circuit breaker
+
+  /api/circuit/health:
+    get:
+      summary: Check Java VA service health through circuit breaker
+      tags: [Circuit Breaker]
+      security:
+        - cookieAuth: []
+      description: Performs a health check on the Java VA service using the circuit breaker pattern
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  health:
+                    type: object
+                    description: Health check response from Java service
+                  circuit:
+                    type: object
+                    properties:
+                      state:
+                        type: string
+                        enum: [CLOSED, OPEN, HALF_OPEN]
+                      isHealthy:
+                        type: boolean
+                      failureCount:
+                        type: integer
+                      lastCheck:
+                        type: integer
+                        description: Timestamp of this health check
+        '401':
+          description: Unauthorized
+        '503':
+          description: Service health check failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+                  circuit:
+                    type: object
+                    properties:
+                      state:
+                        type: string
+                      isHealthy:
+                        type: boolean
+                      failureCount:
+                        type: integer
+                      lastCheck:
+                        type: integer
+
+  # Health Check Endpoints
+  /health:
+    get:
+      summary: Basic health check
+      tags: [Health]
+      description: Simple endpoint that returns 200 if server is responding
+      responses:
+        '200':
+          description: Server is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  message:
+                    type: string
+                    example: Server is running
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /health/detailed:
+    get:
+      summary: Comprehensive health check with all dependencies
+      tags: [Health]
+      description: Returns detailed health status of all system components including MongoDB, Redis, Java services, and circuit breakers
+      responses:
+        '200':
+          description: System is healthy or degraded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedHealthStatus'
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedHealthStatus'
+
+  /health/liveness:
+    get:
+      summary: Kubernetes liveness probe
+      tags: [Health]
+      description: Checks if server should be restarted. Returns 200 if server can respond.
+      responses:
+        '200':
+          description: Server is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: alive
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /health/readiness:
+    get:
+      summary: Kubernetes readiness probe
+      tags: [Health]
+      description: Checks if server can handle requests. Validates critical service connections.
+      responses:
+        '200':
+          description: Server is ready to handle requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ready
+                  timestamp:
+                    type: string
+                    format: date-time
+        '503':
+          description: Server is not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: not_ready
+                  reason:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  # AI Agent Endpoints
+  /api/agent/execute:
+    post:
+      summary: Execute AI agent with user message
+      tags: [AI Agent]
+      security:
+        - cookieAuth: []
+      description: Process complex multi-step tasks using Spring AI agentic workflow. Uses unified AssistantService for consistent processing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: User's message to the agent
+                sessionId:
+                  type: string
+                  description: Optional conversation session ID. If not provided, uses user ID.
+                context:
+                  type: object
+                  description: Additional context for the agent
+                  properties:
+                    productId:
+                      type: string
+                      default: va-service
+                    userRole:
+                      type: string
+                    userName:
+                      type: string
+              required: [message]
+      responses:
+        '200':
+          description: Agent response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                  message:
+                    type: string
+                    description: Agent's response message
+                  metadata:
+                    type: object
+                    properties:
+                      processingTime:
+                        type: number
+                        description: Processing time in milliseconds
+                      source:
+                        type: string
+                        description: Source of the response (e.g., 'text', 'voice')
+                      intent:
+                        type: string
+                      confidence:
+                        type: number
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: User not authenticated
+        '500':
+          description: Agent execution failed
+
+  /api/agent/session/{sessionId}:
+    delete:
+      summary: Clear conversation history for a session
+      tags: [AI Agent]
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+          description: Session ID to clear
+      responses:
+        '200':
+          description: Session cleared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Failed to clear session
+
+  /api/agent/health:
+    get:
+      summary: Check AI agent service health
+      tags: [AI Agent]
+      description: Verifies if the AI agent service is available and responding
+      responses:
+        '200':
+          description: Agent service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+        '503':
+          description: Agent service is unhealthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: unhealthy
+                  error:
+                    type: string
+
 components:
   securitySchemes:
     cookieAuth:
@@ -2398,3 +2771,88 @@ components:
         timestamp:
           type: number
           format: float
+
+    DetailedHealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Overall system health status
+        timestamp:
+          type: string
+          format: date-time
+        uptime:
+          type: number
+          description: Server uptime in seconds
+        responseTime:
+          type: string
+          example: "125ms"
+        services:
+          type: object
+          properties:
+            mongodb:
+              $ref: '#/components/schemas/ServiceHealth'
+            redis:
+              $ref: '#/components/schemas/ServiceHealth'
+            javaVA:
+              $ref: '#/components/schemas/ServiceHealth'
+            circuitBreakers:
+              $ref: '#/components/schemas/CircuitBreakerHealth'
+        system:
+          type: object
+          properties:
+            memory:
+              type: object
+              properties:
+                used:
+                  type: number
+                  description: Used memory in MB
+                total:
+                  type: number
+                  description: Total heap memory in MB
+                percentage:
+                  type: number
+                  description: Memory usage percentage
+            nodeVersion:
+              type: string
+              example: v18.17.0
+            environment:
+              type: string
+              example: development
+
+    ServiceHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [up, down, degraded]
+        responseTime:
+          type: number
+          description: Response time in milliseconds
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+    CircuitBreakerHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        circuits:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              state:
+                type: string
+                enum: [CLOSED, OPEN, HALF_OPEN]
+              failureCount:
+                type: integer
+              successCount:
+                type: integer
+              totalRequests:
+                type: integer
