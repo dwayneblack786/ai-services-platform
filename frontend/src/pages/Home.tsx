@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import { getApiUrl } from '../config/api';
+import { logger } from '../utils/logger';
 import { styles } from '../styles/Home.styles';
 import { Product } from '../types';
 

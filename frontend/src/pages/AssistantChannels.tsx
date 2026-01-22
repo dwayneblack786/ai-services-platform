@@ -77,9 +77,9 @@ const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavi
   
   // Debug logging
   useEffect(() => {
-    console.log('[AssistantChannels] User role:', user?.role);
-    console.log('[AssistantChannels] isTenantAdmin():', isTenantAdmin());
-    console.log('[AssistantChannels] canManageChannels:', canManageChannels);
+    logger.debug('[AssistantChannels] User role:', { role: user?.role });
+    logger.debug('[AssistantChannels] isTenantAdmin():', { isTenantAdmin: isTenantAdmin() });
+    logger.debug('[AssistantChannels] canManageChannels:', { canManageChannels });
   }, [user, canManageChannels]);
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import apiClient from '../services/apiClient';
 import { User, UserRole } from '../types/shared';
 import { getApiUrl } from '../config/api';
 import { AuthContextType } from '../types';
+import { logger } from '../utils/logger';
 
 interface Subscription {
   _id: string;
@@ -67,16 +68,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setIsCheckingAuth(true);
     try {
-      console.log('Checking auth status...');
+      logger.debug('Checking auth status...');
       const response = await apiClient.get(getApiUrl('api/auth/status'));
-      console.log('Auth status response:', response.data);
+      logger.debug('Auth status response:', response.data);
       if (response.data.authenticated) {
         setUser(response.data.user);
       } else {
         setUser(null);
       }
-    } catch (error) {
-      console.error('Auth check failed:', error);
+    } catch (error: any) {
+      logger.error('Auth check failed', error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -101,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Dev login failed' };
     } catch (error: any) {
       const errorMsg = error.response?.data?.error || 'Dev login failed';
-      console.error('Dev login failed:', errorMsg);
+      logger.error('Dev login failed', { error: errorMsg });
       return { success: false, error: errorMsg };
     }
   };
@@ -110,8 +111,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await apiClient.post(getApiUrl('api/auth/logout'), {});
       setUser(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (error: any) {
+      logger.error('Logout failed', error);
     }
   };
 
@@ -127,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Login failed' };
     } catch (error: any) {
       const errorMsg = error.response?.data?.error || 'Login failed';
-      console.error('Email login failed:', errorMsg);
+      logger.error('Email login failed', { error: errorMsg });
       return { success: false, error: errorMsg };
     }
   };
@@ -144,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Signup failed' };
     } catch (error: any) {
       const errorMsg = error.response?.data?.error || 'Signup failed';
-      console.error('Signup failed:', errorMsg);
+      logger.error('Signup failed', { error: errorMsg });
       return { success: false, error: errorMsg };
     }
   };
@@ -197,8 +198,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (vaResponse.data) {
         setVirtualAssistantProducts(vaResponse.data.products || []);
       }
-    } catch (error) {
-      console.error('Failed to fetch subscriptions:', error);
+    } catch (error: any) {
+      logger.error('Failed to fetch subscriptions', error);
       setSubscriptions([]);
       setVirtualAssistantProducts([]);
       setHasVirtualAssistant(false);
