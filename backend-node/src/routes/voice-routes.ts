@@ -189,8 +189,7 @@ router.post('/incoming', async (req: Request, res: Response) => {
     
     const streamResponse: CallControlResponse = {
       action: 'stream',
-      streamUrl: streamUrl,
-      callId: mongoCallId
+      streamUrl: streamUrl
     };
 
     const providerResponse = adapter.generateCallResponse(streamResponse);

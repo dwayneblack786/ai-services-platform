@@ -1,5 +1,5 @@
 import express, { Router, Request, Response } from 'express';
-import { isAuthenticated } from '../middleware/auth';
+import { authenticateToken } from '../middleware/auth';
 import logger from '../utils/logger';
 
 const router: Router = express.Router();
@@ -10,7 +10,7 @@ const router: Router = express.Router();
  * 
  * GET /api/metrics - Requires authentication
  */
-router.get('/', isAuthenticated, async (req: Request, res: Response) => {
+router.get('/', authenticateToken, async (req: Request, res: Response) => {
   try {
     const io = req.app.locals.io;
     
@@ -110,7 +110,7 @@ router.get('/health', (req: Request, res: Response) => {
  * 
  * GET /api/metrics/stream
  */
-router.get('/stream', isAuthenticated, (req: Request, res: Response) => {
+router.get('/stream', authenticateToken, (req: Request, res: Response) => {
   // Set SSE headers
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');

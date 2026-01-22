@@ -68,7 +68,7 @@ export class VonageAdapter extends BaseVoipAdapter {
         ncco = [
           {
             action: 'conversation',
-            name: response.callId || 'va-conversation'
+            name: 'va-conversation'
           },
           {
             action: 'connect',
