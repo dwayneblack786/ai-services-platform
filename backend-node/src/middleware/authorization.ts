@@ -14,7 +14,7 @@ export const requireTenantAdmin = (req: Request, res: Response, next: NextFuncti
 
   const userRole = user.role?.toLowerCase();
   
-  if (userRole !== 'admin' && userRole !== 'owner') {
+  if (userRole !== 'admin' && userRole !== 'project_admin') {
     return res.status(403).json({ 
       error: 'Access denied. Tenant admin privileges required.',
       message: 'Only tenant administrators can perform this action.'
@@ -52,9 +52,9 @@ export const requireVirtualAssistantSubscription = async (
     }
     
     // If no subscriptions found by tenantId, try customerId
-    if (activeSubscriptions.length === 0 && user.customerId) {
+    if (activeSubscriptions.length === 0 && user.tenantId) {
       activeSubscriptions = await db.collection('subscriptions').find({
-        customerId: user.customerId,
+        customerId: user.tenantId,
         status: 'active'
       }).toArray();
     }
@@ -62,7 +62,7 @@ export const requireVirtualAssistantSubscription = async (
     // If still no subscriptions, try using user._id as customerId
     if (activeSubscriptions.length === 0) {
       activeSubscriptions = await db.collection('subscriptions').find({
-        customerId: user._id,
+        customerId: user.id,
         status: 'active'
       }).toArray();
     }
@@ -75,7 +75,7 @@ export const requireVirtualAssistantSubscription = async (
     }
 
     // Get product details for all subscriptions
-    const productIds = activeSubscriptions.map(sub => 
+    const productIds = activeSubscriptions.map((sub: any) => 
       typeof sub.productId === 'string' ? new ObjectId(sub.productId) : sub.productId
     );
 

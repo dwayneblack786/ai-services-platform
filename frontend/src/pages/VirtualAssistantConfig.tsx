@@ -22,11 +22,11 @@ interface ProductConfigurationType {
 }
 
 const VirtualAssistantConfig = () => {
-  const { productId } = useParams<{ productId: string }>();
+  const { productId, tab } = useParams<{ productId: string; tab?: string }>();
   const navigate = useNavigate();
   const { isTenantAdmin } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('configuration');
+  const [activeTab, setActiveTab] = useState<TabType>((tab as TabType) || 'configuration');
   const [promptConfigChannel, setPromptConfigChannel] = useState<'voice' | 'chat'>('voice');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -44,6 +44,19 @@ const VirtualAssistantConfig = () => {
     fetchProduct();
     fetchConfiguration();
   }, [productId]);
+
+  // Sync tab from URL parameter
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab as TabType);
+    }
+  }, [tab]);
+
+  // Function to change tab and update URL
+  const navigateToTab = (newTab: TabType) => {
+    setActiveTab(newTab);
+    navigate(`/products/${productId}/configure/${newTab}`, { replace: true });
+  };
 
   const fetchProduct = async () => {
     try {
@@ -229,9 +242,9 @@ const VirtualAssistantConfig = () => {
           if (tab.startsWith('prompt-config:')) {
             const channel = tab.split(':')[1] as 'voice' | 'chat';
             setPromptConfigChannel(channel);
-            setActiveTab('prompt-config');
+            navigateToTab('prompt-config');
           } else {
-            setActiveTab(tab as TabType);
+            navigateToTab(tab as TabType);
           }
         }} />;
       case 'prompt-config':
@@ -335,7 +348,7 @@ const VirtualAssistantConfig = () => {
             {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => navigateToTab(tab.id)}
                 style={{
                   padding: '16px 20px',
                   border: 'none',

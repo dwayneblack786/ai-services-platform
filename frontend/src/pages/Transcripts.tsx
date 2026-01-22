@@ -1,188 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
-import styled from '@emotion/styled';
 import { useSearchParams } from 'react-router-dom';
+import {
+  PageContainer,
+  Header,
+  Title,
+  Subtitle,
+  Card,
+  MetaInfo,
+  MetaItem,
+  MetaLabel,
+  MetaValue,
+  TranscriptContainer,
+  Message,
+  MessageBubble,
+  Speaker,
+  MessageText,
+  Timestamp,
+  IntentBadge,
+  SlotChip,
+  SlotsContainer,
+  LoadingState,
+  ErrorMessage,
+  EmptyState,
+  ActionBar,
+  Button,
+  SecondaryButton,
+} from '../styles/Transcripts.styles';
 
 interface TranscriptsProps {
   productId?: string;
 }
-
-const PageContainer = styled.div`
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const Header = styled.div`
-  margin-bottom: 32px;
-`;
-
-const Title = styled.h1`
-  font-size: 28px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 8px 0;
-`;
-
-const Subtitle = styled.p`
-  color: #6b7280;
-  margin: 0;
-`;
-
-const Card = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
-`;
-
-const MetaInfo = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-`;
-
-const MetaItem = styled.div``;
-
-const MetaLabel = styled.div`
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-`;
-
-const MetaValue = styled.div`
-  font-size: 14px;
-  color: #1f2937;
-`;
-
-const TranscriptContainer = styled.div`
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 24px;
-  max-height: 600px;
-  overflow-y: auto;
-`;
-
-const Message = styled.div<{ speaker: string }>`
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: ${(props: { speaker: string }) => props.speaker === 'caller' ? 'flex-start' : 'flex-end'};
-`;
-
-const MessageBubble = styled.div<{ speaker: string }>`
-  max-width: 70%;
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: ${(props: { speaker: string }) => props.speaker === 'caller' ? '#ffffff' : '#4f46e5'};
-  color: ${(props: { speaker: string }) => props.speaker === 'caller' ? '#1f2937' : '#ffffff'};
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-`;
-
-const Speaker = styled.div<{ speaker: string }>`
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-  color: ${(props: { speaker: string }) => props.speaker === 'caller' ? '#6b7280' : '#c7d2fe'};
-`;
-
-const MessageText = styled.div`
-  font-size: 14px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-`;
-
-const Timestamp = styled.div`
-  font-size: 10px;
-  opacity: 0.6;
-  margin-top: 4px;
-`;
-
-const IntentBadge = styled.span`
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #dbeafe;
-  color: #1e40af;
-  margin-left: 8px;
-`;
-
-const SlotChip = styled.span`
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  background: #d1fae5;
-  color: #065f46;
-  margin-right: 4px;
-  margin-top: 4px;
-`;
-
-const SlotsContainer = styled.div`
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-`;
-
-const LoadingState = styled.div`
-  text-align: center;
-  padding: 48px 24px;
-  color: #6b7280;
-`;
-
-const ErrorMessage = styled.div`
-  padding: 12px 16px;
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: #991b1b;
-  margin-bottom: 24px;
-`;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 48px 24px;
-  color: #6b7280;
-`;
-
-const ActionBar = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-`;
-
-const Button = styled.button`
-  padding: 8px 16px;
-  background: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #4338ca;
-  }
-`;
-
-const SecondaryButton = styled(Button)`
-  background: white;
-  color: #4f46e5;
-  border: 1px solid #4f46e5;
-
-  &:hover {
-    background: #eef2ff;
-  }
-`;
 
 interface Turn {
   speaker: 'caller' | 'assistant';
@@ -212,14 +60,43 @@ const Transcripts: React.FC<TranscriptsProps> = ({ productId }) => {
   const sessionId = searchParams.get('sessionId');
   
   const [data, setData] = useState<TranscriptData | null>(null);
+  const [list, setList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
 
   useEffect(() => {
     if (callId || sessionId) {
+      setViewMode('detail');
       fetchTranscript();
+    } else {
+      setViewMode('list');
+      fetchTranscriptList();
     }
   }, [callId, sessionId]);
+
+  const fetchTranscriptList = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = localStorage.getItem('token');
+
+      const response = await apiClient.get(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/call-logs`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const data = response.data;
+      setList(data.logs || data || []);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to load transcripts');
+      console.error('Error fetching transcripts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchTranscript = async () => {
     try {
@@ -287,6 +164,95 @@ const Transcripts: React.FC<TranscriptsProps> = ({ productId }) => {
     return (
       <PageContainer>
         <LoadingState>Loading transcript...</LoadingState>
+      </PageContainer>
+    );
+  }
+
+  if (viewMode === 'list') {
+    return (
+      <PageContainer>
+        <Header>
+          <Title>Transcripts</Title>
+          <Subtitle>View conversation transcripts for all calls and chat sessions</Subtitle>
+        </Header>
+
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+
+        {list.length === 0 ? (
+          <EmptyState>No transcripts found. Start a conversation to see transcripts here.</EmptyState>
+        ) : (
+          <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                <tr>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>
+                    Date
+                  </th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>
+                    Channel
+                  </th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>
+                    Duration
+                  </th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>
+                    Messages
+                  </th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>
+                    Status
+                  </th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.map((item) => (
+                  <tr key={item._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                    <td style={{ padding: '12px 16px', fontSize: '14px', color: '#1f2937' }}>
+                      {formatDate(item.startTime)}
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '14px', color: '#1f2937' }}>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        background: item.channel === 'voice' ? '#dbeafe' : '#d1fae5',
+                        color: item.channel === 'voice' ? '#1e40af' : '#065f46'
+                      }}>
+                        {item.channel === 'voice' ? '📞 Voice' : '💬 Chat'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>
+                      {formatDuration(item.durationSeconds)}
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '14px', color: '#6b7280' }}>
+                      {item.messageCount || 0} messages
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '14px' }}>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        textTransform: 'capitalize',
+                        background: item.status === 'completed' ? '#d1fae5' : '#fee2e2',
+                        color: item.status === 'completed' ? '#065f46' : '#991b1b'
+                      }}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 16px' }}>
+                      <Button onClick={() => window.location.href = `/products/${productId}/configure/transcripts?${item.channel === 'voice' ? 'callId' : 'sessionId'}=${item.sessionId || item._id}`}>
+                        View Transcript
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </PageContainer>
     );
   }

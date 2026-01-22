@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package com.ai.va.grpc;
+
+option java_multiple_files = true;
+option java_package = "com.ai.va.grpc";
+option java_outer_classname = "ChatProto";
+
+// Chat service with streaming support for real-time LLM responses
+service ChatService {
+  // Initialize a new chat session
+  rpc StartSession(SessionRequest) returns (SessionResponse);
+  
+  // Send a message and get streaming response (for token-by-token LLM responses)
+  rpc SendMessageStream(ChatRequest) returns (stream ChatResponse);
+  
+  // Send a message and get single response (fallback to non-streaming)
+  rpc SendMessage(ChatRequest) returns (ChatResponse);
+  
+  // End a chat session
+  rpc EndSession(EndSessionRequest) returns (EndSessionResponse);
+  
+  // Get chat history
+  rpc GetHistory(HistoryRequest) returns (HistoryResponse);
+}
+
+// Request to start a new session
+message SessionRequest {
+  string customer_id = 1;
+  string product_id = 2;
+}
+
+// Response with session details
+message SessionResponse {
+  string session_id = 1;
+  string greeting = 2;
+  bool success = 3;
+  string error = 4;
+}
+
+// Chat message request
+message ChatRequest {
+  string session_id = 1;
+  string message = 2;
+  string customer_id = 3;
+}
+
+// Chat message response (can be streamed token-by-token)
+message ChatResponse {
+  string session_id = 1;
+  string message = 2;          // Full message or token chunk
+  string intent = 3;
+  bool requires_action = 4;
+  string suggested_action = 5;
+  bool is_final = 6;           // True for last chunk in stream
+  map<string, string> extracted_slots = 7;
+}
+
+// End session request
+message EndSessionRequest {
+  string session_id = 1;
+}
+
+// End session response
+message EndSessionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Get history request
+message HistoryRequest {
+  string session_id = 1;
+}
+
+// Chat history response
+message HistoryResponse {
+  repeated HistoryMessage messages = 1;
+}
+
+// Individual message in history
+message HistoryMessage {
+  string role = 1;
+  string content = 2;
+  int64 timestamp = 3;
+  string intent = 4;
+}

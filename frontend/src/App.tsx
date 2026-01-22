@@ -15,6 +15,7 @@ import ProductConfiguration from './pages/ProductConfiguration';
 import VirtualAssistantConfig from './pages/VirtualAssistantConfig';
 import IdpConfig from './pages/IdpConfig';
 import ComputerVisionConfig from './pages/ComputerVisionConfig';
+import VoiceDemo from './pages/VoiceDemo';
 import Subscriptions from './pages/Subscriptions';
 import Payment from './pages/Payment';
 import Transactions from './pages/Transactions';
@@ -94,6 +95,16 @@ function App() {
             }
           />
           <Route
+            path="/products/:productId/configure/:tab"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProductConfiguration />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/subscriptions"
             element={
               <ProtectedRoute>
@@ -151,6 +162,12 @@ function App() {
                   <Tenants />
                 </Layout>
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/voice-demo"
+            element={
+              <VoiceDemo />
             }
           />
           <Route path="/" element={<HomeRedirect />} />
