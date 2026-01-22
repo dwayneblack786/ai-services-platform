@@ -62,7 +62,7 @@ public class AudioBufferManager {
         
         if (newSize > MAX_BUFFER_SIZE) {
             throw new IllegalStateException(
-                String.format("Session %s buffer exceeds maximum size: %d bytes", sessionId, MAX_BUFFER_SIZE)
+                    "Session %s buffer exceeds maximum size: %d bytes".formatted(sessionId, MAX_BUFFER_SIZE)
             );
         }
         

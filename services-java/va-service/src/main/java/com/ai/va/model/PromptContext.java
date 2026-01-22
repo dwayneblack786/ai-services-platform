@@ -233,8 +233,7 @@ public class PromptContext {
                     }
                 } 
                 // Handle simple string locations
-                else if (loc instanceof String) {
-                    String locStr = (String) loc;
+                else if (loc instanceof String locStr) {
                     if (!locStr.trim().isEmpty()) {
                         sb.append("- ").append(locStr).append("\n");
                     }

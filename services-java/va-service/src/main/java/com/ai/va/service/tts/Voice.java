@@ -80,7 +80,7 @@ public class Voice {
     
     @Override
     public String toString() {
-        return String.format("Voice{name='%s', displayName='%s', language='%s', gender=%s, type=%s}",
+        return "Voice{name='%s', displayName='%s', language='%s', gender=%s, type=%s}".formatted(
                 name, displayName, language, gender, type);
     }
     

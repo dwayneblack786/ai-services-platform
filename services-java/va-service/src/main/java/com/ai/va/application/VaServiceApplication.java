@@ -29,8 +29,8 @@ public class VaServiceApplication {
 		String contextPath = environment.getProperty("server.servlet.context-path", "");
 		String host = environment.getProperty("server.address", "localhost");
 		
-		String portout = port + String.format("%" + (56 - port.length()) + "s", "");
-		String url = host + ":" + port + contextPath + String.format("%" + (38 - host.length() - port.length() - contextPath.length()) + "s", "");
+		String portout = port + ("%" + (56 - port.length()) + "s").formatted("");
+		String url = host + ":" + port + contextPath + ("%" + (38 - host.length() - port.length() - contextPath.length()) + "s").formatted("");
 		System.out.print("\n" +
 			"╔══════════════════════════════════════════════════════════════╗\n" +
 			"║                                                              ║\n" +

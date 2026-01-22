@@ -45,7 +45,7 @@ public class TtsException extends RuntimeException {
     
     @Override
     public String toString() {
-        return String.format("TtsException{errorType=%s, provider='%s', message='%s'}",
+        return "TtsException{errorType=%s, provider='%s', message='%s'}".formatted(
                 errorType, provider, getMessage());
     }
     
@@ -57,7 +57,7 @@ public class TtsException extends RuntimeException {
     
     public static TtsException invalidLanguage(String language, String provider) {
         return new TtsException(
-                String.format("Unsupported language: %s", language),
+                "Unsupported language: %s".formatted(language),
                 ErrorType.INVALID_LANGUAGE,
                 provider
         );
@@ -65,7 +65,7 @@ public class TtsException extends RuntimeException {
     
     public static TtsException invalidVoice(String voiceName, String provider) {
         return new TtsException(
-                String.format("Voice not found: %s", voiceName),
+                "Voice not found: %s".formatted(voiceName),
                 ErrorType.INVALID_VOICE,
                 provider
         );
@@ -77,7 +77,7 @@ public class TtsException extends RuntimeException {
     
     public static TtsException connectivityError(String provider, Throwable cause) {
         return new TtsException(
-                String.format("Cannot reach TTS service: %s", provider),
+                "Cannot reach TTS service: %s".formatted(provider),
                 ErrorType.CONNECTIVITY_ERROR,
                 provider,
                 cause

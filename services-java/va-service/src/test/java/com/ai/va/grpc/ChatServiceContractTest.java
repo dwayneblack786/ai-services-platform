@@ -259,8 +259,7 @@ public class ChatServiceContractTest {
 
                     @Override
                     public void onError(Throwable t) {
-                        if (t instanceof StatusRuntimeException) {
-                            StatusRuntimeException e = (StatusRuntimeException) t;
+                        if (t instanceof StatusRuntimeException e) {
                             if (e.getStatus().getCode() == io.grpc.Status.Code.UNAVAILABLE) {
                                 System.out.println("⏭️ gRPC server not available, skipping streaming test");
                                 latch.countDown();

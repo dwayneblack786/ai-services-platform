@@ -139,8 +139,8 @@ public class AzureTtsService implements TtsService {
                         SpeechSynthesisCancellationDetails cancellation = 
                             SpeechSynthesisCancellationDetails.fromResult(result);
                         
-                        String errorMsg = String.format("Synthesis canceled: %s - %s",
-                            cancellation.getReason(), cancellation.getErrorDetails());
+                        String errorMsg = "Synthesis canceled: %s - %s".formatted(
+                                cancellation.getReason(), cancellation.getErrorDetails());
                         
                         logger.error("[AzureTTS] {}", errorMsg);
                         

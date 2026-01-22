@@ -78,7 +78,7 @@ public class TtsResult {
     
     @Override
     public String toString() {
-        return String.format("TtsResult{format='%s', voice='%s', language='%s', duration=%dms, size=%d bytes, provider='%s', success=%s}",
+        return "TtsResult{format='%s', voice='%s', language='%s', duration=%dms, size=%d bytes, provider='%s', success=%s}".formatted(
                 format, voiceName, language, durationMs, getAudioSizeBytes(), provider, success);
     }
     

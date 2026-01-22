@@ -119,8 +119,8 @@ public class LlmClient {
      * @return LLM response text
      */
     public String getChatCompletion(String systemPrompt, String userMessage, double temperature, String model, int maxTokens) throws Exception {
-        LogFactory.logEntry(logger, "getChatCompletion", 
-            String.format("model=%s, temp=%.2f, maxTokens=%d", model, temperature, maxTokens));
+        LogFactory.logEntry(logger, "getChatCompletion",
+                "model=%s, temp=%.2f, maxTokens=%d".formatted(model, temperature, maxTokens));
         
         try {
             // Validate inputs
@@ -197,7 +197,7 @@ public class LlmClient {
                 LogFactory.logExit(logger, "getChatCompletion", "success");
                 return content;
             } else {
-                String errorMsg = String.format("LLM API request failed with status %d: %s", 
+                String errorMsg = "LLM API request failed with status %d: %s".formatted(
                         response.statusCode(), response.body());
                 logger.error("[LLMClient] API error: {}", errorMsg);
                 throw new RuntimeException(errorMsg);
@@ -271,8 +271,8 @@ public class LlmClient {
             }
             // Build full Azure URL
             String deploymentName = deployment != null && !deployment.isEmpty() ? deployment : defaultModel;
-            return String.format("%s/openai/deployments/%s/chat/completions?api-version=2024-02-01",
-                               baseUrl, deploymentName);
+            return "%s/openai/deployments/%s/chat/completions?api-version=2024-02-01".formatted(
+                    baseUrl, deploymentName);
         } else {
             // LM Studio / OpenAI format: {endpoint}/chat/completions (or full URL as-is)
             return apiUrl;
@@ -341,7 +341,7 @@ public class LlmClient {
             }
             
             logger.info("[LLMClient] Found {} choices", choices.size());
-            Map<String, Object> firstChoice = choices.get(0);
+            Map<String, Object> firstChoice = choices.getFirst();
             logger.info("[LLMClient] First choice keys: {}", firstChoice.keySet());
 
             Map<String, Object> messageContent = (Map<String, Object>) firstChoice.get("message");
@@ -440,8 +440,8 @@ public class LlmClient {
      * @return Complete accumulated response text
      */
     public String streamChatCompletion(String systemPrompt, String userMessage, double temperature, String model, int maxTokens, Consumer<String> tokenCallback) throws Exception {
-        LogFactory.logEntry(logger, "streamChatCompletion", 
-            String.format("model=%s, temp=%.2f, maxTokens=%d", model, temperature, maxTokens));
+        LogFactory.logEntry(logger, "streamChatCompletion",
+                "model=%s, temp=%.2f, maxTokens=%d".formatted(model, temperature, maxTokens));
         
         try {
             // Validate inputs
@@ -492,7 +492,7 @@ public class LlmClient {
                 HttpResponse.BodyHandlers.ofLines());
             
             if (response.statusCode() != 200) {
-                String errorMsg = String.format("LLM API streaming request failed with status %d", response.statusCode());
+                String errorMsg = "LLM API streaming request failed with status %d".formatted(response.statusCode());
                 logger.error("[LLMClient] Streaming error: {}", errorMsg);
                 throw new RuntimeException(errorMsg);
             }
@@ -523,7 +523,7 @@ public class LlmClient {
                         List<Map<String, Object>> choices = (List<Map<String, Object>>) chunk.get("choices");
                         
                         if (choices != null && !choices.isEmpty()) {
-                            Map<String, Object> firstChoice = choices.get(0);
+                            Map<String, Object> firstChoice = choices.getFirst();
                             Map<String, Object> delta = (Map<String, Object>) firstChoice.get("delta");
                             
                             if (delta != null && delta.containsKey("content")) {

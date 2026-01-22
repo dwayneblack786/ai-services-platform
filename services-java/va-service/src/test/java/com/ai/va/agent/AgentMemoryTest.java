@@ -46,7 +46,7 @@ class AgentMemoryTest {
         assertEquals(50, history.size());
         
         // First message should be "Message 10" (0-9 were pruned)
-        assertTrue(history.get(0).contains("Message 10"));
+        assertTrue(history.getFirst().contains("Message 10"));
     }
     
     @Test

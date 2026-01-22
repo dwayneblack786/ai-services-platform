@@ -121,7 +121,7 @@ public class SttException extends Exception {
     
     @Override
     public String toString() {
-        return String.format("SttException{code=%s, retryable=%s, sessionId=%s, message=%s}", 
-            errorCode, retryable, sessionId, getMessage());
+        return "SttException{code=%s, retryable=%s, sessionId=%s, message=%s}".formatted(
+                errorCode, retryable, sessionId, getMessage());
     }
 }

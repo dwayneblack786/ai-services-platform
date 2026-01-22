@@ -175,7 +175,7 @@ public class UsageService {
                 metrics.llmTokensIn,
                 metrics.llmTokensOut
             );
-            logger.info("  Estimated cost: ${}", String.format("%.4f", cost));
+            logger.info("  Estimated cost: ${}", "%.4f".formatted(cost));
 
             // Final usage push to Node backend
             if ("http".equals(usageConfig.getReportingMode())) {

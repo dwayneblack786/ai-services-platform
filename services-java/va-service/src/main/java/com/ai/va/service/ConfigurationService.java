@@ -52,12 +52,12 @@ public class ConfigurationService {
         Document result = new Document();
         for (Map.Entry<String, Object> entry : doc.entrySet()) {
             Object value = entry.getValue();
-            if (value instanceof ObjectId) {
+            if (value instanceof ObjectId id) {
                 // Convert ObjectId to its hex string representation
-                result.put(entry.getKey(), ((ObjectId) value).toHexString());
-            } else if (value instanceof Document) {
+                result.put(entry.getKey(), id.toHexString());
+            } else if (value instanceof Document document) {
                 // Recursively convert nested documents
-                result.put(entry.getKey(), convertObjectIdsToStrings((Document) value));
+                result.put(entry.getKey(), convertObjectIdsToStrings(document));
             } else {
                 // Keep other values as-is
                 result.put(entry.getKey(), value);

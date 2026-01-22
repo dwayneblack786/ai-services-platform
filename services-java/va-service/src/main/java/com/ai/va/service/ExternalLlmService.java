@@ -64,7 +64,7 @@ public class ExternalLlmService {
             @SuppressWarnings("unchecked")
 			List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
             if (!choices.isEmpty()) {
-                Map<String, Object> firstChoice = choices.get(0);
+                Map<String, Object> firstChoice = choices.getFirst();
                 @SuppressWarnings("unchecked")
 				Map<String, String> message = (Map<String, String>) firstChoice.get("message");
                 return message.get("content");

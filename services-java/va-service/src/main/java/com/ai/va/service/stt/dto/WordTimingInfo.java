@@ -89,10 +89,10 @@ public class WordTimingInfo {
     public String toString() {
         return "WordTimingInfo{" +
                "word='" + word + '\'' +
-               ", start=" + String.format("%.2f", startTimeSeconds) + "s" +
-               ", end=" + String.format("%.2f", endTimeSeconds) + "s" +
-               ", duration=" + String.format("%.2f", getDurationSeconds()) + "s" +
-               ", confidence=" + String.format("%.2f", confidence) +
+               ", start=" + "%.2f".formatted(startTimeSeconds) + "s" +
+               ", end=" + "%.2f".formatted(endTimeSeconds) + "s" +
+               ", duration=" + "%.2f".formatted(getDurationSeconds()) + "s" +
+               ", confidence=" + "%.2f".formatted(confidence) +
                '}';
     }
 }

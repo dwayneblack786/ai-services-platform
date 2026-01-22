@@ -37,7 +37,7 @@ public class AgentMemory {
         
         // Keep only last N messages to avoid context overflow
         if (history.size() > MAX_HISTORY_SIZE) {
-            history.remove(0);
+            history.removeFirst();
         }
     }
     
