@@ -28,9 +28,17 @@ router.get('/', async (req, res) => {
     // Get product details for each subscription
     const subscriptionsWithProducts = await Promise.all(
       subscriptions.map(async (sub) => {
-        const product = await db.collection('products').findOne({ 
-          _id: new ObjectId(sub.productId) 
-        });
+        // Handle productId being either string or ObjectId
+        const productQuery = typeof sub.productId === 'string'
+          ? { _id: new ObjectId(sub.productId) }
+          : { _id: sub.productId };
+        
+        const product = await db.collection('products').findOne(productQuery);
+        
+        if (!product) {
+          console.warn(`Product not found for subscription ${sub._id}, productId: ${sub.productId}`);
+        }
+        
         return {
           ...sub,
           product

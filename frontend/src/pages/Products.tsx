@@ -13,6 +13,7 @@ const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [userProducts, setUserProducts] = useState<UserProduct[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -49,6 +50,7 @@ const Products = () => {
     fetchProducts();
     if (user) {
       fetchUserProducts();
+      fetchSubscriptions();
     }
   }, [user]);
 
@@ -98,8 +100,24 @@ const Products = () => {
     }
   };
 
+  const fetchSubscriptions = async () => {
+    try {
+      const response = await apiClient.get(getApiUrl('api/subscriptions'));
+      if (response.data.success) {
+        setSubscriptions(response.data.subscriptions);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch subscriptions:', err);
+    }
+  };
+
   const hasProduct = (productId: string) => {
-    return userProducts.some(up => up.productId === productId);
+    // Check if user has active subscription OR user-product access
+    const hasSubscription = subscriptions.some(
+      sub => sub.productId === productId && (sub.status === 'active' || sub.status === 'trial')
+    );
+    const hasUserProduct = userProducts.some(up => up.productId === productId);
+    return hasSubscription || hasUserProduct;
   };
 
   const handleProductClick = (productId: string) => {

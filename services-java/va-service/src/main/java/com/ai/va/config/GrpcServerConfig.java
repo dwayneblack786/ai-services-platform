@@ -14,6 +14,7 @@ import com.ai.va.grpc.HealthServiceImpl;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.BindableService;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -51,13 +52,13 @@ public class GrpcServerConfig {
 
 			// Always register ChatService (required)
 			ChatServiceImpl chatService = applicationContext.getBean(ChatServiceImpl.class);
-			serverBuilder.addService(chatService);
+			serverBuilder.addService((BindableService) chatService);
 			logger.info("📝 Registered ChatService for gRPC");
 
 			// Conditionally register VoiceService (only if 'voice' profile is active)
 			try {
 				VoiceServiceImpl voiceService = applicationContext.getBean(VoiceServiceImpl.class);
-				serverBuilder.addService(voiceService);
+				serverBuilder.addService((BindableService) voiceService);
 				logger.info("🎤 Registered VoiceService for gRPC (voice profile active)");
 			} catch (Exception e) {
 				logger.info("⏭️  VoiceService not registered (voice profile not active)");
@@ -66,7 +67,7 @@ public class GrpcServerConfig {
 			// Always register HealthService
 			try {
 				HealthServiceImpl healthService = applicationContext.getBean(HealthServiceImpl.class);
-				serverBuilder.addService(healthService);
+				serverBuilder.addService((BindableService) healthService);
 				logger.info("💚 Registered HealthService for gRPC");
 			} catch (Exception e) {
 				logger.warn("⚠️  HealthService not registered: {}", e.getMessage());
