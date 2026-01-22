@@ -54,6 +54,7 @@
 
 ### 🗺️ Documentation Guide
 - **[Documentation Map](DOCUMENTATION_MAP.md) - Visual guide to all Spring AI Agent documentation**
+- **[Scripts Reference Guide](SCRIPTS_REFERENCE.md) - All available scripts (npm, Maven, PowerShell), common workflows**
 
 ### Architecture & Design
 - [Repository Structure](RepositoryStrucutre.md) - Complete folder structure and organization

@@ -430,6 +430,8 @@ React Frontend → Node.js Backend → Java Microservices
 
 For complete installation and setup instructions, see the [Developer Setup Guide](docs/DEVELOPER_SETUP.md).
 
+For all available scripts and commands, see the [Scripts Reference Guide](docs/SCRIPTS_REFERENCE.md).
+
 **Prerequisites Summary:**
 - Node.js 18+
 - MongoDB 6.0+
@@ -1193,6 +1195,7 @@ If issues arise, rollback is simple:
 
 ### 🚀 Critical Foundation Documentation (Start Here!)
 - [Developer Setup Guide](docs/DEVELOPER_SETUP.md) - Complete environment setup, prerequisites, IDE configuration, common commands
+- [Scripts Reference Guide](docs/SCRIPTS_REFERENCE.md) - All available scripts (npm, Maven, PowerShell), usage examples, common workflows
 - [Technology Features Guide](docs/TECHNOLOGY_FEATURES.md) - Key technology features, benefits, downsides, and improvement roadmap
 - [Security Architecture](docs/SECURITY_ARCHITECTURE.md) - OAuth2, JWT tokens, CORS, multi-tenancy, role-based access control, threat mitigation
 - [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Solutions for setup, authentication, database, connectivity, frontend, backend, WebSocket, Java services issues

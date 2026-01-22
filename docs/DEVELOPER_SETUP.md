@@ -602,6 +602,8 @@ Open workspace root: `File → Open Folder → ai-services-platform`
 
 ## Common Commands Reference
 
+> 📘 **[Scripts Reference Guide](SCRIPTS_REFERENCE.md)** - Complete reference for all available scripts with detailed explanations, usage examples, and common workflows.
+
 ### Frontend Commands
 
 ```bash
