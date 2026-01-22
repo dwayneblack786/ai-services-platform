@@ -37,6 +37,43 @@ import { correlationIdMiddleware, requestLoggerMiddleware, errorLoggerMiddleware
 // Validate environment variables before starting
 validateEnv();
 
+// Global error handlers - MUST be set before any async operations
+process.on('uncaughtException', (error: Error) => {
+  logger.error('💥 UNCAUGHT EXCEPTION - Server will shut down', {
+    error: error.message,
+    stack: error.stack,
+    name: error.name
+  });
+  console.error('\n💥 UNCAUGHT EXCEPTION:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+  logger.error('💥 UNHANDLED REJECTION - Server will shut down', {
+    reason: reason?.message || reason,
+    stack: reason?.stack,
+    promise: promise.toString()
+  });
+  console.error('\n💥 UNHANDLED REJECTION:', reason);
+  process.exit(1);
+});
+
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM signal received - initiating graceful shutdown');
+  httpServer.close(() => {
+    logger.info('HTTP server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT signal received - initiating graceful shutdown');
+  httpServer.close(() => {
+    logger.info('HTTP server closed');
+    process.exit(0);
+  });
+});
+
 logger.info('Application starting', { 
   environment: env.NODE_ENV,
   port: env.PORT,
@@ -177,6 +214,7 @@ app.get('/health', (req, res) => {
 // Error logging middleware (before error handlers)
 app.use(errorLoggerMiddleware);
 
+// Start server with error handling
 httpServer.listen(PORT, () => {
   logger.info('Server started successfully', {
     port: PORT,
@@ -184,4 +222,21 @@ httpServer.listen(PORT, () => {
     socketIO: 'enabled',
     environment: process.env.NODE_ENV
   });
+}).on('error', (error: NodeJS.ErrnoException) => {
+  if (error.code === 'EADDRINUSE') {
+    logger.error(`❌ Port ${PORT} is already in use. Another instance may be running.`, {
+      error: error.message,
+      port: PORT
+    });
+    console.error(`\n❌ ERROR: Port ${PORT} is already in use!`);
+    console.error('   Try one of these solutions:');
+    console.error(`   1. Kill the process using port ${PORT}: Get-Process -Id (Get-NetTCPConnection -LocalPort ${PORT}).OwningProcess | Stop-Process -Force`);
+    console.error('   2. Change the PORT in your .env file');
+    console.error('   3. Wait a moment and try again (previous instance may be shutting down)\n');
+    process.exit(1);
+  } else {
+    logger.error('Failed to start server', { error: error.message, code: error.code });
+    console.error('\n❌ Server startup failed:', error);
+    process.exit(1);
+  }
 });

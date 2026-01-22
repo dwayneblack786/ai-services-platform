@@ -34,7 +34,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>6.1.0</version>
+            <version>6.1.21</version>
         </dependency>
 
         <!-- Logging - SLF4J API only -->
