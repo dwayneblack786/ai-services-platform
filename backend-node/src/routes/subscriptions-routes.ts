@@ -20,7 +20,7 @@ router.get('/active', authenticateToken, async (req, res) => {
     const db = getDB();
     
     // Get active subscriptions for this tenant
-    const subscriptions = await db.collection('subscriptions').find({
+    const subscriptions = await db.collection('product_subscriptions').find({
       tenantId: user.tenantId,
       status: 'active'
     }).toArray();
@@ -93,7 +93,7 @@ router.get('/virtual-assistant', authenticateToken, async (req, res) => {
     const db = getDB();
     
     // Get active subscriptions
-    const subscriptions = await db.collection('subscriptions').find({
+    const subscriptions = await db.collection('product_subscriptions').find({
       tenantId: user.tenantId,
       status: 'active'
     }).toArray();

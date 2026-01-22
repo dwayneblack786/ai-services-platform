@@ -41,28 +41,20 @@ export const requireVirtualAssistantSubscription = async (
   try {
     const db = getDB();
     
-    // Try to find subscriptions by tenantId first, then by customerId (for backward compatibility)
+    // Find active product subscriptions by tenantId
     let activeSubscriptions: unknown[] = [];
     
     if (user.tenantId) {
-      activeSubscriptions = await db.collection('subscriptions').find({
+      activeSubscriptions = await db.collection('product_subscriptions').find({
         tenantId: user.tenantId,
         status: 'active'
       }).toArray();
     }
     
-    // If no subscriptions found by tenantId, try customerId
-    if (activeSubscriptions.length === 0 && user.tenantId) {
-      activeSubscriptions = await db.collection('subscriptions').find({
-        customerId: user.tenantId,
-        status: 'active'
-      }).toArray();
-    }
-    
-    // If still no subscriptions, try using user._id as customerId
-    if (activeSubscriptions.length === 0) {
-      activeSubscriptions = await db.collection('subscriptions').find({
-        customerId: user.id,
+    // Fallback: try using user._id if no tenantId
+    if (activeSubscriptions.length === 0 && user.id) {
+      activeSubscriptions = await db.collection('product_subscriptions').find({
+        userId: new ObjectId(user.id),
         status: 'active'
       }).toArray();
     }
@@ -132,30 +124,21 @@ export const requireProductAccess = async (
   try {
     const db = getDB();
     
-    // Try to find subscription by tenantId first, then customerId
+    // Find active product subscription by tenantId and productId
     let subscription = null;
     
     if (user.tenantId) {
-      subscription = await db.collection('subscriptions').findOne({
+      subscription = await db.collection('product_subscriptions').findOne({
         tenantId: user.tenantId,
         productId: typeof productId === 'string' ? new ObjectId(productId) : productId,
         status: 'active'
       });
     }
     
-    // If not found and user has customerId, try that
-    if (!subscription && user.customerId) {
-      subscription = await db.collection('subscriptions').findOne({
-        customerId: user.customerId,
-        productId: typeof productId === 'string' ? new ObjectId(productId) : productId,
-        status: 'active'
-      });
-    }
-    
-    // If still not found, try using user._id as customerId
-    if (!subscription) {
-      subscription = await db.collection('subscriptions').findOne({
-        customerId: user._id,
+    // Fallback: try using user._id if no tenantId
+    if (!subscription && user.id) {
+      subscription = await db.collection('product_subscriptions').findOne({
+        userId: new ObjectId(user.id),
         productId: typeof productId === 'string' ? new ObjectId(productId) : productId,
         status: 'active'
       });

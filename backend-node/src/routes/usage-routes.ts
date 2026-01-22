@@ -63,9 +63,9 @@ router.post('/assistant-call', async (req: Request, res: Response) => {
 
     // Update tenant subscription usage for billing (customerId is legacy field, mapped to tenantId)
     if (usage.customerId) {
-      await db.collection('subscriptions').updateOne(
+      await db.collection('product_subscriptions').updateOne(
         { 
-          customerId: usage.customerId,
+          tenantId: usage.customerId,
           status: 'active'
         },
         {
@@ -82,7 +82,7 @@ router.post('/assistant-call', async (req: Request, res: Response) => {
         }
       );
 
-      console.log('[Usage Update] Updated subscription usage for customer:', usage.customerId);
+      console.log('[Usage Update] Updated subscription usage for tenantId:', usage.customerId);
     }
 
     return res.status(200).json({ 
