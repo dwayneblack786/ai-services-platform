@@ -27,21 +27,7 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
 
   return (
     <>
-      <button 
-        onClick={() => navigate('/home')} 
-        style={{
-          ...styles.toggleButton,
-          fontSize: '1.8rem',
-          padding: '8px 12px'
-        }}
-        title="Go to Home"
-      >
-        ⌂
-      </button>
-      <button onClick={toggleSidebar} style={{
-        ...styles.toggleButton,
-        left: '76px' // Position after the home button
-      }}>
+      <button onClick={toggleSidebar} style={styles.toggleButton}>
         {isOpen ? '✕' : '☰'}
       </button>
       <div style={isOpen ? styles.sidebar : styles.sidebarClosed}>

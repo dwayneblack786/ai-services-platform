@@ -91,6 +91,34 @@ const Layout = ({ children }: LayoutProps) => {
         />
       )}
       
+      {/* Home Button - Always first at left: 20px */}
+      <button 
+        onClick={() => navigate('/home')} 
+        style={{
+          position: 'fixed',
+          left: '20px',
+          top: '8px',
+          zIndex: 1001,
+          padding: '0.5rem 0.75rem',
+          fontSize: '1.8rem',
+          color: '#ecf0f1',
+          backgroundColor: '#2c3e50',
+          border: '1px solid #34495e',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          transition: 'all 0.3s',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+          minHeight: '44px',
+          minWidth: '44px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        title="Home"
+      >
+        ⌂
+      </button>
+      
       <header style={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <h1 

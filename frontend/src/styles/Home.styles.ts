@@ -249,7 +249,6 @@ export const styles: { [key: string]: CSSProperties } = {
   productImageContainer: {
     position: 'relative',
     height: '200px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

@@ -3,7 +3,7 @@ import React from 'react';
 export const styles = {
   toggleButton: {
     position: 'fixed',
-    left: '20px',
+    left: '80px',
     top: '8px',
     zIndex: 1001,
     padding: '0.5rem 0.75rem',

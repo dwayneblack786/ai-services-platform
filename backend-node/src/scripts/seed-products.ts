@@ -158,6 +158,58 @@ const mockProducts: Omit<Product, '_id'>[] = [
     createdAt: new Date(),
     updatedAt: new Date()
   },
+  {
+    name: 'Medical Records Digitizer',
+    category: 'IDP',
+    subCategory: 'Healthcare',
+    description: 'Coming Soon: Advanced medical records processing with HIPAA compliance. Convert handwritten notes and scanned documents into structured digital records.',
+    features: [
+      'Handwriting recognition',
+      'Medical terminology AI',
+      'HIPAA compliance',
+      'EHR integration',
+      'Data validation',
+      'Audit trails'
+    ],
+    pricing: {
+      model: 'per-use',
+      currency: 'USD',
+      perUseRate: 1.50,
+      perUseUnit: 'per document'
+    },
+    industries: ['Healthcare', 'Medical', 'Insurance'],
+    status: 'coming-soon',
+    tags: ['healthcare', 'medical-records', 'HIPAA', 'digitization', 'OCR'],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    name: 'Government Forms Processor',
+    category: 'IDP',
+    subCategory: 'Government',
+    description: 'Coming Soon: Automated processing of government forms and applications. Streamlines permit applications, tax forms, and regulatory submissions.',
+    features: [
+      'Form field extraction',
+      'Validation rules',
+      'Multi-language support',
+      'Compliance checking',
+      'Digital signatures',
+      'Workflow automation'
+    ],
+    pricing: {
+      model: 'subscription',
+      currency: 'USD',
+      tiers: [
+        { name: 'medium', displayName: 'Department', description: 'For government departments', price: 1299, features: ['Up to 500 forms/month'] },
+        { name: 'large', displayName: 'Agency', description: 'For large agencies', price: 2499, features: ['Unlimited forms'] }
+      ]
+    },
+    industries: ['Government', 'Public Sector', 'Regulatory'],
+    status: 'coming-soon',
+    tags: ['government', 'forms', 'compliance', 'automation', 'public-sector'],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
   // Computer Vision - Real Estate
   {
     name: 'Property Image Tagging AI',
@@ -206,7 +258,7 @@ const mockProducts: Omit<Product, '_id'>[] = [
       ]
     },
     industries: ['Real Estate', 'Appraisal', 'Banking', 'Insurance'],
-    status: 'beta',
+    status: 'coming-soon',
     tags: ['real-estate', 'valuation', 'appraisal', 'property-analysis'],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -290,6 +342,83 @@ const mockProducts: Omit<Product, '_id'>[] = [
     tags: ['ecommerce', 'visual-search', 'product-discovery', 'shopping'],
     createdAt: new Date(),
     updatedAt: new Date()
+  },
+  {
+    name: 'Manufacturing Quality Inspector',
+    category: 'Computer Vision',
+    subCategory: 'Manufacturing',
+    description: 'Coming Soon: AI-powered visual quality inspection for manufacturing lines. Detects defects, ensures quality standards, and reduces waste.',
+    features: [
+      'Real-time defect detection',
+      'Quality scoring',
+      'Anomaly detection',
+      'Production line integration',
+      'Statistical reporting',
+      'Continuous learning'
+    ],
+    pricing: {
+      model: 'subscription',
+      currency: 'USD',
+      tiers: [
+        { name: 'medium', displayName: 'Single Line', description: 'For one production line', price: 1999, features: ['1 production line'] },
+        { name: 'large', displayName: 'Factory', description: 'For entire factory', price: 4999, features: ['Up to 5 production lines'] }
+      ]
+    },
+    industries: ['Manufacturing', 'Automotive', 'Electronics', 'Food Processing'],
+    status: 'coming-soon',
+    tags: ['manufacturing', 'quality-control', 'defect-detection', 'automation', 'inspection'],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    name: 'Security Surveillance Analytics',
+    category: 'Computer Vision',
+    subCategory: 'Security',
+    description: 'Coming Soon: Advanced video analytics for security and surveillance. Person detection, behavior analysis, and threat assessment.',
+    features: [
+      'Person detection & tracking',
+      'Behavior analysis',
+      'Threat assessment',
+      'Perimeter monitoring',
+      'Alert generation',
+      'Video search'
+    ],
+    pricing: {
+      model: 'subscription',
+      currency: 'USD',
+      tiers: [
+        { name: 'small', displayName: 'Small Business', description: 'For small facilities', price: 799, features: ['Up to 4 cameras'] },
+        { name: 'medium', displayName: 'Enterprise', description: 'For large facilities', price: 1999, features: ['Up to 20 cameras'] }
+      ]
+    },
+    industries: ['Security', 'Retail', 'Transportation', 'Corporate'],
+    status: 'coming-soon',
+    tags: ['security', 'surveillance', 'threat-detection', 'monitoring', 'analytics'],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    name: 'Medical Imaging Analyzer',
+    category: 'Computer Vision',
+    subCategory: 'Healthcare',
+    description: 'Coming Soon: AI-assisted medical imaging analysis for radiology. Detects anomalies in X-rays, MRIs, and CT scans to support diagnosis.',
+    features: [
+      'Multi-modality support',
+      'Anomaly detection',
+      'Measurement tools',
+      'Comparison analysis',
+      'DICOM integration',
+      'FDA-compliant workflows'
+    ],
+    pricing: {
+      model: 'enterprise',
+      currency: 'USD'
+    },
+    industries: ['Healthcare', 'Radiology', 'Hospitals', 'Medical Imaging'],
+    status: 'coming-soon',
+    tags: ['healthcare', 'medical-imaging', 'radiology', 'diagnosis', 'AI-assisted'],
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 ];
 
@@ -310,10 +439,14 @@ async function seedProducts() {
     
     console.log(`✓ Successfully inserted ${result.insertedCount} products`);
     console.log('\nProduct Categories:');
-    console.log('- Virtual Assistants: 3 products');
-    console.log('- Intelligent Document Processing: 3 products');
-    console.log('- Computer Vision (Real Estate): 2 products');
-    console.log('- Computer Vision (Retail): 3 products');
+    console.log('- Virtual Assistants: 3 products (3 active)');
+    console.log('- Intelligent Document Processing: 5 products (3 active, 2 coming soon)');
+    console.log('- Computer Vision: 8 products (5 active, 3 coming soon)');
+    console.log('\nStatus breakdown:');
+    const activeCount = mockProducts.filter(p => p.status === 'active').length;
+    const comingSoonCount = mockProducts.filter(p => p.status === 'coming-soon').length;
+    console.log(`- Active: ${activeCount}`);
+    console.log(`- Coming Soon: ${comingSoonCount}`);
     
     // Display summary
     const count = await productsCollection.countDocuments();

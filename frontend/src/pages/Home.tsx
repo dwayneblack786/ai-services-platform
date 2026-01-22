@@ -11,6 +11,7 @@ const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [activeTab, setActiveTab] = useState<string>('All');
 
   useEffect(() => {
     const handleResize = () => {
@@ -30,10 +31,8 @@ const Home = () => {
       setLoading(true);
       const response = await apiClient.get(getApiUrl('api/products'));
       if (response.data.success) {
-        const activeProducts = response.data.products.filter(
-          (p: Product) => p.status === 'active'
-        );
-        setProducts(activeProducts);
+        // Show all products including inactive ones
+        setProducts(response.data.products);
       }
     } catch (err) {
       console.error('Failed to fetch products:', err);
@@ -42,17 +41,108 @@ const Home = () => {
     }
   };
 
-  const getProductIcon = (category: string) => {
-    switch (category) {
-      case 'Virtual Assistant':
-        return '🤖';
-      case 'IDP':
-        return '📄';
-      case 'Computer Vision':
-        return '👁️';
-      default:
-        return '⚡';
+  // Get unique categories from products
+  const categories = ['All', ...new Set(products.map(p => p.category))];
+
+  // Filter products by active tab
+  const filteredProducts = activeTab === 'All' 
+    ? products 
+    : products.filter(p => p.category === activeTab);
+
+  const getProductVisuals = (product: Product) => {
+    const name = product.name.toLowerCase();
+    const description = product.description.toLowerCase();
+    
+    // Healthcare
+    if (name.includes('healthcare') || name.includes('medical') || description.includes('healthcare')) {
+      return {
+        primary: '🏥',
+        secondary: '⚕️',
+        gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' // Medical blue
+      };
     }
+    
+    // Real Estate
+    if (name.includes('real estate') || name.includes('property') || description.includes('real estate')) {
+      return {
+        primary: '🏡',
+        secondary: '🔑',
+        gradient: 'linear-gradient(135deg, #f2994a 0%, #f2c94c 100%)' // Warm orange-yellow
+      };
+    }
+    
+    // Financial Services
+    if (name.includes('financial') || name.includes('banking') || description.includes('financial')) {
+      return {
+        primary: '💰',
+        secondary: '📊',
+        gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' // Money green
+      };
+    }
+    
+    // E-commerce
+    if (name.includes('ecommerce') || name.includes('e-commerce') || name.includes('retail') || description.includes('ecommerce')) {
+      return {
+        primary: '🛍️',
+        secondary: '💳',
+        gradient: 'linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)' // Vibrant red-orange
+      };
+    }
+    
+    // Education
+    if (name.includes('education') || name.includes('learning') || description.includes('education')) {
+      return {
+        primary: '🎓',
+        secondary: '📚',
+        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' // Academic purple
+      };
+    }
+    
+    // Legal Services
+    if (name.includes('legal') || name.includes('law') || description.includes('legal')) {
+      return {
+        primary: '⚖️',
+        secondary: '📜',
+        gradient: 'linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%)' // Professional dark blue
+      };
+    }
+    
+    // Customer Support
+    if (name.includes('support') || name.includes('customer') || description.includes('customer support')) {
+      return {
+        primary: '🎧',
+        secondary: '💬',
+        gradient: 'linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%)' // Support purple
+      };
+    }
+    
+    // Default fallback based on category
+    const category = product.category;
+    if (category === 'Virtual Assistant') {
+      return {
+        primary: '💬',
+        secondary: '🎤',
+        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      };
+    } else if (category === 'IDP') {
+      return {
+        primary: '📑',
+        secondary: '🔍',
+        gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+      };
+    } else if (category === 'Computer Vision') {
+      return {
+        primary: '📸',
+        secondary: '🖼️',
+        gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+      };
+    }
+    
+    return {
+      primary: '⚡',
+      secondary: '✨',
+      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    };
   };
 
   const handleExploreProduct = (productId?: string) => {
@@ -186,25 +276,118 @@ const Home = () => {
           Discover cutting-edge AI products designed to solve real business challenges
         </p>
         
-        <div style={isMobile ? styles.productsGridMobile : styles.productsGrid}>
-          {products.slice(0, 6).map((product) => (
-            <div 
-              key={product._id} 
-              style={styles.productCard}
+        {/* Tabs Navigation */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '10px',
+          marginBottom: '40px',
+          flexWrap: 'wrap',
+          padding: isMobile ? '0 20px' : '0'
+        }}>
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setActiveTab(category)}
+              style={{
+                padding: '12px 24px',
+                fontSize: '1rem',
+                fontWeight: '600',
+                backgroundColor: activeTab === category ? '#4CAF50' : 'white',
+                color: activeTab === category ? 'white' : '#333',
+                border: `2px solid ${activeTab === category ? '#4CAF50' : '#e0e0e0'}`,
+                borderRadius: '50px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                minHeight: '44px',
+                boxShadow: activeTab === category ? '0 4px 12px rgba(76, 175, 80, 0.3)' : 'none'
+              }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-8px)';
-                e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)';
+                if (activeTab !== category) {
+                  e.currentTarget.style.borderColor = '#4CAF50';
+                  e.currentTarget.style.color = '#4CAF50';
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                if (activeTab !== category) {
+                  e.currentTarget.style.borderColor = '#e0e0e0';
+                  e.currentTarget.style.color = '#333';
+                }
               }}
             >
-              <div style={styles.productImageContainer}>
+              {category}
+            </button>
+          ))}
+        </div>
+
+        <div style={isMobile ? styles.productsGridMobile : styles.productsGrid}>
+          {filteredProducts.map((product) => {
+            const visuals = getProductVisuals(product);
+            const isComingSoon = product.status === 'coming-soon' || product.status === 'beta';
+            
+            return (
+            <div 
+              key={product._id} 
+              style={{
+                ...styles.productCard,
+                opacity: isComingSoon ? 0.85 : 1,
+                position: 'relative' as const
+              }}
+              onMouseEnter={(e) => {
+                if (!isComingSoon) {
+                  e.currentTarget.style.transform = 'translateY(-8px)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isComingSoon) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                }
+              }}
+            >
+              {isComingSoon && (
+                <div style={{
+                  position: 'absolute',
+                  top: '15px',
+                  left: '15px',
+                  padding: '8px 16px',
+                  backgroundColor: '#ff9800',
+                  color: 'white',
+                  borderRadius: '20px',
+                  fontSize: '0.85rem',
+                  fontWeight: '700',
+                  boxShadow: '0 2px 8px rgba(255, 152, 0, 0.4)',
+                  zIndex: 10,
+                  textTransform: 'uppercase' as const,
+                  letterSpacing: '0.5px'
+                }}>
+                  🚀 Coming Soon
+                </div>
+              )}
+              <div style={{
+                ...styles.productImageContainer,
+                background: visuals.gradient,
+                filter: isComingSoon ? 'grayscale(30%)' : 'none'
+              }}>
                 <div style={styles.productImage}>
-                  <span style={styles.productImageIcon}>
-                    {getProductIcon(product.category)}
-                  </span>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    <span style={styles.productImageIcon}>
+                      {visuals.primary}
+                    </span>
+                    <span style={{
+                      fontSize: '40px',
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))',
+                      opacity: 0.9
+                    }}>
+                      {visuals.secondary}
+                    </span>
+                  </div>
                 </div>
                 <div style={styles.productCategoryBadge}>
                   {product.category}
@@ -241,37 +424,35 @@ const Home = () => {
                   </div>
                   
                   <button
-                    onClick={() => handleExploreProduct(product._id)}
-                    style={styles.exploreButton}
+                    onClick={() => !isComingSoon && handleExploreProduct(product._id)}
+                    style={{
+                      ...styles.exploreButton,
+                      backgroundColor: isComingSoon ? '#9e9e9e' : '#4CAF50',
+                      cursor: isComingSoon ? 'not-allowed' : 'pointer',
+                      opacity: isComingSoon ? 0.7 : 1
+                    }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#45a049';
-                      e.currentTarget.style.transform = 'translateX(5px)';
+                      if (!isComingSoon) {
+                        e.currentTarget.style.backgroundColor = '#45a049';
+                        e.currentTarget.style.transform = 'translateX(5px)';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#4CAF50';
-                      e.currentTarget.style.transform = 'translateX(0)';
+                      if (!isComingSoon) {
+                        e.currentTarget.style.backgroundColor = '#4CAF50';
+                        e.currentTarget.style.transform = 'translateX(0)';
+                      }
                     }}
+                    disabled={isComingSoon}
                   >
-                    Explore More →
+                    {isComingSoon ? 'Coming Soon' : 'Explore More →'}
                   </button>
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
-
-        {products.length > 6 && (
-          <div style={styles.viewAllContainer}>
-            <button
-              onClick={handleViewAllProducts}
-              style={styles.viewAllButton}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1976D2')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2196F3')}
-            >
-              View All {products.length} Products
-            </button>
-          </div>
-        )}
       </section>
 
       <section style={styles.ctaSection}>
