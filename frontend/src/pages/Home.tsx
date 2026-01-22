@@ -147,7 +147,7 @@ const Home = () => {
 
   const handleExploreProduct = (productId?: string) => {
     if (productId) {
-      navigate(`/products`);
+      navigate(`/products/${productId}/explore`);
     }
   };
 
@@ -323,7 +323,7 @@ const Home = () => {
         <div style={isMobile ? styles.productsGridMobile : styles.productsGrid}>
           {filteredProducts.map((product) => {
             const visuals = getProductVisuals(product);
-            const isComingSoon = product.status === 'coming-soon' || product.status === 'beta';
+            const isComingSoon = product.status !== 'active';
             
             return (
             <div 
@@ -424,28 +424,29 @@ const Home = () => {
                   </div>
                   
                   <button
-                    onClick={() => !isComingSoon && handleExploreProduct(product._id)}
+                    onClick={() => handleExploreProduct(product._id)}
                     style={{
                       ...styles.exploreButton,
-                      backgroundColor: isComingSoon ? '#9e9e9e' : '#4CAF50',
-                      cursor: isComingSoon ? 'not-allowed' : 'pointer',
-                      opacity: isComingSoon ? 0.7 : 1
+                      backgroundColor: isComingSoon ? '#FF9800' : '#4CAF50',
                     }}
                     onMouseEnter={(e) => {
-                      if (!isComingSoon) {
+                      if (isComingSoon) {
+                        e.currentTarget.style.backgroundColor = '#F57C00';
+                      } else {
                         e.currentTarget.style.backgroundColor = '#45a049';
-                        e.currentTarget.style.transform = 'translateX(5px)';
                       }
+                      e.currentTarget.style.transform = 'translateX(5px)';
                     }}
                     onMouseLeave={(e) => {
-                      if (!isComingSoon) {
+                      if (isComingSoon) {
+                        e.currentTarget.style.backgroundColor = '#FF9800';
+                      } else {
                         e.currentTarget.style.backgroundColor = '#4CAF50';
-                        e.currentTarget.style.transform = 'translateX(0)';
                       }
+                      e.currentTarget.style.transform = 'translateX(0)';
                     }}
-                    disabled={isComingSoon}
                   >
-                    {isComingSoon ? 'Coming Soon' : 'Explore More →'}
+                    {isComingSoon ? 'Learn More →' : 'Explore More →'}
                   </button>
                 </div>
               </div>

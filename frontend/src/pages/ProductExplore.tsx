@@ -235,7 +235,51 @@ const ProductExplore = () => {
         </div>
 
         <div style={productSignupStyles.signupSection}>
-          {user && isSubscribed ? (
+          {product.status !== 'active' ? (
+            <div style={productSignupStyles.signupContainer}>
+              <div style={{
+                padding: '24px',
+                backgroundColor: '#fff3cd',
+                border: '2px solid #ffc107',
+                borderRadius: '12px',
+                textAlign: 'center' as const
+              }}>
+                <div style={{
+                  fontSize: '3rem',
+                  marginBottom: '16px'
+                }}>
+                  🚀
+                </div>
+                <h2 style={{
+                  ...productSignupStyles.signupTitle,
+                  color: '#856404'
+                }}>
+                  Coming Soon!
+                </h2>
+                <p style={{
+                  ...productSignupStyles.signupDescription,
+                  color: '#856404',
+                  fontSize: '1.1rem'
+                }}>
+                  This product is currently under development. Sign up below to be notified when it becomes available.
+                </p>
+                <button
+                  onClick={() => navigate('/products')}
+                  style={{
+                    ...productSignupStyles.signupButton,
+                    backgroundColor: '#ffc107',
+                    color: '#000',
+                    fontWeight: '600' as const,
+                    marginTop: '16px'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0a800')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffc107')}
+                >
+                  Browse Other Products
+                </button>
+              </div>
+            </div>
+          ) : user && isSubscribed ? (
             <div style={productSignupStyles.subscribedContainer}>
               <div style={productSignupStyles.subscribedBadge}>
                 <p style={productSignupStyles.subscribedText}>

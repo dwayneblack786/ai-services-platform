@@ -101,7 +101,7 @@ const mockProducts: Omit<Product, '_id'>[] = [
       perUseUnit: 'per invoice'
     },
     industries: ['Accounting', 'Finance', 'Procurement', 'Enterprise'],
-    status: 'active',
+    status: 'coming-soon',
     tags: ['invoice', 'accounting', 'automation', 'OCR', 'finance'],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -128,7 +128,7 @@ const mockProducts: Omit<Product, '_id'>[] = [
       ]
     },
     industries: ['Legal', 'Corporate', 'Real Estate', 'Procurement'],
-    status: 'active',
+    status: 'coming-soon',
     tags: ['contracts', 'legal', 'compliance', 'risk-management', 'automation'],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -153,7 +153,7 @@ const mockProducts: Omit<Product, '_id'>[] = [
       perUseUnit: 'per claim'
     },
     industries: ['Insurance', 'Healthcare', 'Legal'],
-    status: 'active',
+    status: 'coming-soon',
     tags: ['insurance', 'claims', 'healthcare', 'fraud-detection', 'automation'],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -231,7 +231,7 @@ const mockProducts: Omit<Product, '_id'>[] = [
       perUseUnit: 'per image'
     },
     industries: ['Real Estate', 'Property Management', 'MLS'],
-    status: 'active',
+    status: 'coming-soon',
     tags: ['real-estate', 'property', 'image-tagging', 'MLS', 'automation'],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -286,7 +286,7 @@ const mockProducts: Omit<Product, '_id'>[] = [
       ]
     },
     industries: ['Retail', 'Grocery', 'Pharmacy', 'Convenience Stores'],
-    status: 'active',
+    status: 'coming-soon',
     tags: ['retail', 'shelf-monitoring', 'inventory', 'compliance', 'automation'],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -311,7 +311,7 @@ const mockProducts: Omit<Product, '_id'>[] = [
       perUseUnit: 'per scan'
     },
     industries: ['Retail', 'Grocery', 'Warehouse', 'Logistics'],
-    status: 'active',
+    status: 'coming-soon',
     tags: ['retail', 'product-recognition', 'checkout', 'inventory', 'automation'],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -338,7 +338,7 @@ const mockProducts: Omit<Product, '_id'>[] = [
       ]
     },
     industries: ['E-commerce', 'Fashion', 'Home Decor', 'Retail'],
-    status: 'active',
+    status: 'coming-soon',
     tags: ['ecommerce', 'visual-search', 'product-discovery', 'shopping'],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -440,13 +440,13 @@ async function seedProducts() {
     console.log(`✓ Successfully inserted ${result.insertedCount} products`);
     console.log('\nProduct Categories:');
     console.log('- Virtual Assistants: 3 products (3 active)');
-    console.log('- Intelligent Document Processing: 5 products (3 active, 2 coming soon)');
-    console.log('- Computer Vision: 8 products (5 active, 3 coming soon)');
+    console.log('- Intelligent Document Processing: 5 products (5 coming soon)');
+    console.log('- Computer Vision: 8 products (8 coming soon)');
     console.log('\nStatus breakdown:');
     const activeCount = mockProducts.filter(p => p.status === 'active').length;
     const comingSoonCount = mockProducts.filter(p => p.status === 'coming-soon').length;
-    console.log(`- Active: ${activeCount}`);
-    console.log(`- Coming Soon: ${comingSoonCount}`);
+    console.log(`- Active: ${activeCount} (Virtual Assistants only)`);
+    console.log(`- Coming Soon: ${comingSoonCount} (All IDP and Computer Vision products)`);
     
     // Display summary
     const count = await productsCollection.countDocuments();
