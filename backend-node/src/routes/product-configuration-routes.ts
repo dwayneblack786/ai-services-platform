@@ -40,10 +40,14 @@ router.get('/:productId', async (req, res) => {
     const { productId } = req.params;
     const db = getDB();
     
+    // Try to find configuration by productId as both ObjectId and string
     const configuration = await db.collection<ProductConfiguration>('product_configurations')
       .findOne({ 
-        tenantId: user.tenantId, 
-        productId, 
+        tenantId: user.tenantId,
+        $or: [
+          { productId: productId },  // String match
+          { productId: new ObjectId(productId) }  // ObjectId match
+        ],
         status: 'active' 
       });
     
