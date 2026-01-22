@@ -94,6 +94,22 @@ spring:
 
 ## Running
 
+### Quick Start (Recommended)
+
+**Windows PowerShell:**
+```powershell
+.\start-server.ps1
+```
+
+**With Options:**
+```powershell
+.\start-server.ps1 -Debug          # Remote debugging on port 5005
+.\start-server.ps1 -Clean          # Clean build first
+.\start-server.ps1 -Fast           # Skip tests
+```
+
+📖 **[Complete CLI Guide](MAVEN_CLI_GUIDE.md)** - All Maven commands, PowerShell functions, and workflows
+
 ### Using Maven Wrapper
 
 **Windows:**
@@ -209,6 +225,27 @@ Defined in `pom.xml`:
 - **spring-boot-starter-test** - Testing support
 
 ## Development
+
+### PowerShell Helper Functions
+
+```powershell
+# Load helper functions
+. .\maven-cli.ps1
+
+# Start server
+Start-VaService
+
+# Fast build (skip tests)
+Build-VaServiceFast
+
+# Run tests
+Test-VaService
+
+# Deep clean
+Reset-VaService
+```
+
+📖 **[Maven CLI Guide](MAVEN_CLI_GUIDE.md)** - Complete reference with all functions and workflows
 
 ### Maven Commands
 

@@ -55,6 +55,7 @@
 ### 🗺️ Documentation Guide
 - **[Documentation Map](DOCUMENTATION_MAP.md) - Visual guide to all Spring AI Agent documentation**
 - **[Scripts Reference Guide](SCRIPTS_REFERENCE.md) - All available scripts (npm, Maven, PowerShell), common workflows**
+- **[Maven CLI Helper Guide](../services-java/va-service/MAVEN_CLI_GUIDE.md) - Complete PowerShell CLI for managing Java services**
 
 ### Architecture & Design
 - [Repository Structure](RepositoryStrucutre.md) - Complete folder structure and organization

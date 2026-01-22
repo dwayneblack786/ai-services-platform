@@ -643,6 +643,42 @@ Java services use Maven Wrapper (`mvnw` / `mvnw.cmd`) for consistency.
 
 All commands run from service directory (e.g., `services-java/va-service/`).
 
+📖 **[Complete Maven CLI Guide](../services-java/va-service/MAVEN_CLI_GUIDE.md)** - PowerShell helper functions, all workflows, IDE integration
+
+### Quick Start Scripts
+
+#### PowerShell Quick Start
+
+```powershell
+# Navigate to service
+cd services-java/va-service
+
+# Simple start
+.\start-server.ps1
+
+# With debugging (port 5005)
+.\start-server.ps1 -Debug
+
+# Clean build first
+.\start-server.ps1 -Clean -Fast
+```
+
+#### PowerShell Helper Functions
+
+```powershell
+# Load helper functions
+. .\maven-cli.ps1
+
+# Use functions
+Start-VaService              # Start server
+Build-VaServiceFast          # Build without tests
+Test-VaService               # Run tests
+Reset-VaService              # Deep clean
+Setup-EclipseProject         # Fix Eclipse classpath
+```
+
+See [MAVEN_CLI_GUIDE.md](../services-java/va-service/MAVEN_CLI_GUIDE.md) for complete function reference.
+
 ### Build Scripts
 
 #### `./mvnw clean install`
