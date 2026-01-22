@@ -6,11 +6,13 @@ interface UseSocketOptions {
   onConnect?: () => void;
   onDisconnect?: (reason: string) => void;
   onError?: (error: Error) => void;
+  onMaintenance?: (data: { message: string; reconnectIn: number; timestamp: string }) => void;
 }
 
 interface UseSocketReturn {
   socket: Socket | null;
   isConnected: boolean;
+  isReconnecting: boolean;
   connect: () => void;
   disconnect: () => void;
   emit: (event: string, data?: any) => void;
@@ -19,17 +21,20 @@ interface UseSocketReturn {
 /**
  * Custom hook to manage Socket.IO connection
  * Handles authentication, connection state, and provides emit wrapper
+ * Includes maintenance mode notification handling
  */
 export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
   const {
     autoConnect = true,
     onConnect,
     onDisconnect,
-    onError
+    onError,
+    onMaintenance
   } = options;
 
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
 
   const connect = useCallback(() => {
     if (socketRef.current?.connected) {
@@ -48,8 +53,9 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       withCredentials: true, // This sends httpOnly cookies
       transports: ['websocket', 'polling'], // Try WebSocket first, fallback to polling
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10, // Increased from 5 for better resilience
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000, // Max 5 second delay between attempts
       timeout: 300000 // 5 minute timeout (300 seconds)
     });
 
@@ -57,6 +63,7 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
     socket.on('connect', () => {
       console.log('[Socket] Connected:', socket.id);
       setIsConnected(true);
+      setIsReconnecting(false);
       onConnect?.();
     });
 
@@ -64,11 +71,19 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       console.log('[Socket] Disconnected:', reason);
       setIsConnected(false);
       onDisconnect?.(reason);
+      
+      // Auto-reconnect on server disconnect (but not user-initiated)
+      if (reason === 'io server disconnect') {
+        console.log('[Socket] Server initiated disconnect - will reconnect');
+        setIsReconnecting(true);
+        socket.connect();
+      }
     });
 
     socket.on('connect_error', (error) => {
       console.error('[Socket] Connection error:', error.message);
       setIsConnected(false);
+      setIsReconnecting(true);
       onError?.(error);
     });
 
@@ -77,32 +92,53 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       onError?.(error);
     });
 
+    // Handle server maintenance notifications
+    socket.on('server:maintenance', (data: { message: string; reconnectIn: number; timestamp: string }) => {
+      console.warn('[Socket] Server maintenance notification:', data);
+      setIsReconnecting(true);
+      onMaintenance?.(data);
+      
+      // Automatically attempt to reconnect after the specified delay
+      if (data.reconnectIn) {
+        setTimeout(() => {
+          if (!socket.connected) {
+            console.log('[Socket] Attempting reconnection after maintenance...');
+            socket.connect();
+          }
+        }, data.reconnectIn);
+      }
+    });
+
     // Handle reconnection attempts
     socket.on('reconnect_attempt', (attemptNumber) => {
       console.log('[Socket] Reconnection attempt:', attemptNumber);
       setIsConnected(false);
+      setIsReconnecting(true);
     });
 
     socket.on('reconnect', (attemptNumber) => {
       console.log('[Socket] Reconnected after', attemptNumber, 'attempts');
       setIsConnected(true);
+      setIsReconnecting(false);
       onConnect?.();
     });
 
     socket.on('reconnect_error', (error) => {
       console.error('[Socket] Reconnection error:', error.message);
       setIsConnected(false);
+      setIsReconnecting(true);
       onError?.(error);
     });
 
     socket.on('reconnect_failed', () => {
       console.error('[Socket] Reconnection failed after all attempts');
       setIsConnected(false);
+      setIsReconnecting(false);
       onError?.(new Error('Failed to reconnect after multiple attempts'));
     });
 
     socketRef.current = socket;
-  }, [onConnect, onDisconnect, onError]);
+  }, [onConnect, onDisconnect, onError, onMaintenance]);
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {
@@ -110,6 +146,7 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       socketRef.current.disconnect();
       socketRef.current = null;
       setIsConnected(false);
+      setIsReconnecting(false);
     }
   }, []);
 
@@ -140,6 +177,7 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
   return {
     socket: socketRef.current,
     isConnected,
+    isReconnecting,
     connect,
     disconnect,
     emit

@@ -11,6 +11,8 @@ Node.js Express TypeScript middleware server that handles authentication, manage
 - [Running](#running)
   - [Development Mode](#development-mode)
   - [Production Mode](#production-mode)
+- [Deployment](#deployment)
+  - [Graceful Shutdown & Zero-Downtime Deployment Guide](../docs/DEPLOYMENT_GRACEFUL_SHUTDOWN.md) 🚀
 - [API Routes](#api-routes)
   - [Authentication](#authentication-apiauth)
   - [User](#user-apiuser)
@@ -28,6 +30,7 @@ Node.js Express TypeScript middleware server that handles authentication, manage
 ## Features
 
 - **Environment Validation** - Type-safe, validated configuration with startup checks ([Configuration Guide](docs/ENVIRONMENT.md))
+- **Graceful Shutdown** - Zero-downtime deployments with WebSocket notification and connection draining ([Deployment Guide](../docs/DEPLOYMENT_GRACEFUL_SHUTDOWN.md))
 - **Circuit Breaker Pattern** - Automatic failure detection and recovery for Java microservice calls ([Implementation Guide](CIRCUIT_BREAKER_IMPLEMENTATION.md))
 - **Resilient API Client** - Exponential backoff retry logic with fallback responses
 - Google OAuth2 authentication with Passport.js
@@ -153,6 +156,8 @@ See [.env.example](.env.example) for all available configuration options.
 
 ## Running
 
+> 📦 **[View all available npm scripts](package.json#L5-L28)** - Complete list of build, test, seed, and utility commands
+
 ### Development Mode
 
 ```bash
@@ -166,6 +171,35 @@ Starts the server with nodemon on port 5000.
 ```bash
 npm run build
 npm start
+```
+
+### Common Commands
+
+```bash
+# Development
+npm run dev              # Start dev server with hot reload
+npm run build            # Compile TypeScript to JavaScript
+npm run build:clean      # Clean build from scratch
+npm run start:prod       # Full production build and start
+
+# Testing
+npm run test             # Run all tests
+npm run test:watch       # Run tests in watch mode
+npm run test:coverage    # Generate coverage report
+npm run test:all         # Run unit, integration, and e2e tests
+
+# Database Seeding
+npm run seed:products    # Seed product data
+npm run seed:prompts:v2  # Seed prompt configurations
+npm run seed:templates   # Seed email/notification templates
+npm run seed:all         # Seed all data
+
+# Code Quality
+npm run lint             # Check code style
+npm run lint:fix         # Auto-fix code style issues
+npm run format           # Alias for lint:fix
+npm run check            # Lint + test (quick check)
+npm run validate         # Lint + build + test (full validation)
 ```
 
 ## API Routes

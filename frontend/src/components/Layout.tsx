@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../hooks/useSocket';
 import Sidebar from './Sidebar';
 import SettingsDropdown from './SettingsDropdown';
 import CircuitMonitor from './CircuitMonitor';
+import MaintenanceNotification from './MaintenanceNotification';
 import { styles } from '../styles/Layout.styles';
 import { LayoutProps } from '../types';
 import { UserRole } from '../types/shared';
@@ -16,6 +18,27 @@ const Layout = ({ children }: LayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [copied, setCopied] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [maintenanceInfo, setMaintenanceInfo] = useState<{
+    message: string;
+    reconnectIn: number;
+    timestamp: string;
+  } | null>(null);
+
+  // Socket.IO connection for maintenance notifications
+  const { isReconnecting } = useSocket({
+    autoConnect: isAuthenticated,
+    onMaintenance: (data) => {
+      console.log('[Layout] Maintenance notification received:', data);
+      setMaintenanceInfo(data);
+    },
+    onConnect: () => {
+      // Clear maintenance notification on successful reconnection
+      if (maintenanceInfo) {
+        console.log('[Layout] Reconnected - clearing maintenance notification');
+        setTimeout(() => setMaintenanceInfo(null), 2000);
+      }
+    }
+  });
 
   // Check screen size and update sidebar state
   useEffect(() => {
@@ -59,6 +82,15 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <>
+      {/* Maintenance Notification */}
+      {(maintenanceInfo || isReconnecting) && (
+        <MaintenanceNotification
+          message={maintenanceInfo?.message || 'Reconnecting to server...'}
+          reconnectIn={maintenanceInfo?.reconnectIn}
+          isReconnecting={isReconnecting}
+        />
+      )}
+      
       <header style={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {isAuthenticated && (

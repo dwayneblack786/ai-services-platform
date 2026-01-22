@@ -128,9 +128,23 @@ router.get('/liveness', (req: Request, res: Response) => {
 /**
  * GET /health/readiness
  * Kubernetes readiness probe - checks if server can handle requests
+ * Returns 503 if server is draining (shutting down)
  */
 router.get('/readiness', async (req: Request, res: Response) => {
   try {
+    // Import server state dynamically to avoid circular dependency
+    const { getServerState } = await import('../index');
+    const serverState = getServerState();
+
+    // Return not ready if server is draining or shutting down
+    if (serverState === 'draining' || serverState === 'shutdown') {
+      return res.status(503).json({
+        status: 'not_ready',
+        reason: `Server is ${serverState}`,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // Check critical services
     const mongoHealth = await checkMongoDB();
     

@@ -12,6 +12,7 @@ import { env, validateEnv } from './config/env';
 import { connectDB } from './config/database';
 import { connectRedis, redisClient } from './config/redis';
 import { initializeSocketIO } from './config/socket';
+import { maintenanceMode } from './middleware/maintenance';
 import authRoutes, { ensureDevTenant } from './routes/auth';
 import userRoutes from './routes/user';
 import productsRoutes from './routes/products-routes';
@@ -35,6 +36,7 @@ import callLogsRoutes from './routes/call-logs-routes';
 import './config/passport';
 import logger from './utils/logger';
 import { correlationIdMiddleware, requestLoggerMiddleware, errorLoggerMiddleware } from './middleware/requestLogger';
+import mongoose from 'mongoose';
 
 // Validate environment variables before starting
 validateEnv();
@@ -60,21 +62,103 @@ process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
   process.exit(1);
 });
 
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM signal received - initiating graceful shutdown');
-  httpServer.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
+// Server state tracking for graceful shutdown
+let serverState: 'running' | 'draining' | 'shutdown' = 'running';
+export const getServerState = () => serverState;
 
-process.on('SIGINT', () => {
-  logger.info('SIGINT signal received - initiating graceful shutdown');
-  httpServer.close(() => {
-    logger.info('HTTP server closed');
+/**
+ * Graceful shutdown handler
+ * 1. Notify WebSocket clients of maintenance
+ * 2. Mark server as draining (stops accepting new connections)
+ * 3. Wait for active connections to complete (max 30s)
+ * 4. Close all services (MongoDB, Redis, Socket.IO)
+ * 5. Exit process
+ */
+async function gracefulShutdown(signal: string) {
+  logger.info(`${signal} signal received - initiating graceful shutdown`);
+  
+  if (serverState !== 'running') {
+    logger.warn('Shutdown already in progress');
+    return;
+  }
+
+  serverState = 'draining';
+  const shutdownStartTime = Date.now();
+
+  try {
+    // Step 1: Notify all connected WebSocket clients
+    logger.info('Notifying WebSocket clients of maintenance...');
+    io.emit('server:maintenance', {
+      message: 'Server is shutting down for maintenance',
+      reconnectIn: 30000, // 30 seconds
+      timestamp: new Date().toISOString()
+    });
+
+    // Give clients 2 seconds to receive the notification
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Step 2: Stop accepting new HTTP connections
+    logger.info('Stopping acceptance of new connections...');
+    httpServer.close();
+
+    // Step 3: Wait for active connections to complete (max 30s)
+    const drainTimeout = 30000;
+    const activeConnections: Set<any> = new Set();
+    
+    // Track active connections
+    httpServer.on('connection', (conn) => {
+      activeConnections.add(conn);
+      conn.on('close', () => {
+        activeConnections.delete(conn);
+      });
+    });
+
+    // Wait for connections to drain or timeout
+    const drainPromise = new Promise<void>((resolve) => {
+      const checkInterval = setInterval(() => {
+        const elapsed = Date.now() - shutdownStartTime;
+        if (activeConnections.size === 0 || elapsed >= drainTimeout) {
+          clearInterval(checkInterval);
+          logger.info(`Connection draining complete. Active: ${activeConnections.size}, Elapsed: ${elapsed}ms`);
+          resolve();
+        }
+      }, 500);
+    });
+
+    await Promise.race([
+      drainPromise,
+      new Promise(resolve => setTimeout(resolve, drainTimeout))
+    ]);
+
+    // Step 4: Close Socket.IO connections
+    logger.info('Closing Socket.IO connections...');
+    const sockets = await io.fetchSockets();
+    for (const socket of sockets) {
+      socket.disconnect(true);
+    }
+    io.close();
+
+    // Step 5: Close database connections
+    logger.info('Closing MongoDB connection...');
+    await mongoose.connection.close();
+
+    // Step 6: Close Redis connection
+    if (redisClient.isOpen) {
+      logger.info('Closing Redis connection...');
+      await redisClient.quit();
+    }
+
+    serverState = 'shutdown';
+    const totalTime = Date.now() - shutdownStartTime;
+    logger.info(`Graceful shutdown completed in ${totalTime}ms`);
     process.exit(0);
-  });
-});
+
+  } catch (error) {
+    logger.error('Error during graceful shutdown:', error);
+    serverState = 'shutdown';
+    process.exit(1);
+  }
+}
 
 logger.info('Application starting', { 
   environment: env.NODE_ENV,
@@ -117,6 +201,9 @@ app.use(cookieParser());
 // Add correlation ID and request logging
 app.use(correlationIdMiddleware);
 app.use(requestLoggerMiddleware);
+
+// Add maintenance mode middleware (must be after logging, before routes)
+app.use(maintenanceMode);
 
 // Configure session store based on environment
 const sessionConfig: session.SessionOptions = {
@@ -226,6 +313,12 @@ httpServer.listen(PORT, () => {
     socketIO: 'enabled',
     environment: process.env.NODE_ENV
   });
+  
+  // Register graceful shutdown handlers after server is running
+  // This ensures httpServer and io are initialized before handlers are called
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  logger.info('Graceful shutdown handlers registered');
 }).on('error', (error: NodeJS.ErrnoException) => {
   if (error.code === 'EADDRINUSE') {
     logger.error(`❌ Port ${PORT} is already in use. Another instance may be running.`, {

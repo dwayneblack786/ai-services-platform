@@ -1,12 +1,17 @@
 server:
   port: 8136
   address: localhost
+  # Graceful shutdown configuration
+  shutdown: graceful
 
 spring:
   application:
     name: VA-Service
   main:
     banner-mode: off  # Disable default Spring banner for cleaner startup
+  # Graceful shutdown timeout - wait up to 30 seconds for active requests to complete
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   data:
     mongodb:
       uri: mongodb://localhost:27017/ai_platform

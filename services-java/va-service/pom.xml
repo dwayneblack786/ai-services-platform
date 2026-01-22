@@ -29,9 +29,42 @@
 	<properties>
 		<java.version>21</java.version>
 		<grpc.version>1.75.0</grpc.version>
-		<protobuf.version>4.29.3</protobuf.version>
+		<!-- 
+			CRITICAL: Protobuf version MUST match:
+			1. protoc compiler version (generates code)
+			2. protobuf-java runtime (executes code)
+			3. gRPC compatibility (1.75.x requires 4.29.x)
+			
+			Version 4.29.1 provides:
+			- isStringEmpty() method in GeneratedMessage
+			- Compatible with gRPC 1.75.0
+			- Java 21 support
+		-->
+		<protobuf.version>4.29.1</protobuf.version>
 		<spring-ai.version>1.0.0-M4</spring-ai.version>
 	</properties>
+	
+	<!-- Enforce Protobuf version across all transitive dependencies -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-java</artifactId>
+				<version>${protobuf.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-java-util</artifactId>
+				<version>${protobuf.version}</version>
+			</dependency>
+			<!-- Force error_prone_annotations to latest version -->
+			<dependency>
+				<groupId>com.google.errorprone</groupId>
+				<artifactId>error_prone_annotations</artifactId>
+				<version>2.41.0</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	
 	<repositories>
 		<repository>
@@ -171,6 +204,40 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			
+			<!-- Enforce protobuf/gRPC version compatibility -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<id>enforce-protobuf-grpc-compatibility</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireJavaVersion>
+									<version>[21,)</version>
+								</requireJavaVersion>
+								<dependencyConvergence/>
+								<requireProperty>
+									<property>protobuf.version</property>
+									<regex>4\.29\.[0-9]+</regex>
+									<regexMessage>Protobuf version must be 4.29.x for gRPC 1.75.0 compatibility. Current: ${protobuf.version}</regexMessage>
+								</requireProperty>
+								<requireProperty>
+									<property>grpc.version</property>
+									<regex>1\.75\.[0-9]+</regex>
+									<regexMessage>gRPC version must be 1.75.x. Current: ${grpc.version}</regexMessage>
+								</requireProperty>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
