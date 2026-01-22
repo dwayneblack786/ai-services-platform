@@ -1725,41 +1725,194 @@ paths:
                     type: object
 
   # Voice Assistant Endpoints
-  /voice/incoming:
+  /api/voice/incoming:
     post:
-      summary: Handle incoming phone call webhook from telephony provider
+      summary: Universal VoIP webhook endpoint - Auto-detects provider and handles incoming calls
       tags: [Voice Assistant]
+      description: |
+        Universal webhook endpoint that automatically detects VoIP provider (Twilio, Vonage, Bandwidth) 
+        from request format and returns provider-specific response (TwiML XML, NCCO JSON, BXML XML).
+        
+        **Supported Providers:**
+        - **Twilio** - Detected by `CallSid` field or `x-twilio-signature` header
+        - **Vonage** - Detected by `uuid` + `conversation_uuid` fields or `Authorization: Bearer` header
+        - **Bandwidth** - Detected by `callId` + `applicationId` fields
+        
+        **Provider-Specific Examples:**
+        
+        **Twilio Request:**
+        ```
+        CallSid=CA1234567890abcdef
+        AccountSid=AC1234567890abcdef
+        From=+15551234567
+        To=+15559876543
+        CallStatus=ringing
+        ```
+        
+        **Vonage Request:**
+        ```json
+        {
+          "uuid": "63f61863-4a51-4f6b-86e1-46edebcdef01",
+          "conversation_uuid": "CON-f972836a-550e-45d0-8b5f-123456789",
+          "from": "15551234567",
+          "to": "15559876543",
+          "timestamp": "2026-01-22T10:30:00.000Z"
+        }
+        ```
+        
+        **Bandwidth Request:**
+        ```json
+        {
+          "eventType": "initiate",
+          "callId": "c-d45a41f7-1234-5678-90ab-cdef01234567",
+          "from": "+15551234567",
+          "to": "+15559876543",
+          "applicationId": "a-12345",
+          "accountId": "5555555"
+        }
+        ```
+        
+        See [Voice Endpoints Architecture](https://github.com/your-repo/docs/VOICE_ENDPOINTS_ARCHITECTURE.md) for complete details.
       requestBody:
         required: true
         content:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              description: Twilio format (form-urlencoded)
               properties:
-                To:
+                CallSid:
                   type: string
-                  description: The number that was called (assistant phone number)
+                  description: Twilio call identifier
+                AccountSid:
+                  type: string
+                  description: Twilio account identifier
                 From:
                   type: string
                   description: Caller phone number
-                CallSid:
+                To:
                   type: string
-                  description: Telephony provider call identifier
-              required: [To, From]
+                  description: Called phone number (assistant number)
+                CallStatus:
+                  type: string
+                  enum: [ringing, in-progress, completed]
+              required: [From, To]
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  description: Vonage (Nexmo) format
+                  properties:
+                    uuid:
+                      type: string
+                      description: Vonage call unique identifier
+                    conversation_uuid:
+                      type: string
+                      description: Vonage conversation identifier
+                    from:
+                      type: string
+                      description: Caller phone number (without +)
+                    to:
+                      type: string
+                      description: Called phone number (without +)
+                    timestamp:
+                      type: string
+                      format: date-time
+                      description: Call timestamp in ISO 8601 format
+                  required: [uuid, from, to]
+                - type: object
+                  description: Bandwidth format
+                  properties:
+                    eventType:
+                      type: string
+                      enum: [initiate, answer, hangup]
+                      description: Call event type
+                    callId:
+                      type: string
+                      description: Bandwidth call identifier
+                    from:
+                      type: string
+                      description: Caller phone number
+                    to:
+                      type: string
+                      description: Called phone number
+                    applicationId:
+                      type: string
+                      description: Bandwidth application ID
+                    accountId:
+                      type: string
+                      description: Bandwidth account ID
+                  required: [callId, from, to, applicationId]
       responses:
         '200':
-          description: TwiML/voice instructions to the telephony provider
+          description: Provider-specific call control response
           content:
             application/xml:
               schema:
                 type: string
+                description: TwiML XML (Twilio) or BXML XML (Bandwidth)
+                example: |
+                  <?xml version="1.0" encoding="UTF-8"?>
+                  <Response>
+                    <Say>Hello! How can I help you?</Say>
+                    <Start>
+                      <Stream url="wss://your-domain.com/voice/stream"/>
+                    </Start>
+                  </Response>
+            application/json:
+              schema:
+                type: array
+                description: NCCO JSON (Vonage)
+                items:
+                  type: object
+                example:
+                  - action: talk
+                    text: Hello! How can I help you?
+                    voiceName: Amy
+                  - action: connect
+                    endpoint:
+                      - type: websocket
+                        uri: wss://your-domain.com/voice/stream
+                        content-type: audio/l16;rate=16000
         '400':
-          description: Invalid request
+          description: Invalid request or unrecognized provider format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unsupported VoIP provider or invalid request format
+        '403':
+          description: Outside business hours or service unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Service is unavailable outside business hours
 
-  /voice/stream:
+  /api/voice/stream:
     post:
       summary: Handle streaming audio chunks during an active call
       tags: [Voice Assistant]
+      description: |
+        Receives audio chunks from VoIP provider during active call, processes through 
+        STT → LLM → TTS pipeline, and returns audio response.
+        
+        **Flow:**
+        1. VoIP provider sends audio chunk (20ms segments)
+        2. Java VA service processes: WhisperSTT → ChatSession → AzureTTS
+        3. Returns TTS audio for playback to caller
+        4. Updates MongoDB usage stats (STT seconds, TTS characters, LLM tokens)
+        
+        **Audio Formats:**
+        - Twilio: μ-law, 8kHz, Base64 encoded
+        - Vonage: PCM, 16kHz, Base64 encoded
+        - Bandwidth: μ-law, 8kHz, Base64 encoded
       requestBody:
         required: true
         content:
@@ -1769,15 +1922,17 @@ paths:
               properties:
                 callId:
                   type: string
-                  description: Internal call identifier (assistant_calls._id)
+                  description: Internal call identifier from MongoDB assistant_calls collection
+                  example: 507f1f77bcf86cd799439011
                 audioChunk:
                   type: string
                   format: byte
-                  description: Encoded audio chunk from telephony provider
+                  description: Base64-encoded audio chunk from VoIP provider
+                  example: UklGRiQAAABXQVZFZm10IBAAAAABAAEA...
               required: [callId, audioChunk]
       responses:
         '200':
-          description: Voice response or streaming instructions
+          description: Audio response to play back to caller
           content:
             application/json:
               schema:
@@ -1786,14 +1941,65 @@ paths:
                   ttsAudio:
                     type: string
                     format: byte
-                    description: Encoded audio to play back to caller
+                    description: Base64-encoded TTS audio (μ-law or PCM based on provider)
+                    example: UklGRiQEAABXQVZFZm10IBAAAAABAAEA...
+                  transcription:
+                    type: string
+                    description: User's speech transcription (for debugging)
+                    example: Hello, I need help with my order
+                  assistantResponse:
+                    type: string
+                    description: Assistant's text response (before TTS)
+                    example: I'd be happy to help with your order. Can you provide your order number?
         '400':
-          description: Invalid payload
+          description: Invalid payload or missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Missing callId or audioChunk
+        '404':
+          description: Call not found in database
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Call not found with ID 507f1f77bcf86cd799439011
+        '502':
+          description: Java VA service unavailable or processing failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to process audio through VA service
 
-  /voice/end:
+  /api/voice/end:
     post:
       summary: Mark a call as ended and finalize metrics
       tags: [Voice Assistant]
+      description: |
+        Finalizes a voice call session, updates MongoDB with final metrics, and cleans up resources.
+        
+        **Actions Performed:**
+        1. Updates call status to 'completed' in assistant_calls collection
+        2. Calculates final usage metrics (total STT seconds, TTS characters, LLM tokens)
+        3. Stores call transcript and conversation history
+        4. Triggers billing calculations if applicable
+        5. Sends call summary to Java VA service for cleanup
+        
+        **Called By:**
+        - VoIP provider when caller hangs up
+        - System timeout after inactivity
+        - Assistant explicitly ending call
       requestBody:
         required: true
         content:
@@ -1803,17 +2009,67 @@ paths:
               properties:
                 callId:
                   type: string
+                  description: Internal call identifier from MongoDB
+                  example: 507f1f77bcf86cd799439011
                 durationSeconds:
                   type: integer
+                  description: Total call duration in seconds
+                  example: 180
                 endedBy:
                   type: string
                   enum: [caller, assistant, system]
+                  description: Who initiated call termination
+                  example: caller
               required: [callId, durationSeconds, endedBy]
       responses:
         '200':
-          description: Call end recorded
+          description: Call end recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Call ended and metrics finalized
+                  callSummary:
+                    type: object
+                    properties:
+                      callId:
+                        type: string
+                      duration:
+                        type: integer
+                      sttSeconds:
+                        type: number
+                      ttsCharacters:
+                        type: integer
+                      llmTokens:
+                        type: integer
+                      costEstimate:
+                        type: number
         '400':
-          description: Invalid payload
+          description: Invalid payload or missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Missing required field - callId
+        '404':
+          description: Call not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Call not found with ID 507f1f77bcf86cd799439011
 
   /assistant/settings:
     get:

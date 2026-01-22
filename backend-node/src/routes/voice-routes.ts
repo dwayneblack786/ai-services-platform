@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import { ObjectId } from 'mongodb';
 import { getDB } from '../config/database';
 import { javaVAClient } from '../services/apiClient';
+import { VoipAdapterFactory } from '../adapters/voip/adapter-factory';
+import { BaseVoipAdapter, CallControlResponse } from '../adapters/voip/base-adapter';
 
 const router = express.Router();
 
@@ -101,63 +103,47 @@ function isWithinBusinessHours(businessHours?: BusinessHours): boolean {
   return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
 }
 
-// Helper: Generate TwiML response
-function generateTwiML(action: 'say' | 'redirect' | 'stream', payload: string): string {
-  switch (action) {
-    case 'say':
-      return `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say>${payload}</Say>
-</Response>`;
-    case 'redirect':
-      return `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Dial>${payload}</Dial>
-</Response>`;
-    case 'stream':
-      return `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Connect>
-    <Stream url="${payload}" />
-  </Connect>
-</Response>`;
-    default:
-      return `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say>An error occurred.</Say>
-</Response>`;
-  }
-}
-
 // POST /voice/incoming
-// Handle incoming phone call webhook from telephony provider
+// Universal webhook handler for any VoIP provider
+// Supports Twilio, Vonage, Bandwidth, and more via adapter pattern
 router.post('/incoming', async (req: Request, res: Response) => {
   try {
-    const dialedNumber = req.body.To;
-    const callerNumber = req.body.From;
-    const callSid = req.body.CallSid;
+    // Auto-detect VoIP provider or use explicit provider query param
+    const explicitProvider = req.query.provider as string;
+    const adapter: BaseVoipAdapter = explicitProvider 
+      ? VoipAdapterFactory.getAdapter(explicitProvider)
+      : VoipAdapterFactory.detectProvider(req.body, req.headers);
 
-    console.log('[Voice Incoming]', { dialedNumber, callerNumber, callSid });
+    console.log('[Voice Incoming] Using provider:', adapter.getProviderName());
 
-    if (!dialedNumber || !callerNumber) {
-      console.error('[Voice Incoming] Missing required fields');
-      res.set('Content-Type', 'application/xml');
-      return res.send(generateTwiML('say', 'Invalid request. Missing phone number information.'));
-    }
+    // Parse provider-specific webhook to standard format
+    const callData = adapter.parseIncomingCall(req.body, req.headers);
+    console.log('[Voice Incoming]', { 
+      provider: adapter.getProviderName(),
+      callId: callData.callId,
+      from: callData.from,
+      to: callData.to 
+    });
 
     const db = getDB();
 
     // 1. Lookup assistant channels by phone number
     const channels = await db.collection('assistant_channels')
       .findOne({ 
-        'voice.phoneNumber': dialedNumber,
+        'voice.phoneNumber': callData.to,
         'voice.enabled': true
       });
 
     if (!channels) {
-      console.warn('[Voice Incoming] Phone number not configured or voice disabled:', dialedNumber);
-      res.set('Content-Type', 'application/xml');
-      return res.send(generateTwiML('say', 'This number is not configured.'));
+      console.warn('[Voice Incoming] Phone number not configured or voice disabled:', callData.to);
+      const errorResponse: CallControlResponse = {
+        action: 'answer',
+        message: 'This number is not configured.'
+      };
+      
+      const providerResponse = adapter.generateCallResponse(errorResponse);
+      res.set('Content-Type', adapter.getProviderName() === 'vonage' ? 'application/json' : 'application/xml');
+      return res.send(providerResponse);
     }
 
     const voiceConfig = channels.voice;
@@ -165,22 +151,23 @@ router.post('/incoming', async (req: Request, res: Response) => {
 
     // 2. Check business hours
     if (!isWithinBusinessHours(voiceConfig?.businessHours)) {
-      console.log('[Voice Incoming] Outside business hours, redirecting to fallback');
-      if (voiceConfig?.fallbackNumber) {
-        res.set('Content-Type', 'application/xml');
-        return res.send(generateTwiML('redirect', voiceConfig.fallbackNumber));
-      } else {
-        res.set('Content-Type', 'application/xml');
-        return res.send(generateTwiML('say', 'We are currently closed. Please call back during business hours.'));
-      }
+      console.log('[Voice Incoming] Outside business hours');
+      
+      const response: CallControlResponse = voiceConfig?.fallbackNumber
+        ? { action: 'forward', forwardTo: voiceConfig.fallbackNumber }
+        : { action: 'answer', message: 'We are currently closed. Please call back during business hours.' };
+      
+      const providerResponse = adapter.generateCallResponse(response);
+      res.set('Content-Type', adapter.getProviderName() === 'vonage' ? 'application/json' : 'application/xml');
+      return res.send(providerResponse);
     }
 
     // 3. Create call log entry
     const callDocument: AssistantCall = {
       customerId: channels.customerId,
-      assistantPhoneNumber: dialedNumber,
-      callerNumber,
-      startTime: new Date(),
+      assistantPhoneNumber: callData.to,
+      callerNumber: callData.from,
+      startTime: callData.timestamp,
       status: 'in_progress',
       usage: {
         sttSeconds: 0,
@@ -194,20 +181,42 @@ router.post('/incoming', async (req: Request, res: Response) => {
     const result = await db.collection<AssistantCall>('assistant_calls')
       .insertOne(callDocument);
 
-    const callId = result.insertedId.toString();
-    console.log('[Voice Incoming] Created call log:', callId);
+    const mongoCallId = result.insertedId.toString();
+    console.log('[Voice Incoming] Created call log:', mongoCallId);
 
-    // 5. Start streaming audio to Java VA service
-    const javaResponseUrl = `/voice/session?callId=${callId}`;
-    console.log('[Voice Incoming] Streaming to Java VA:', javaResponseUrl);
+    // 4. Start streaming audio to Java VA service
+    const streamUrl = `${process.env.PUBLIC_URL || 'https://your-domain.com'}/voice/stream?callId=${mongoCallId}&provider=${adapter.getProviderName()}`;
+    
+    const streamResponse: CallControlResponse = {
+      action: 'stream',
+      streamUrl: streamUrl,
+      callId: mongoCallId
+    };
 
-    res.set('Content-Type', 'application/xml');
-    return res.send(generateTwiML('stream', javaResponseUrl));
+    const providerResponse = adapter.generateCallResponse(streamResponse);
+    console.log('[Voice Incoming] Streaming to:', streamUrl);
+    
+    res.set('Content-Type', adapter.getProviderName() === 'vonage' ? 'application/json' : 'application/xml');
+    return res.send(providerResponse);
 
   } catch (error) {
     console.error('[Voice Incoming] Error:', error);
-    res.set('Content-Type', 'application/xml');
-    return res.send(generateTwiML('say', 'An error occurred processing your call. Please try again later.'));
+    
+    // Attempt to send error response in appropriate format
+    try {
+      const adapter = VoipAdapterFactory.detectProvider(req.body, req.headers);
+      const errorResponse: CallControlResponse = {
+        action: 'answer',
+        message: 'An error occurred processing your call. Please try again later.'
+      };
+      
+      const providerResponse = adapter.generateCallResponse(errorResponse);
+      res.set('Content-Type', adapter.getProviderName() === 'vonage' ? 'application/json' : 'application/xml');
+      return res.send(providerResponse);
+    } catch {
+      // Fallback to plain text error
+      return res.status(500).send('An error occurred processing your call.');
+    }
   }
 });
 
