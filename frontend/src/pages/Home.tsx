@@ -205,7 +205,7 @@ const Home = () => {
         <h2 style={isMobile ? styles.sectionTitleMobile : styles.sectionTitle}>
           Why Choose Infero Agents?
         </h2>
-        <div id="features-grid" id="features-grid" style={isMobile ? styles.featuresGridMobile : styles.featuresGrid}>
+        <div id="features-grid" style={isMobile ? styles.featuresGridMobile : styles.featuresGrid}>
           <div
             id="feature-card-fast"
             style={styles.featureCard}

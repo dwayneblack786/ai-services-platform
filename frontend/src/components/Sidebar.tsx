@@ -8,12 +8,12 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
 
   // Core menu items (always visible)
   const menuItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
-    { path: '/users?view=tenant', label: 'Users', icon: '🧑🏽‍🤝‍🧑🏻' },
-    { path: '/products', label: 'Products', icon: '📦' },
-    { path: '/subscriptions', label: 'Subscriptions', icon: '🔔' },
-    { path: '/payment', label: 'Payment', icon: '💳' },
-    { path: '/reports?view=tenant', label: 'Reports', icon: '📊' },
+    { path: '/dashboard', label: 'Dashboard', icon: '⊞' },
+    { path: '/users?view=tenant', label: 'Users', icon: '◯' },
+    { path: '/products', label: 'Products', icon: '▣' },
+    { path: '/subscriptions', label: 'Subscriptions', icon: '⟳' },
+    { path: '/payment', label: 'Payment', icon: '≡' },
+    { path: '/reports?view=tenant', label: 'Reports', icon: '▤' },
   ];
 
   const toggleSidebar = () => {
@@ -30,30 +30,45 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
       <button onClick={toggleSidebar} style={styles.toggleButton}>
         {isOpen ? '✕' : '☰'}
       </button>
-      <div style={isOpen ? styles.sidebar : styles.sidebarClosed}>
-        <div style={styles.header}>
-          <h2 style={styles.title}>Menu</h2>
-        </div>
-        <nav style={styles.nav}>
+      <div 
+        style={isOpen ? styles.sidebar : styles.sidebarClosed}
+        onClick={(e) => {
+          // Close sidebar if clicking on the background (not on buttons)
+          if (isOpen && e.target === e.currentTarget) {
+            toggleSidebar();
+          }
+        }}
+      >
+        {isOpen && (
+          <div style={styles.header}>
+            <h2 style={styles.title}>Menu</h2>
+          </div>
+        )}
+        <nav style={isOpen ? styles.nav : styles.navCollapsed}>
           {menuItems.map((item) => (
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
               style={
                 location.pathname === item.path
-                  ? { ...styles.navItem, ...styles.navItemActive }
-                  : styles.navItem
+                  ? { ...(isOpen ? styles.navItem : styles.navItemCollapsed), ...styles.navItemActive }
+                  : (isOpen ? styles.navItem : styles.navItemCollapsed)
               }
+              title={!isOpen ? item.label : undefined}
             >
               <span style={styles.icon}>{item.icon}</span>
-              <span style={styles.label}>{item.label}</span>
+              {isOpen && <span style={styles.label}>{item.label}</span>}
             </button>
           ))}
         </nav>
         <div style={styles.footer}>
-          <button onClick={handleLogout} style={styles.logoutButton}>
-            <span style={styles.icon}>🚪</span>
-            <span style={styles.label}>Logout</span>
+          <button 
+            onClick={handleLogout} 
+            style={isOpen ? styles.logoutButton : styles.logoutButtonCollapsed}
+            title={!isOpen ? 'Logout' : undefined}
+          >
+            <span style={styles.icon}>⏻</span>
+            {isOpen && <span style={styles.label}>Logout</span>}
           </button>
         </div>
       </div>

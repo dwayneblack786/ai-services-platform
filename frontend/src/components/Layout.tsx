@@ -102,7 +102,7 @@ const Layout = ({ children }: LayoutProps) => {
           padding: '0.5rem 0.75rem',
           fontSize: '1.8rem',
           color: '#ecf0f1',
-          backgroundColor: '#2c3e50',
+          backgroundColor: '#1a252f',
           border: '1px solid #34495e',
           borderRadius: '4px',
           cursor: 'pointer',

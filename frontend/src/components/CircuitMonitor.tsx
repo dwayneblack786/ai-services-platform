@@ -80,25 +80,35 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
       : `⚠️ Service temporarily unavailable\nCircuit: OPEN\nSuccess Rate: ${successRate}%\nProtecting system from cascading failures. Will auto-retry shortly.`;
 
     return (
-      <div style={styles.compactWrapper}>
-        <div 
+      <div id="circuit-monitor-compact-wrapper" style={styles.compactWrapper}>
+        <div
+          id="circuit-monitor-compact-container"
           style={{...styles.compactContainer, cursor: 'pointer'}}
           title={tooltipText}
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <div style={styles.compactStatus(isHealthy, isRecovering, isDegraded)}>
-            <span style={styles.statusDot(isHealthy, isRecovering, isDegraded)} />
-            <span style={styles.statusText}>
-              {isHealthy && 'Service Healthy'}
-              {isRecovering && 'Service Recovering'}
-              {isDegraded && 'Service Degraded'}
+          <div id="circuit-monitor-compact-status" style={styles.compactStatus(isHealthy, isRecovering, isDegraded)}>
+            <span 
+              id="circuit-monitor-status-icon-compact" 
+              style={{...styles.statusText, fontSize: '20px'}}
+              title={
+                isHealthy 
+                  ? 'Service Healthy - All systems operational' 
+                  : isRecovering 
+                  ? 'Service Recovering - Testing service availability' 
+                  : 'Service Degraded - Temporarily unavailable'
+              }
+            >
+              {isHealthy && '✅'}
+              {isRecovering && '🔄'}
+              {isDegraded && '⚠️'}
             </span>
           </div>
         </div>
         
         {isExpanded && (
-          <div style={styles.expandedDropdown}>
-            <div style={styles.dropdownHeader}>
+          <div id="circuit-monitor-expanded-dropdown" style={styles.expandedDropdown}>
+            <div id="circuit-monitor-dropdown-header" style={styles.dropdownHeader}>
               <h4 style={styles.dropdownTitle}>Circuit Breaker Status</h4>
               <button 
                 onClick={(e) => {
@@ -111,29 +121,29 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
               </button>
             </div>
             
-            <div style={styles.dropdownStats}>
-              <div style={styles.dropdownStatRow}>
+            <div id="circuit-monitor-dropdown-stats" style={styles.dropdownStats}>
+              <div id="circuit-monitor-stat-state" style={styles.dropdownStatRow}>
                 <span style={styles.dropdownLabel}>State:</span>
                 <span style={styles.dropdownValue(isDegraded)}>{stats.state}</span>
               </div>
-              <div style={styles.dropdownStatRow}>
+              <div id="circuit-monitor-stat-success-rate" style={styles.dropdownStatRow}>
                 <span style={styles.dropdownLabel}>Success Rate:</span>
                 <span style={styles.dropdownValue(false)}>{successRate}%</span>
               </div>
-              <div style={styles.dropdownStatRow}>
+              <div id="circuit-monitor-stat-total-requests" style={styles.dropdownStatRow}>
                 <span style={styles.dropdownLabel}>Total Requests:</span>
                 <span style={styles.dropdownValue(false)}>{stats.totalRequests}</span>
               </div>
-              <div style={styles.dropdownStatRow}>
+              <div id="circuit-monitor-stat-failures" style={styles.dropdownStatRow}>
                 <span style={styles.dropdownLabel}>Failures:</span>
                 <span style={styles.dropdownValue(stats.failureCount > 0)}>{stats.failureCount}</span>
               </div>
-              <div style={styles.dropdownStatRow}>
+              <div id="circuit-monitor-stat-successes" style={styles.dropdownStatRow}>
                 <span style={styles.dropdownLabel}>Successes:</span>
                 <span style={styles.dropdownValue(false)}>{stats.successCount}</span>
               </div>
               {stats.lastFailureTime && (
-                <div style={styles.dropdownStatRow}>
+                <div id="circuit-monitor-stat-last-failure" style={styles.dropdownStatRow}>
                   <span style={styles.dropdownLabel}>Last Failure:</span>
                   <span style={{...styles.dropdownValue(false), fontSize: '11px'}}>
                     {new Date(stats.lastFailureTime).toLocaleTimeString()}
@@ -172,8 +182,8 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
+    <div id="circuit-monitor-container" style={styles.container}>
+      <div id="circuit-monitor-header" style={styles.header}>
         <h3 style={styles.title}>Circuit Breaker Status</h3>
         <button 
           onClick={() => setShowFullStats(!showFullStats)}
@@ -183,9 +193,10 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
         </button>
       </div>
 
-      <div style={styles.statusCard(isHealthy, isRecovering, isDegraded)}>
-        <div style={styles.statusHeader}>
-          <span 
+      <div id="circuit-monitor-status-card" style={styles.statusCard(isHealthy, isRecovering, isDegraded)}>
+        <div id="circuit-monitor-status-header" style={styles.statusHeader}>
+          <span
+            id="circuit-monitor-status-icon"
             style={styles.statusIcon}
             title={
               isHealthy 
@@ -199,8 +210,9 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
             {isRecovering && '🔄'}
             {isDegraded && '⚠️'}
           </span>
-          <div>
-            <div 
+          <div id="circuit-monitor-status-info">
+            <div
+              id="circuit-monitor-status-label"
               style={styles.statusLabel}
               title={`Circuit Breaker State: ${stats.state}`}
             >
@@ -208,7 +220,7 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
               {isRecovering && 'RECOVERING'}
               {isDegraded && 'DEGRADED'}
             </div>
-            <div style={styles.statusSubtext}>
+            <div id="circuit-monitor-status-subtext" style={styles.statusSubtext}>
               {isHealthy && 'All systems operational'}
               {isRecovering && 'Testing service recovery'}
               {isDegraded && 'Service temporarily unavailable'}
@@ -217,22 +229,22 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
         </div>
 
         {showDetails && (
-          <div style={styles.statsGrid}>
-            <div style={styles.statCard} title="Percentage of successful API calls out of total requests">
+          <div id="circuit-monitor-stats-grid" style={styles.statsGrid}>
+            <div id="circuit-monitor-stat-card-success-rate" style={styles.statCard} title="Percentage of successful API calls out of total requests">
               <div style={styles.statLabel}>Success Rate</div>
               <div style={styles.statValue}>{successRate}%</div>
             </div>
-            <div style={styles.statCard} title="Total number of API requests made through circuit breaker">
+            <div id="circuit-monitor-stat-card-total-requests" style={styles.statCard} title="Total number of API requests made through circuit breaker">
               <div style={styles.statLabel}>Total Requests</div>
               <div style={styles.statValue}>{stats.totalRequests}</div>
             </div>
-            <div style={styles.statCard} title="Number of failed requests that triggered circuit breaker logic">
+            <div id="circuit-monitor-stat-card-failures" style={styles.statCard} title="Number of failed requests that triggered circuit breaker logic">
               <div style={styles.statLabel}>Failures</div>
               <div style={styles.statValue(stats.failureCount > 0)}>
                 {stats.failureCount}
               </div>
             </div>
-            <div style={styles.statCard} title="Number of successful API calls completed">
+            <div id="circuit-monitor-stat-card-successes" style={styles.statCard} title="Number of successful API calls completed">
               <div style={styles.statLabel}>Successes</div>
               <div style={styles.statValue(false)}>
                 {stats.successCount}
@@ -242,13 +254,13 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
         )}
 
         {showFullStats && (
-          <div style={styles.detailsSection}>
-            <div style={styles.detailRow}>
+          <div id="circuit-monitor-details-section" style={styles.detailsSection}>
+            <div id="circuit-monitor-detail-circuit-state" style={styles.detailRow}>
               <span style={styles.detailLabel}>Circuit State:</span>
               <span style={styles.detailValue(isDegraded)}>{stats.state}</span>
             </div>
             {stats.lastFailureTime && (
-              <div style={styles.detailRow}>
+              <div id="circuit-monitor-detail-last-failure" style={styles.detailRow}>
                 <span style={styles.detailLabel}>Last Failure:</span>
                 <span style={styles.detailValue(false)}>
                   {new Date(stats.lastFailureTime).toLocaleString()}
@@ -256,7 +268,7 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
               </div>
             )}
             {stats.nextRetryTime && isDegraded && (
-              <div style={styles.detailRow}>
+              <div id="circuit-monitor-detail-next-retry" style={styles.detailRow}>
                 <span style={styles.detailLabel}>Next Retry:</span>
                 <span style={styles.detailValue(false)}>
                   {Math.max(0, Math.ceil((stats.nextRetryTime - Date.now()) / 1000))}s
@@ -267,7 +279,7 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
         )}
 
         {isDegraded && (
-          <div style={styles.actionSection}>
+          <div id="circuit-monitor-action-section" style={styles.actionSection}>
             <button 
               onClick={() => {
                 apiClient.resetCircuit();
@@ -283,7 +295,7 @@ const CircuitMonitor: React.FC<CircuitMonitorProps> = ({
       </div>
 
       {isDegraded && (
-        <div style={styles.warningBox}>
+        <div id="circuit-monitor-warning-box" style={styles.warningBox}>
           <strong>⚠️ Service Degraded</strong>
           <p style={{ margin: '8px 0 0', fontSize: '14px' }}>
             The circuit breaker has opened due to repeated failures. 
@@ -425,15 +437,7 @@ const styles = {
   compactStatus: (healthy: boolean, recovering: boolean, degraded: boolean) => ({
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    padding: '6px 12px',
-    borderRadius: '20px',
-    backgroundColor: healthy ? '#d4edda' : recovering ? '#fff3cd' : '#f8d7da',
-    border: `1px solid ${healthy ? '#28a745' : recovering ? '#ffc107' : '#dc3545'}`,
-    transition: 'all 0.2s ease',
-    ':hover': {
-      opacity: 0.9
-    }
+    justifyContent: 'center'
   }),
   statusDot: (healthy: boolean, recovering: boolean, degraded: boolean) => ({
     width: '8px',
