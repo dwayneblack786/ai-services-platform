@@ -271,13 +271,9 @@ export const styles: { [key: string]: CSSProperties } = {
     position: 'absolute',
     top: '15px',
     right: '15px',
-    padding: '6px 16px',
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    color: '#333',
-    borderRadius: '20px',
-    fontSize: '0.85rem',
-    fontWeight: '600',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    fontSize: '2.5rem',
+    filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6))',
+    lineHeight: '1',
   },
 
   productContent: {

@@ -13,6 +13,15 @@ const Home = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeTab, setActiveTab] = useState<string>('All');
 
+  // Generate stable ID from text
+  const generateStableId = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 50);
+  };
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -157,9 +166,9 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div style={styles.container}>
-        <div style={styles.loadingContainer}>
-          <div style={styles.spinner}></div>
+      <div id="home-container-loading" style={styles.container}>
+        <div id="loading-container" style={styles.loadingContainer}>
+          <div id="loading-spinner" style={styles.spinner}></div>
           <p>Loading amazing AI services...</p>
         </div>
       </div>
@@ -167,9 +176,9 @@ const Home = () => {
   }
 
   return (
-    <div style={styles.container}>
-      <section style={isMobile ? styles.heroMobile : styles.hero}>
-        <div style={styles.heroContent}>
+    <div id="home-container" style={styles.container}>
+      <section id="hero-section" style={isMobile ? styles.heroMobile : styles.hero}>
+        <div id="hero-content" style={styles.heroContent}>
           <h1 style={isMobile ? styles.heroTitleMobile : styles.heroTitle}>
             Transform Your Business with AI
           </h1>
@@ -185,19 +194,20 @@ const Home = () => {
             Explore All Products
           </button>
         </div>
-        <div style={styles.heroImage}>
-          <div style={styles.heroImagePlaceholder}>
+        <div id="hero-image" style={styles.heroImage}>
+          <div id="hero-image-placeholder" style={styles.heroImagePlaceholder}>
             <span style={styles.heroImageIcon}>🚀</span>
           </div>
         </div>
       </section>
 
-      <section style={styles.featuresSection}>
+      <section id="features-section" style={styles.featuresSection}>
         <h2 style={isMobile ? styles.sectionTitleMobile : styles.sectionTitle}>
           Why Choose Infero Agents?
         </h2>
-        <div style={isMobile ? styles.featuresGridMobile : styles.featuresGrid}>
-          <div 
+        <div id="features-grid" id="features-grid" style={isMobile ? styles.featuresGridMobile : styles.featuresGrid}>
+          <div
+            id="feature-card-fast"
             style={styles.featureCard}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-5px)';
@@ -208,13 +218,14 @@ const Home = () => {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <div style={styles.featureIcon}>⚡</div>
+            <div id="feature-icon-fast" style={styles.featureIcon}>⚡</div>
             <h3 style={styles.featureTitle}>Lightning Fast</h3>
             <p style={styles.featureDescription}>
               Deploy AI solutions in minutes, not months
             </p>
           </div>
-          <div 
+          <div
+            id="feature-card-security"
             style={styles.featureCard}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-5px)';
@@ -225,13 +236,14 @@ const Home = () => {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <div style={styles.featureIcon}>🔒</div>
+            <div id="feature-icon-security" style={styles.featureIcon}>🔒</div>
             <h3 style={styles.featureTitle}>Enterprise Security</h3>
             <p style={styles.featureDescription}>
               Bank-grade security with multi-tenant isolation
             </p>
           </div>
-          <div 
+          <div
+            id="feature-card-customizable"
             style={styles.featureCard}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-5px)';
@@ -242,13 +254,14 @@ const Home = () => {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <div style={styles.featureIcon}>🎯</div>
+            <div id="feature-icon-customizable" style={styles.featureIcon}>🎯</div>
             <h3 style={styles.featureTitle}>Customizable</h3>
             <p style={styles.featureDescription}>
               Tailor every aspect to fit your business needs
             </p>
           </div>
-          <div 
+          <div
+            id="feature-card-analytics"
             style={styles.featureCard}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-5px)';
@@ -259,7 +272,7 @@ const Home = () => {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <div style={styles.featureIcon}>📊</div>
+            <div id="feature-icon-analytics" style={styles.featureIcon}>📊</div>
             <h3 style={styles.featureTitle}>Analytics Built-in</h3>
             <p style={styles.featureDescription}>
               Real-time insights and comprehensive reporting
@@ -268,7 +281,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section style={styles.productsSection}>
+      <section id="products-section" style={styles.productsSection}>
         <h2 style={isMobile ? styles.sectionTitleMobile : styles.sectionTitle}>
           Our AI Solutions
         </h2>
@@ -277,7 +290,7 @@ const Home = () => {
         </p>
         
         {/* Tabs Navigation */}
-        <div style={{
+        <div id="product-tabs" style={{
           display: 'flex',
           justifyContent: 'center',
           gap: '10px',
@@ -320,14 +333,15 @@ const Home = () => {
           ))}
         </div>
 
-        <div style={isMobile ? styles.productsGridMobile : styles.productsGrid}>
+        <div id="products-grid" style={isMobile ? styles.productsGridMobile : styles.productsGrid}>
           {filteredProducts.map((product) => {
             const visuals = getProductVisuals(product);
             const isComingSoon = product.status !== 'active';
             
             return (
-            <div 
-              key={product._id} 
+            <div
+              key={product._id}
+              id={`product-card-${product._id}`}
               style={{
                 ...styles.productCard,
                 opacity: isComingSoon ? 0.85 : 1,
@@ -347,7 +361,7 @@ const Home = () => {
               }}
             >
               {isComingSoon && (
-                <div style={{
+                <div id={`coming-soon-badge-${product._id}`} style={{
                   position: 'absolute',
                   top: '15px',
                   left: '15px',
@@ -365,13 +379,13 @@ const Home = () => {
                   🚀 Coming Soon
                 </div>
               )}
-              <div style={{
+              <div id={`product-image-container-${product._id}`} style={{
                 ...styles.productImageContainer,
                 background: visuals.gradient,
                 filter: isComingSoon ? 'grayscale(30%)' : 'none'
               }}>
-                <div style={styles.productImage}>
-                  <div style={{
+                <div id={`product-image-${product._id}`} style={styles.productImage}>
+                  <div id={`product-icons-${product._id}`} style={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -389,27 +403,32 @@ const Home = () => {
                     </span>
                   </div>
                 </div>
-                <div style={styles.productCategoryBadge}>
-                  {product.category}
+                <div id={`category-badge-${product._id}`} style={styles.productCategoryBadge}>
+                  {product.category === 'Virtual Assistant' && '💬'}
+                  {product.category === 'IDP' && '📄'}
+                  {product.category === 'Computer Vision' && '👁️'}
                 </div>
               </div>
               
-              <div style={styles.productContent}>
+              <div id={`product-content-${product._id}`} style={styles.productContent}>
                 <h3 style={styles.productTitle}>{product.name}</h3>
                 <p style={styles.productDescription}>
                   {product.description.substring(0, 120)}...
                 </p>
                 
-                <div style={styles.productFeatures}>
-                  {product.features.slice(0, 3).map((feature, idx) => (
-                    <div key={idx} style={styles.productFeatureItem}>
-                      <span style={styles.checkIcon}>✓</span>
-                      <span>{feature.substring(0, 40)}{feature.length > 40 ? '...' : ''}</span>
-                    </div>
-                  ))}
+                <div id={`product-features-${product._id}`} style={styles.productFeatures}>
+                  {product.features.slice(0, 3).map((feature) => {
+                    const featureId = generateStableId(feature);
+                    return (
+                      <div key={featureId} id={`product-feature-${product._id}-${featureId}`} style={styles.productFeatureItem}>
+                        <span style={styles.checkIcon}>✓</span>
+                        <span>{feature.substring(0, 40)}{feature.length > 40 ? '...' : ''}</span>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div style={styles.productFooter}>
+                <div id={`product-footer-${product._id}`} style={styles.productFooter}>
                   <div style={styles.productPricing}>
                     {product.pricing.tiers && product.pricing.tiers.length > 0 ? (
                       <>
@@ -456,15 +475,15 @@ const Home = () => {
         </div>
       </section>
 
-      <section style={styles.ctaSection}>
-        <div style={styles.ctaContent}>
+      <section id="cta-section" style={styles.ctaSection}>
+        <div id="cta-content" style={styles.ctaContent}>
           <h2 style={isMobile ? styles.ctaTitleMobile : styles.ctaTitle}>
             Ready to Get Started?
           </h2>
           <p style={isMobile ? styles.ctaSubtitleMobile : styles.ctaSubtitle}>
             Join thousands of businesses already using our AI solutions
           </p>
-          <div style={styles.ctaButtons}>
+          <div id="cta-buttons" style={styles.ctaButtons}>
             <button
               onClick={() => navigate('/signup')}
               style={styles.ctaPrimaryButton}
