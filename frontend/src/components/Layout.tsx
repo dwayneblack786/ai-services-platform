@@ -93,37 +93,6 @@ const Layout = ({ children }: LayoutProps) => {
       
       <header style={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {isAuthenticated && (
-            <button
-              onClick={() => navigate('/home')}
-              style={{
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.3)',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: '600',
-                padding: '8px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '8px',
-                transition: 'all 0.3s ease',
-                minHeight: '40px',
-                color: 'white'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.25)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
-              }}
-              title="Go to Home"
-            >
-              ⌂ Home
-            </button>
-          )}
           <h1 
             style={{
               ...styles.companyName, 
