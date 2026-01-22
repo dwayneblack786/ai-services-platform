@@ -30,6 +30,8 @@ import subscriptionsRoutes from './routes/subscriptions-routes';
 import circuitRoutes from './routes/circuit-routes';
 import healthRoutes from './routes/health-routes';
 import agentRoutes from './routes/agent-routes';
+import analyticsRoutes from './routes/analytics-routes';
+import callLogsRoutes from './routes/call-logs-routes';
 import './config/passport';
 import logger from './utils/logger';
 import { correlationIdMiddleware, requestLoggerMiddleware, errorLoggerMiddleware } from './middleware/requestLogger';
@@ -195,6 +197,8 @@ app.use('/api/prompts', promptRoutes);
 app.use('/api/circuit', circuitRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/agent', agentRoutes); // Spring AI Agent routes
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/call-logs', callLogsRoutes);
 
 // Load OpenAPI specification
 const openapiPath = path.join(__dirname, '..', 'openapi.yaml');

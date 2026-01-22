@@ -158,15 +158,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAdmin = (): boolean => {
-    return user?.role === UserRole.ADMIN || user?.role === UserRole.PROJECT_ADMIN;
+    if (!user || !user.role) return false;
+    return user.role === UserRole.ADMIN || 
+           user.role === UserRole.PROJECT_ADMIN ||
+           user.role === 'ADMIN' ||
+           user.role === 'PROJECT_ADMIN';
   };
 
   const isProjectAdmin = (): boolean => {
-    return user?.role === UserRole.PROJECT_ADMIN;
+    if (!user || !user.role) return false;
+    return user.role === UserRole.PROJECT_ADMIN || user.role === 'PROJECT_ADMIN';
   };
 
   const isTenantAdmin = (): boolean => {
-    return user?.role === UserRole.ADMIN || user?.role === UserRole.PROJECT_ADMIN;
+    if (!user || !user.role) return false;
+    // Check both enum value and string value for robustness
+    return user.role === UserRole.ADMIN || 
+           user.role === UserRole.PROJECT_ADMIN ||
+           user.role === 'ADMIN' ||
+           user.role === 'PROJECT_ADMIN';
   };
 
   const refreshSubscriptions = async () => {

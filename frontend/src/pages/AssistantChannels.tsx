@@ -1,167 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../services/apiClient';
-import styled from '@emotion/styled';
+import { useAuth } from '../context/AuthContext';
+import {
+  PageContainer,
+  Header,
+  Title,
+  Subtitle,
+  ChannelGrid,
+  ChannelCard,
+  ChannelHeader,
+  ChannelTitle,
+  ToggleSwitch,
+  StatusBadge,
+  ConfigSection,
+  ConfigLabel,
+  ConfigValue,
+  Button,
+  SecondaryButton,
+  ButtonGroup,
+  ErrorMessage,
+} from '../styles/AssistantChannels.styles';
 
 interface AssistantChannelsProps {
   productId?: string;
   onNavigate?: (tab: string) => void;
 }
-
-const PageContainer = styled.div`
-  padding: 24px;
-  max-width: 1200px;
-`;
-
-const Header = styled.div`
-  margin-bottom: 32px;
-`;
-
-const Title = styled.h1`
-  font-size: 28px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 8px 0;
-`;
-
-const Subtitle = styled.p`
-  color: #666;
-  margin: 0;
-`;
-
-const ChannelGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-`;
-
-const ChannelCard = styled.div<{ enabled: boolean }>`
-  background: white;
-  border: 2px solid ${(props: { enabled: boolean }) => props.enabled ? '#10b981' : '#e5e7eb'};
-  border-radius: 12px;
-  padding: 24px;
-  transition: all 0.2s;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-`;
-
-const ChannelHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
-
-const ChannelTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0;
-`;
-
-const ToggleSwitch = styled.label`
-  position: relative;
-  display: inline-block;
-  width: 48px;
-  height: 24px;
-
-  input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  span {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.3s;
-    border-radius: 24px;
-
-    &:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-    }
-  }
-
-  input:checked + span {
-    background-color: #10b981;
-  }
-
-  input:checked + span:before {
-    transform: translateX(24px);
-  }
-`;
-
-const StatusBadge = styled.span<{ enabled: boolean }>`
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: ${(props: { enabled: boolean }) => props.enabled ? '#10b981' : '#6b7280'};
-  background: ${(props: { enabled: boolean }) => props.enabled ? '#d1fae5' : '#f3f4f6'};
-`;
-
-const ConfigSection = styled.div`
-  margin-top: 16px;
-`;
-
-const ConfigLabel = styled.div`
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 8px;
-`;
-
-const ConfigValue = styled.div`
-  font-size: 14px;
-  color: #6b7280;
-  margin-bottom: 12px;
-`;
-
-const Button = styled.button`
-  padding: 8px 16px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #2563eb;
-  }
-
-  &:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  padding: 12px 16px;
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  color: #991b1b;
-  margin-bottom: 24px;
-`;
 
 interface VoiceChannelConfig {
   enabled: boolean;
@@ -201,10 +65,22 @@ interface AssistantChannels {
 }
 
 const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavigate }) => {
+  const navigate = useNavigate();
+  const { isTenantAdmin, user } = useAuth();
   const [channels, setChannels] = useState<AssistantChannels | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
+
+  // Check if user has admin permissions
+  const canManageChannels = isTenantAdmin();
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('[AssistantChannels] User role:', user?.role);
+    console.log('[AssistantChannels] isTenantAdmin():', isTenantAdmin());
+    console.log('[AssistantChannels] canManageChannels:', canManageChannels);
+  }, [user, canManageChannels]);
 
   useEffect(() => {
     if (productId) {
@@ -234,6 +110,12 @@ const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavi
 
   const toggleChannel = async (channelType: string, currentState: boolean) => {
     if (!channels || !productId) return;
+
+    // Check permissions
+    if (!canManageChannels) {
+      setError('You do not have permission to manage channels. Only tenant admins and project admins can enable/disable channels.');
+      return;
+    }
 
     try {
       setUpdating(channelType);
@@ -267,27 +149,53 @@ const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavi
       <Header>
         <Title>Assistant Channels</Title>
         <Subtitle>Configure and manage communication channels for your AI assistant</Subtitle>
+        {!canManageChannels && (
+          <div style={{ 
+            marginTop: '12px', 
+            padding: '8px 12px', 
+            backgroundColor: '#fef3c7', 
+            border: '1px solid #fbbf24',
+            borderRadius: '6px',
+            fontSize: '14px',
+            color: '#92400e'
+          }}>
+            ⚠️ You have view-only access. Only tenant admins and project admins can enable/disable channels.
+          </div>
+        )}
       </Header>
 
       {error && <ErrorMessage>{error}</ErrorMessage>}
 
       <ChannelGrid>
         {/* Voice Channel */}
-        <ChannelCard enabled={channels.voice?.enabled || false}>
+        <ChannelCard 
+          enabled={channels.voice?.enabled || false}
+          title="Voice Channel - Enable phone-based AI assistant conversations"
+        >
           <ChannelHeader>
             <ChannelTitle>📞 Voice Channel</ChannelTitle>
-            <ToggleSwitch>
+            <ToggleSwitch title={
+              !canManageChannels ? 'Only tenant admins and project admins can enable/disable voice channel' :
+              channels.voice?.enabled ? 'Disable Voice Channel' : 'Enable Voice Channel'
+            }>
               <input
                 type="checkbox"
                 checked={channels.voice?.enabled || false}
                 onChange={() => toggleChannel('voice', channels.voice?.enabled || false)}
-                disabled={updating === 'voice'}
+                disabled={updating === 'voice' || !canManageChannels}
+                title={
+                  !canManageChannels ? 'You do not have permission to change this setting' :
+                  channels.voice?.enabled ? 'Click to disable voice channel' : 'Click to enable voice channel'
+                }
               />
               <span />
             </ToggleSwitch>
           </ChannelHeader>
 
-          <StatusBadge enabled={channels.voice?.enabled || false}>
+          <StatusBadge 
+            enabled={channels.voice?.enabled || false}
+            title={channels.voice?.enabled ? 'Voice channel is currently active' : 'Voice channel is currently inactive'}
+          >
             {channels.voice?.enabled ? 'Enabled' : 'Disabled'}
           </StatusBadge>
 
@@ -314,27 +222,51 @@ const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavi
             </ConfigSection>
           )}
 
-          <Button style={{ marginTop: '16px' }} onClick={() => onNavigate?.('prompt-config:voice')}>
-            Configure Voice
-          </Button>
+          <ButtonGroup>
+            <Button 
+              onClick={() => onNavigate?.('prompt-config:voice')}
+              title="Configure voice channel settings, prompts, and voice preferences"
+            >
+              Configure Voice Prompts
+            </Button>
+            <SecondaryButton 
+              onClick={() => navigate(`/voice-demo?productId=${productId}`)}
+              title="Try out the interactive voice demo with real-time speech-to-text and text-to-speech"
+            >
+              🎙️ Try Voice Demo
+            </SecondaryButton>
+          </ButtonGroup>
         </ChannelCard>
 
         {/* Chat Channel */}
-        <ChannelCard enabled={channels.chat?.enabled || false}>
+        <ChannelCard 
+          enabled={channels.chat?.enabled || false}
+          title="Chat Channel - Enable text-based AI assistant conversations"
+        >
           <ChannelHeader>
             <ChannelTitle>💬 Chat Channel</ChannelTitle>
-            <ToggleSwitch>
+            <ToggleSwitch title={
+              !canManageChannels ? 'Only tenant admins and project admins can enable/disable chat channel' :
+              channels.chat?.enabled ? 'Disable Chat Channel' : 'Enable Chat Channel'
+            }>
               <input
                 type="checkbox"
                 checked={channels.chat?.enabled || false}
                 onChange={() => toggleChannel('chat', channels.chat?.enabled || false)}
-                disabled={updating === 'chat'}
+                disabled={updating === 'chat' || !canManageChannels}
+                title={
+                  !canManageChannels ? 'You do not have permission to change this setting' :
+                  channels.chat?.enabled ? 'Click to disable chat channel' : 'Click to enable chat channel'
+                }
               />
               <span />
             </ToggleSwitch>
           </ChannelHeader>
 
-          <StatusBadge enabled={channels.chat?.enabled || false}>
+          <StatusBadge 
+            enabled={channels.chat?.enabled || false}
+            title={channels.chat?.enabled ? 'Chat channel is currently active' : 'Chat channel is currently inactive'}
+          >
             {channels.chat?.enabled ? 'Enabled' : 'Disabled'}
           </StatusBadge>
 
@@ -354,26 +286,34 @@ const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavi
             </ConfigSection>
           )}
 
-          <Button style={{ marginTop: '16px' }} onClick={() => onNavigate?.('prompt-config:chat')}>
-            Configure Chat
+          <Button 
+            style={{ marginTop: '16px' }} 
+            onClick={() => onNavigate?.('prompt-config:chat')}
+            title="Configure chat channel settings, greetings, and behavior"
+          >
+            Configure Chat Prompts
           </Button>
         </ChannelCard>
 
         {/* SMS Channel */}
-        <ChannelCard enabled={channels.sms?.enabled || false}>
+        <ChannelCard 
+          enabled={channels.sms?.enabled || false}
+          title="SMS Channel - Coming soon: Enable SMS-based conversations"
+        >
           <ChannelHeader>
             <ChannelTitle>📱 SMS Channel</ChannelTitle>
-            <ToggleSwitch>
+            <ToggleSwitch title="SMS Channel - Coming Soon">
               <input
                 type="checkbox"
                 checked={channels.sms?.enabled || false}
                 disabled
+                title="SMS channel is not yet available"
               />
               <span />
             </ToggleSwitch>
           </ChannelHeader>
 
-          <StatusBadge enabled={false}>Coming Soon</StatusBadge>
+          <StatusBadge enabled={false} title="This feature is in development and will be available soon">Coming Soon</StatusBadge>
           
           <ConfigSection>
             <ConfigValue style={{ color: '#9ca3af' }}>
@@ -383,20 +323,24 @@ const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavi
         </ChannelCard>
 
         {/* WhatsApp Channel */}
-        <ChannelCard enabled={channels.whatsapp?.enabled || false}>
+        <ChannelCard 
+          enabled={channels.whatsapp?.enabled || false}
+          title="WhatsApp Channel - Coming soon: Enable WhatsApp Business integration"
+        >
           <ChannelHeader>
             <ChannelTitle>💚 WhatsApp Channel</ChannelTitle>
-            <ToggleSwitch>
+            <ToggleSwitch title="WhatsApp Channel - Coming Soon">
               <input
                 type="checkbox"
                 checked={channels.whatsapp?.enabled || false}
                 disabled
+                title="WhatsApp channel is not yet available"
               />
               <span />
             </ToggleSwitch>
           </ChannelHeader>
 
-          <StatusBadge enabled={false}>Coming Soon</StatusBadge>
+          <StatusBadge enabled={false} title="This feature is in development and will be available soon">Coming Soon</StatusBadge>
 
           <ConfigSection>
             <ConfigValue style={{ color: '#9ca3af' }}>

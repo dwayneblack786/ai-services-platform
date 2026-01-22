@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../services/apiClient';
 import { useSocket } from '../hooks/useSocket';
+import VoiceVisualizer from './VoiceVisualizer';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -50,9 +51,13 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
   const [suggestedAction, setSuggestedAction] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [currentTranscription, setCurrentTranscription] = useState(''); // Real-time transcription during recording
+  const [voiceStatus, setVoiceStatus] = useState<'idle' | 'listening' | 'processing' | 'speaking'>('idle');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioPlayerRef = useRef<HTMLAudioElement>(null);
   
   // Socket.IO connection
   const { socket, isConnected } = useSocket({
@@ -397,6 +402,8 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
   // Voice streaming functions
   const startVoiceRecording = async () => {
     try {
+      setVoiceStatus('listening');
+      
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -439,6 +446,7 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       // Handle recording stop
       mediaRecorder.onstop = () => {
         console.log('[Voice] Recording stopped');
+        setVoiceStatus('processing');
         if (socket && sessionId) {
           socket.emit('voice:end', { sessionId });
         }
@@ -447,10 +455,24 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       // Start recording with 100ms chunks for real-time streaming
       mediaRecorder.start(100);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('[Voice] Error accessing microphone:', error);
-      setError('Could not access microphone. Please check permissions.');
+      
+      // User-friendly error messages
+      let errorMsg = 'Could not access microphone. ';
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        errorMsg += 'Please grant microphone permission in your browser settings.';
+      } else if (error.name === 'NotFoundError') {
+        errorMsg += 'No microphone found. Please connect a microphone and try again.';
+      } else if (error.name === 'NotReadableError') {
+        errorMsg += 'Microphone is being used by another application.';
+      } else {
+        errorMsg += error.message || 'Unknown error occurred.';
+      }
+      
+      setError(errorMsg);
       setIsRecording(false);
+      setVoiceStatus('idle');
     }
   };
 
@@ -465,7 +487,9 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
     }
 
     setIsRecording(false);
+    setCurrentTranscription('');
     console.log('[Voice] Recording stopped and cleaned up');
+    // Voice status will be updated by transcription events
   };
 
   const toggleVoiceRecording = () => {
@@ -479,21 +503,91 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
   // Listen for voice transcription from server
   useEffect(() => {
     if (socket) {
-      socket.on('voice:transcription', (data: { text: string }) => {
-        console.log('[Voice] Received transcription:', data.text);
-        // Update the input field with the transcribed text
-        setInputMessage(prev => prev + (prev ? ' ' : '') + data.text);
+      socket.on('voice:transcription', (data: { text: string; isFinal?: boolean }) => {
+        console.log('[Voice] Received transcription:', data.text, 'Final:', data.isFinal);
+        
+        if (data.isFinal) {
+          // Final transcription - add to input field
+          setInputMessage(prev => prev + (prev ? ' ' : '') + data.text);
+          setCurrentTranscription(''); // Clear real-time display
+          setVoiceStatus('idle');
+        } else {
+          // Interim transcription - show in real-time
+          setCurrentTranscription(data.text);
+          setVoiceStatus('processing');
+        }
       });
 
       socket.on('voice:error', (data: { error: string }) => {
         console.error('[Voice] Server error:', data.error);
         setError(`Voice streaming error: ${data.error}`);
+        setVoiceStatus('idle');
         stopVoiceRecording();
+      });
+
+      // Listen for TTS audio responses
+      socket.on('voice:audio-response', (data: { 
+        audioData: string; // Base64 encoded audio
+        text?: string; 
+        format?: string;
+        voiceName?: string;
+      }) => {
+        console.log('[Voice] Received TTS audio:', {
+          format: data.format,
+          voice: data.voiceName,
+          textLength: data.text?.length,
+          audioSize: data.audioData?.length
+        });
+
+        try {
+          // Decode base64 to binary
+          const binaryString = atob(data.audioData);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+
+          // Create blob from binary data
+          const mimeType = data.format === 'mp3' ? 'audio/mpeg' : 
+                          data.format === 'wav' ? 'audio/wav' : 
+                          data.format === 'ogg' ? 'audio/ogg' : 'audio/mpeg';
+          const blob = new Blob([bytes], { type: mimeType });
+          const audioUrl = URL.createObjectURL(blob);
+
+          // Play audio
+          if (audioPlayerRef.current) {
+            audioPlayerRef.current.src = audioUrl;
+            audioPlayerRef.current.play()
+              .then(() => {
+                console.log('[Voice] TTS audio playback started');
+                setIsPlayingAudio(true);
+                setVoiceStatus('speaking');
+              })
+              .catch(err => {
+                console.error('[Voice] Audio playback error:', err);
+                setError('Failed to play audio response');
+                setVoiceStatus('idle');
+              });
+          }
+
+          // Display text message if provided
+          if (data.text) {
+            setMessages(prev => [...prev, normalizeMessage({
+              role: 'assistant',
+              content: data.text
+            })]);
+          }
+        } catch (err) {
+          console.error('[Voice] Error processing TTS audio:', err);
+          setError('Failed to process audio response');
+          setVoiceStatus('idle');
+        }
       });
 
       return () => {
         socket.off('voice:transcription');
         socket.off('voice:error');
+        socket.off('voice:audio-response');
       };
     }
   }, [socket]);
@@ -546,13 +640,16 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         <div>
           <div>AI Assistant Chat</div>
           {sessionId && (
-            <span style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px', display: 'block' }}>
+            <span 
+              title={`Full Session ID: ${sessionId}`}
+              style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px', display: 'block', cursor: 'help' }}
+            >
               Session: {sessionId.substring(0, 8)}... 
               {useWebSocket && (
                 <span style={{ marginLeft: '8px' }}>
-                  {isConnected && '🟢 Connected'}
-                  {!isConnected && connectionStatus === 'connecting' && '🟡 Connecting...'}
-                  {!isConnected && connectionStatus === 'disconnected' && '🔴 Disconnected'}
+                  {isConnected && <span title="WebSocket connection is active">🟢 Connected</span>}
+                  {!isConnected && connectionStatus === 'connecting' && <span title="Attempting to establish WebSocket connection">🟡 Connecting...</span>}
+                  {!isConnected && connectionStatus === 'disconnected' && <span title="WebSocket connection is not available. Using REST API fallback.">🔴 Disconnected</span>}
                 </span>
               )}
             </span>
@@ -599,6 +696,7 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
               setRequiresAction(false);
               setSuggestedAction(null);
             }}
+            title="Dismiss this notification"
             style={{
               padding: '6px 12px',
               backgroundColor: '#3b82f6',
@@ -761,6 +859,118 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         </div>
       )}
 
+      {/* Real-time Transcription Display */}
+      {currentTranscription && (
+        <div style={{
+          padding: '8px 16px',
+          backgroundColor: '#dbeafe',
+          borderTop: '1px solid #93c5fd',
+          color: '#1e40af',
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontStyle: 'italic'
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          </svg>
+          <span>{currentTranscription}</span>
+        </div>
+      )}
+
+      {/* Voice Status Indicator */}
+      {voiceStatus !== 'idle' && (
+        <div style={{
+          padding: '12px 16px',
+          backgroundColor: 
+            voiceStatus === 'listening' ? '#dbeafe' :
+            voiceStatus === 'processing' ? '#fef3c7' :
+            voiceStatus === 'speaking' ? '#d1fae5' : '#f3f4f6',
+          borderTop: '1px solid #e5e7eb',
+          color: 
+            voiceStatus === 'listening' ? '#1e40af' :
+            voiceStatus === 'processing' ? '#92400e' :
+            voiceStatus === 'speaking' ? '#065f46' : '#6b7280',
+          fontSize: '13px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            {voiceStatus === 'listening' && (
+              <>
+                <span style={{ fontSize: '20px' }}>🎤</span>
+                <span style={{ fontWeight: '500', flex: 1 }}>Listening...</span>
+                <span style={{ fontSize: '12px', opacity: 0.7 }}>
+                  Click the microphone to stop
+                </span>
+              </>
+            )}
+            {voiceStatus === 'processing' && (
+              <>
+                <span style={{ fontSize: '20px' }}>⚙️</span>
+                <span style={{ fontWeight: '500' }}>Processing speech...</span>
+              </>
+            )}
+            {voiceStatus === 'speaking' && (
+              <>
+                <span style={{ fontSize: '20px' }}>🔊</span>
+                <span style={{ fontWeight: '500', flex: 1 }}>Assistant is speaking...</span>
+                <button
+                  onClick={() => {
+                    if (audioPlayerRef.current) {
+                      audioPlayerRef.current.pause();
+                      audioPlayerRef.current.currentTime = 0;
+                      setIsPlayingAudio(false);
+                      setVoiceStatus('idle');
+                    }
+                  }}
+                  style={{
+                    padding: '6px 16px',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Stop
+                </button>
+              </>
+            )}
+          </div>
+          {/* Voice Visualizer */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <VoiceVisualizer
+              audioStream={audioStream}
+              isRecording={isRecording && voiceStatus === 'listening'}
+              isPlaying={isPlayingAudio && voiceStatus === 'speaking'}
+              width={300}
+              height={50}
+              barCount={24}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Hidden Audio Player for TTS */}
+      <audio
+        ref={audioPlayerRef}
+        onEnded={() => {
+          console.log('[Voice] TTS audio playback ended');
+          setIsPlayingAudio(false);
+          setVoiceStatus('idle');
+        }}
+        onError={(e) => {
+          console.error('[Voice] Audio playback error:', e);
+          setError('Audio playback failed');
+          setIsPlayingAudio(false);
+          setVoiceStatus('idle');
+        }}
+        style={{ display: 'none' }}
+      />
+
       {/* Input */}
       <div style={{
         padding: '16px',
@@ -774,6 +984,7 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Type your message... (Ctrl+Enter to send)"
+            title="Type your message here. Press Ctrl+Enter to send or Enter for new line."
             disabled={!sessionId || isLoading}
             rows={3}
             style={{
@@ -824,6 +1035,13 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
           <button
             onClick={sendMessage}
             disabled={!sessionId || isLoading || !inputMessage.trim()}
+            title={
+              !sessionId ? 'Chat session not initialized' :
+              isLoading ? 'Processing your previous message...' :
+              !inputMessage.trim() ? 'Type a message first' :
+              requiresAction && suggestedAction === 'transfer_to_human' ? 'Transfer to human agent is pending' :
+              'Send your message (Ctrl+Enter)'
+            }
             style={{
               padding: '12px 24px',
               backgroundColor: requiresAction && suggestedAction === 'transfer_to_human' ? '#6b7280' : '#4f46e5',
