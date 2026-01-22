@@ -10,6 +10,7 @@ public class RagSource {
     private String type; // website, api, documentation
     private String description;
     private Integer refreshInterval; // in hours
+    private Boolean enabled; // whether this source is active
 
     public RagSource() {
     }
@@ -17,6 +18,7 @@ public class RagSource {
     public RagSource(String url, String type) {
         this.url = url;
         this.type = type;
+        this.enabled = true; // default to enabled
     }
 
     // Getters and Setters
@@ -53,12 +55,21 @@ public class RagSource {
         this.refreshInterval = refreshInterval;
     }
 
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
     @Override
     public String toString() {
         return "RagSource{" +
                 "url='" + url + '\'' +
                 ", type='" + type + '\'' +
                 ", description='" + description + '\'' +
+                ", enabled=" + enabled +
                 '}';
     }
 }
