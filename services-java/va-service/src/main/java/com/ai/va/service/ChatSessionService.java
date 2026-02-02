@@ -394,6 +394,78 @@ public class ChatSessionService {
 	}
 
 	/**
+	 * Generate initial greeting using LLM with tenant configuration
+	 * Reusable by both Chat and Voice channels
+	 * 
+	 * @param session Session state with configuration loaded
+	 * @param channelConfig Channel-specific configuration (chat or voice)
+	 * @param sessionId Session ID for logging
+	 * @return Generated greeting text
+	 */
+	public String generateInitialGreeting(SessionState session, ChannelConfiguration channelConfig, String sessionId) {
+		String greetingMessage = "Hello! How can I assist you today?"; // Default
+
+		// Extract and set industry/context from prompt context
+		if (channelConfig.getPromptContext() != null) {
+			PromptContext context = channelConfig.getPromptContext();
+			if (context.getTenantIndustry() != null) {
+				session.setCustomerIndustry(context.getTenantIndustry());
+			}
+			if (context.getBusinessContext() != null) {
+				session.setBusinessContext(context.getBusinessContext());
+			}
+		}
+
+		// Build system prompt from configuration
+		String systemPrompt = buildSystemPrompt(channelConfig);
+		String greetingPrompt = "Generate a brief, friendly greeting message for this session. Keep it concise and welcoming.";
+
+		logger.debug("============================================================");
+		logger.debug(systemPrompt);
+
+		try {
+			logger.info("[Session] Initializing LLM with system prompt...");
+			logger.debug("[Session] System prompt length: {} characters", systemPrompt.length());
+			logger.debug("[Session] Generating greeting message...");
+
+			// Generate greeting using LLM with the system prompt
+			String llmResponse = llmClient.getChatCompletion(
+					systemPrompt,
+					greetingPrompt,
+					0.7
+					);
+
+			logger.info("[Session] LLM initialized successfully for session: {}", sessionId);
+			logger.debug("[Session] LLM greeting response: {}", llmResponse);
+
+			// Use LLM response as greeting message
+			if (llmResponse != null && !llmResponse.isEmpty()) {
+				greetingMessage = llmResponse;
+				logger.info("[Session] Using LLM-generated greeting");
+			} else if (channelConfig.getGreeting() != null && !channelConfig.getGreeting().isEmpty()) {
+				greetingMessage = channelConfig.getGreeting();
+				logger.info("[Session] Using config greeting as fallback");
+			}
+
+		} catch (Exception llmError) {
+			logger.error("[Session] ============================================");
+			logger.error("[Session] ERROR: LLM greeting generation failed!");
+			logger.error("[Session] Error type: {}", llmError.getClass().getName());
+			logger.error("[Session] Error message: {}", llmError.getMessage());
+			logger.error("[Session] ============================================", llmError);
+			logger.warn("[Session] Using configured greeting as fallback");
+
+			// Use configured greeting as fallback
+			if (channelConfig.getGreeting() != null && !channelConfig.getGreeting().isEmpty()) {
+				greetingMessage = channelConfig.getGreeting();
+			}
+		}
+
+		logger.debug("[Session] Final Greeting: {}", greetingMessage);
+		return greetingMessage;
+	}
+
+	/**
 	 * Initialize session with configuration and generate consistent greeting using LLM
 	 * This method ensures the greeting is always generated using the same system prompt
 	 * whether starting a new session or resuming an existing one
@@ -408,61 +480,8 @@ public class ChatSessionService {
 
 		session.setChannelConfiguration(chatConfig);
 
-		// Extract and set industry/context from prompt context
-		if (chatConfig.getPromptContext() != null) {
-			PromptContext context = chatConfig.getPromptContext();
-			if (context.getTenantIndustry() != null) {
-				session.setCustomerIndustry(context.getTenantIndustry());
-			}
-			if (context.getBusinessContext() != null) {
-				session.setBusinessContext(context.getBusinessContext());
-			}
-		}
-
-		// Build system prompt from configuration
-		String systemPrompt = buildSystemPrompt(chatConfig);
-		String greetingPrompt = "Generate a brief, friendly greeting message for this chat session. Keep it concise and welcoming.";
-
-		logger.debug("============================================================");
-		logger.debug(systemPrompt);
-
-		try {
-			logger.info("[ChatSession] Initializing LLM with system prompt...");
-			logger.debug("[ChatSession] System prompt length: {} characters", systemPrompt.length());
-			logger.debug("[ChatSession] Generating greeting message...");
-
-			// Generate greeting using LLM with the system prompt
-			String llmResponse = llmClient.getChatCompletion(
-					systemPrompt,
-					greetingPrompt,
-					0.7
-					);
-
-			logger.info("[ChatSession] LLM initialized successfully for session: {}", sessionId);
-			logger.debug("[ChatSession] LLM greeting response: {}", llmResponse);
-
-			// Use LLM response as greeting message
-			if (llmResponse != null && !llmResponse.isEmpty()) {
-				greetingMessage = llmResponse;
-				logger.info("[ChatSession] Using LLM-generated greeting");
-			} else if (chatConfig.getGreeting() != null && !chatConfig.getGreeting().isEmpty()) {
-				greetingMessage = chatConfig.getGreeting();
-				logger.info("[ChatSession] Using config greeting as fallback");
-			}
-
-		} catch (Exception llmError) {
-			logger.error("[ChatSession] ============================================");
-			logger.error("[ChatSession] ERROR: LLM greeting generation failed!");
-			logger.error("[ChatSession] Error type: {}", llmError.getClass().getName());
-			logger.error("[ChatSession] Error message: {}", llmError.getMessage());
-			logger.error("[ChatSession] ============================================", llmError);
-			logger.warn("[ChatSession] Using configured greeting as fallback");
-
-			// Use configured greeting as fallback
-			if (chatConfig.getGreeting() != null && !chatConfig.getGreeting().isEmpty()) {
-				greetingMessage = chatConfig.getGreeting();
-			}
-		}
+		// Generate greeting using shared logic
+		greetingMessage = generateInitialGreeting(session, chatConfig, sessionId);
 
 		logger.info("Configuration loaded for session: {}", sessionId);
 		logger.debug("  - Has Custom Prompts: {}", (chatConfig.getCustomPrompts() != null));

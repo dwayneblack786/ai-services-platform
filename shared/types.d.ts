@@ -17,7 +17,13 @@ export interface User {
     emailVerificationTokenExpires?: Date;
     companyDetailsCompleted: boolean;
     passwordHash?: string;
-    authProvider?: 'google' | 'local';
+    authProvider?: 'local' | 'keycloak';
+    idpSub?: string;
+    idpIssuer?: string;
+    keycloakSub?: string;
+    firstName?: string;
+    lastName?: string;
+    isActive?: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -25,4 +31,3 @@ export interface AuthResponse {
     authenticated: boolean;
     user?: User;
 }
-//# sourceMappingURL=types.d.ts.map

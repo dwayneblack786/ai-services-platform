@@ -1,6 +1,6 @@
 # Start Whisper Server
 # Run this script to start the Whisper STT server on port 8000
-
+python -V
 Write-Host "Starting Whisper STT Server..." -ForegroundColor Cyan
 
 $whisperPath = "C:\Users\Owner\Documents\ai-services-platform\services-python\whisper-server"
@@ -19,10 +19,10 @@ Set-Location $whisperPath
 
 # Check if dependencies are installed
 Write-Host "Checking dependencies..." -ForegroundColor Yellow
-$pipList = pip list
+$pipList = python -m pip list
 if ($pipList -notmatch "openai-whisper") {
     Write-Host "Installing dependencies (this may take 10-15 minutes)..." -ForegroundColor Yellow
-    pip install -r requirements.txt
+    python -m pip install -r requirements.txt
     Write-Host "Dependencies installed." -ForegroundColor Green
 }
 

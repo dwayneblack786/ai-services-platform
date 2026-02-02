@@ -93,51 +93,52 @@ ai-services-platform/
 ├── .github/
 │   └── copilot-instructions.md
 │
-├── frontend/                           # React + Vite + TypeScript
-│   ├── docs/                           # Frontend documentation
-│   │   ├── README.md
-│   │   └── VOICE-STREAMING-CHECKLIST.md
-│   ├── src/
-│   │   ├── components/                 # React components
-│   │   ├── config/                     # Configuration files
-│   │   ├── context/                    # React Context (Auth, etc.)
-│   │   ├── hooks/                      # Custom React hooks
-│   │   ├── pages/                      # Page components
-│   │   ├── services/                   # API clients
-│   │   ├── styles/                     # Emotion CSS-in-JS styles
-│   │   ├── types/                      # TypeScript types
-│   │   ├── utils/                      # Utility functions
-│   │   ├── App.tsx
-│   │   ├── index.css
-│   │   ├── main.tsx
-│   │   └── vite-env.d.ts
-│   ├── index.html
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── tsconfig.node.json
-│   └── vite.config.ts
-│
-├── backend-node/                       # Node.js + Express + TypeScript
-│   ├── src/
-│   │   ├── config/                     # Database, Passport, Redis config
-│   │   ├── grpc/                       # gRPC client implementations
-│   │   ├── middleware/                 # Auth & RBAC middleware
-│   │   ├── models/                     # MongoDB/Mongoose models
-│   │   ├── routes/                     # Express API routes
-│   │   ├── scripts/                    # Database scripts
-│   │   ├── services/                   # Business logic & external APIs
-│   │   ├── sockets/                    # Socket.IO/WebSocket handlers
-│   │   ├── types/                      # TypeScript type definitions
-│   │   ├── utils/                      # Utilities (logger, etc.)
-│   │   └── index.ts                    # Express app entry point
-│   ├── docs/                           # Backend-specific docs
-│   ├── proto/                          # Protocol Buffer definitions
-│   ├── scripts/                        # Utility scripts
-│   ├── tests/                          # Test files
-│   ├── openapi.yaml                    # OpenAPI 3.0.3 specification
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── jest.config.js
+├── product-management/                 # Core Product Services
+│   ├── frontend/                       # React + Vite + TypeScript
+│   │   ├── docs/                       # Frontend documentation
+│   │   │   ├── README.md
+│   │   │   └── VOICE-STREAMING-CHECKLIST.md
+│   │   ├── src/
+│   │   │   ├── components/             # React components
+│   │   │   ├── config/                 # Configuration files
+│   │   │   ├── context/                # React Context (Auth, etc.)
+│   │   │   ├── hooks/                  # Custom React hooks
+│   │   │   ├── pages/                  # Page components
+│   │   │   ├── services/               # API clients
+│   │   │   ├── styles/                 # Emotion CSS-in-JS styles
+│   │   │   ├── types/                  # TypeScript types
+│   │   │   ├── utils/                  # Utility functions
+│   │   │   ├── App.tsx
+│   │   │   ├── index.css
+│   │   │   ├── main.tsx
+│   │   │   └── vite-env.d.ts
+│   │   ├── index.html
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   ├── tsconfig.node.json
+│   │   └── vite.config.ts
+│   │
+│   └── backend-node/                   # Node.js + Express + TypeScript
+│       ├── src/
+│       │   ├── config/                 # Database, Passport, Redis config
+│       │   ├── grpc/                   # gRPC client implementations
+│       │   ├── middleware/             # Auth & RBAC middleware
+│       │   ├── models/                 # MongoDB/Mongoose models
+│       │   ├── routes/                 # Express API routes
+│       │   ├── scripts/                # Database scripts
+│       │   ├── services/               # Business logic & external APIs
+│       │   ├── sockets/                # Socket.IO/WebSocket handlers
+│       │   ├── types/                  # TypeScript type definitions
+│       │   ├── utils/                  # Utilities (logger, etc.)
+│       │   └── index.ts                # Express app entry point
+│       ├── docs/                       # Backend-specific docs
+│       ├── proto/                      # Protocol Buffer definitions
+│       ├── scripts/                    # Utility scripts
+│       ├── tests/                      # Test files
+│       ├── openapi.yaml                # OpenAPI 3.0.3 specification
+│       ├── package.json
+│       ├── tsconfig.json
+│       ├── jest.config.js
 │   ├── nodemon.json
 │   ├── CIRCUIT_BREAKER_IMPLEMENTATION.md
 │   ├── IMPLEMENTATION_SUMMARY.md
@@ -288,8 +289,9 @@ ai-services-platform/
 
 **Key Directories:**
 
-- **frontend/** - React 18 + Vite + TypeScript + Emotion CSS-in-JS + Socket.IO client
-- **backend-node/** - Node.js + Express + TypeScript + Passport OAuth2 + MongoDB + Redis + Socket.IO + gRPC clients
+- **product-management/** - Core product services (frontend + backend-node)
+  - **frontend/** - React 18 + Vite + TypeScript + Emotion CSS-in-JS + Socket.IO client
+  - **backend-node/** - Node.js + Express + TypeScript + Passport OAuth2 + MongoDB + Redis + Socket.IO + gRPC clients
 - **services-java/** - Spring Boot microservices (VA, IDP, CV) with gRPC servers, Protocol Buffers, Log4j2
 - **services-python/** - Python ML/AI services (future implementation)
 - **shared/** - TypeScript types shared between frontend and backend
@@ -465,7 +467,7 @@ For detailed startup instructions and troubleshooting, see [Service Startup](doc
 
 **Terminal 1 - Backend:**
 ```bash
-cd backend-node
+cd product-management/backend-node
 npm run dev
 # Runs on http://localhost:5000
 # API Docs: http://localhost:5000/api-docs
@@ -473,7 +475,7 @@ npm run dev
 
 **Terminal 2 - Frontend:**
 ```bash
-cd frontend
+cd product-management/frontend
 npm run dev
 # Runs on http://localhost:5173
 ```
@@ -528,7 +530,7 @@ For a complete list of all API endpoints with detailed request/response schemas,
 
 📖 **[Interactive API Documentation (Swagger UI)](http://localhost:5000/api-docs)** - Available when backend is running
 
-📄 **[OpenAPI Specification](backend-node/openapi.yaml)** - Complete API specification (OpenAPI 3.0.3)
+📄 **[OpenAPI Specification](product-management/backend-node/openapi.yaml)** - Complete API specification (OpenAPI 3.0.3)
 
 The interactive documentation includes:
 - All available endpoints organized by category
@@ -1103,7 +1105,7 @@ If issues arise, rollback is simple:
   - Send verification emails on registration
   - Token-based verification links
   - Resend verification email option
-  - Related: Email templates in `backend-node/emails/`
+  - Related: Email templates in `product-management/backend-node/emails/`
 
 - [ ] **Password Reset** - Add forgot password flow for local authentication
   - Reset token generation and expiration
@@ -1164,7 +1166,7 @@ If issues arise, rollback is simple:
   - Per-endpoint circuit breakers
   - Adaptive timeout configuration
   - Bulkhead pattern for resource isolation
-  - Related: [Circuit Breaker Implementation](backend-node/CIRCUIT_BREAKER_IMPLEMENTATION.md), [External APIs](docs/EXTERNAL_APIS.md)
+  - Related: [Circuit Breaker Implementation](product-management/backend-node/CIRCUIT_BREAKER_IMPLEMENTATION.md), [External APIs](docs/EXTERNAL_APIS.md)
 
 - [ ] **WebHook System** - Implement outbound webhook support
   - Event-based notifications
@@ -1175,7 +1177,7 @@ If issues arise, rollback is simple:
 ### ✅ Already Implemented
 
 - ✅ **Subscription and Billing** - Payment methods, transactions, and subscription management
-  - Related: [Payment System](docs/PAYMENT_SYSTEM.md), [Payment Testing](backend-node/PAYMENT_TESTING.md)
+  - Related: [Payment System](docs/PAYMENT_SYSTEM.md), [Payment Testing](product-management/backend-node/PAYMENT_TESTING.md)
   
 - ✅ **WebSocket Support** - Real-time features with Socket.IO
   - Related: [WebSocket Implementation](docs/WEBSOCKET_IMPLEMENTATION.md), [WebSocket Quick Start](docs/WEBSOCKET_QUICK_START.md)
@@ -1239,17 +1241,17 @@ If issues arise, rollback is simple:
 - [Channels Architecture Diagram](docs/CHANNELS_ARCHITECTURE_DIAGRAM.md) - Communication channels architecture
 
 #### Backend (Node.js)
-- [Backend README](backend-node/README.md) - Backend service documentation
-- [Implementation Summary](backend-node/IMPLEMENTATION_SUMMARY.md) - Key implementation details
-- [Prompt Architecture](backend-node/PROMPT_ARCHITECTURE.md) - AI prompt system design
-- [MongoDB Prompt Schema](backend-node/MONGODB_PROMPT_SCHEMA.md) - Database schema for prompts
-- [Payment Testing](backend-node/PAYMENT_TESTING.md) - Payment system testing guide
-- [Workflow Test](backend-node/WORKFLOW_TEST.md) - End-to-end workflow testing
-- [Seed Success Report](backend-node/SEED_SUCCESS_REPORT.md) - Database seeding documentation
-- [OpenAPI Specification](backend-node/openapi.yaml) - REST API documentation
+- [Backend README](product-management/backend-node/README.md) - Backend service documentation
+- [Implementation Summary](product-management/backend-node/IMPLEMENTATION_SUMMARY.md) - Key implementation details
+- [Prompt Architecture](product-management/backend-node/PROMPT_ARCHITECTURE.md) - AI prompt system design
+- [MongoDB Prompt Schema](product-management/backend-node/MONGODB_PROMPT_SCHEMA.md) - Database schema for prompts
+- [Payment Testing](product-management/backend-node/PAYMENT_TESTING.md) - Payment system testing guide
+- [Workflow Test](product-management/backend-node/WORKFLOW_TEST.md) - End-to-end workflow testing
+- [Seed Success Report](product-management/backend-node/SEED_SUCCESS_REPORT.md) - Database seeding documentation
+- [OpenAPI Specification](product-management/backend-node/openapi.yaml) - REST API documentation
 
 ##### Backend Scripts
-- [MongoDB Scripts README](backend-node/scripts/mongo/README.md) - MongoDB utility scripts
+- [MongoDB Scripts README](product-management/backend-node/scripts/mongo/README.md) - MongoDB utility scripts
 - [Consolidation Summary](backend-node/scripts/mongo/CONSOLIDATION_SUMMARY.md) - Data consolidation report
 
 #### Frontend

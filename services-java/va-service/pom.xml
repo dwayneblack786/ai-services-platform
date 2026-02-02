@@ -203,6 +203,11 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<fork>true</fork>
+					<addResources>true</addResources>
+					<useTestClasspath>false</useTestClasspath>
+				</configuration>
 			</plugin>
 			
 			<!-- Enforce protobuf/gRPC version compatibility -->
@@ -270,6 +275,8 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>protobuf-compile</id>
+						<phase>generate-sources</phase>
 						<goals>
 							<goal>compile</goal>
 							<goal>compile-custom</goal>

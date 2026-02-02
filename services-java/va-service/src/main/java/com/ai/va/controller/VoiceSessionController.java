@@ -22,22 +22,22 @@ public class VoiceSessionController {
     private VoiceSessionService voiceSessionService;
 
     /**
-     * Initialize a voice session
+     * Initialize a voice session with initial greeting
      * Called once at call start from Node.js backend
-     * Loads tenant and product-specific configuration including RAG and context
+     * Loads tenant configuration, generates LLM greeting, and returns audio
      * 
      * @param request Contains callId, customerId, tenantId, and productId
-     * @return Session initialization response with sessionId
+     * @return Session initialization response with greeting audio
      */
     @PostMapping("/session")
     public ResponseEntity<VoiceSessionResponse> startSession(@RequestBody VoiceSessionRequest request) {
-        SessionState state = voiceSessionService.startSession(
+        VoiceSessionResponse response = voiceSessionService.startSession(
             request.getCallId(), 
             request.getCustomerId(),
             request.getTenantId(),
             request.getProductId()
         );
-        return ResponseEntity.ok(new VoiceSessionResponse(state.getCallId()));
+        return ResponseEntity.ok(response);
     }
 
     /**

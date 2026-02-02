@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Voice Session Service
@@ -43,21 +44,24 @@ public class VoiceSessionService {
     @Autowired
     private TranscriptService transcriptService;
 
+    @Autowired
+    private ChatSessionService chatSessionService;
+
     // In-memory session storage (consider Redis for production)
     private final Map<String, SessionState> activeSessions = new ConcurrentHashMap<>();
 
     /**
-     * Start a new voice session
+     * Start a new voice session with initial greeting
      * Called once at call start from Node.js backend
-     * Loads RAG configuration and prompt context from database based on tenant ID
+     * Loads RAG configuration, generates LLM greeting, and synthesizes to audio
      * 
      * @param callId Unique call identifier
      * @param customerId Customer ID for context
      * @param tenantId Tenant ID for fetching configuration
      * @param productId Product ID for fetching configuration
-     * @return Initialized session state
+     * @return Voice session response with greeting audio
      */
-    public SessionState startSession(String callId, String customerId, String tenantId, String productId) {
+    public VoiceSessionResponse startSession(String callId, String customerId, String tenantId, String productId) {
         SessionState session = new SessionState(callId);
         session.setCustomerId(customerId);
         session.setTenantId(tenantId);
@@ -138,13 +142,63 @@ public class VoiceSessionService {
         }
         
         logger.info("Started voice session: {} for tenant: {} product: {}", callId, tenantId, productId);
-        return session;
+        
+        // Generate initial greeting with LLM and TTS
+        String greetingText = null;
+        String greetingAudio = null;
+        
+        try {
+            ChannelConfiguration voiceConfig = configurationService.getVoiceConfiguration(tenantId, productId);
+            
+            if (voiceConfig != null) {
+                logger.info("[VoiceSession] Generating initial greeting...");
+                
+                // Generate greeting text using shared logic from ChatSessionService
+                greetingText = chatSessionService.generateInitialGreeting(session, voiceConfig, callId);
+                
+                // Convert greeting to speech
+                if (greetingText != null && !greetingText.isEmpty()) {
+                    logger.info("[VoiceSession] Converting greeting to speech...");
+                    
+                    try {
+                        // Use TtsService with VoiceSettings
+                        String audioBase64 = ttsService.synthesize(greetingText, session.getVoiceSettings());
+                        
+                        if (audioBase64 != null && !audioBase64.isEmpty()) {
+                            greetingAudio = audioBase64;
+                            logger.info("[VoiceSession] Greeting audio generated: {} chars base64", audioBase64.length());
+                        }
+                        
+                    } catch (Exception e) {
+                        logger.warn("[VoiceSession] TTS synthesis failed: {}", e.getMessage());
+                        // Continue with text-only greeting
+                    }
+                }
+                
+                // Save greeting to transcript
+                if (greetingText != null) {
+                    try {
+                        transcriptService.addSegment(callId, "assistant", greetingText, null);
+                        logger.info("[VoiceSession] Greeting saved to transcript");
+                    } catch (Exception e) {
+                        logger.warn("[VoiceSession] Failed to save greeting to transcript: {}", e.getMessage());
+                        // Non-fatal - continue
+                    }
+                }
+            }
+            
+        } catch (Exception e) {
+            logger.error("[VoiceSession] Failed to generate voice greeting: {}", e.getMessage(), e);
+            // Non-fatal - continue with session without greeting
+        }
+        
+        return new VoiceSessionResponse(callId, greetingText, greetingAudio);
     }
 
     /**
      * Backward compatibility - start session without tenant/product IDs
      */
-    public SessionState startSession(String callId, String customerId) {
+    public VoiceSessionResponse startSession(String callId, String customerId) {
         return startSession(callId, customerId, customerId, null);
     }
 

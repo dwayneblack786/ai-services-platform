@@ -5,8 +5,10 @@ This is a full-stack application with React (TypeScript) frontend and Node.js Ex
 ## Project Structure
 - `frontend/` - React + TypeScript + Vite frontend
 - `backend-node/` - Node.js + Express + TypeScript backend
+- `product-management/` - Product management service
 - `shared/` - Shared TypeScript types
 - `services-java/` - Shared Java services
+- `services-python/` - Python services
 - `docs/` - Documentation
 
 ## Tech Stack

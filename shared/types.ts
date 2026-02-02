@@ -18,9 +18,23 @@ export interface User {
   emailVerificationTokenExpires?: Date;
   companyDetailsCompleted: boolean;
   passwordHash?: string; // Only stored in backend, never sent to client
-  authProvider?: 'google' | 'local'; // Track authentication method
+  authProvider?: 'local' | 'keycloak'; // Track authentication method
+  // OIDC Identity Mapping
+  idpSub?: string; // IdP subject identifier (stable external ID)
+  idpIssuer?: string; // IdP issuer URL
+  keycloakSub?: string; // Keycloak subject (for backward compat)
+  firstName?: string;
+  lastName?: string;
+  isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  // Password reset fields
+  passwordResetToken?: string;
+  passwordResetTokenExpires?: Date;
+  lastPasswordReset?: Date;
+  // Registration tracking
+  registrationCompleted?: boolean;
+  signupMethod?: 'email-password' | 'google' | 'microsoft' | 'github';
 }
 
 export interface AuthResponse {
