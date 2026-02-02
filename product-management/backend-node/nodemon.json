@@ -1,0 +1,15 @@
+{
+  "watch": ["src"],
+  "ext": "ts,json",
+  "ignore": ["src/**/*.spec.ts", "src/**/*.test.ts", "logs/**", "*.log"],
+  "exec": "ts-node --transpile-only src/index.ts",
+  "delay": 1000,
+  "env": {
+    "NODE_ENV": "development"
+  }
+ 
+  ,
+  "events": {
+    "crash": "echo 'App crashed! Error details above.'"
+  }
+}

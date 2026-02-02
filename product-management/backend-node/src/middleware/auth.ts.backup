@@ -1,0 +1,239 @@
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { getDB } from '../config/database';
+import { ObjectId } from 'mongodb';
+import User, { IUser } from '../models/User';
+import logger from '../utils/logger';
+/**
+ * Verify JWT token and return decoded payload
+ * Used by both Express middleware and Socket.IO
+ */
+export const verifyToken = (token: string) => {
+  return jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret');
+};
+
+/**
+ * Middleware to check authentication and redirect to login if not authenticated
+ * Used for OIDC authorization endpoint
+ */
+export const requireAuthOrRedirect = async (req: Request, res: Response, next: NextFunction) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    logger.warn('Authentication required - redirecting to login', {
+      url: req.originalUrl,
+      ip: req.ip
+    });
+    
+    // Store the original authorization URL to resume after login
+    const authUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login?redirect=${encodeURIComponent(authUrl)}`;
+    
+    return res.redirect(loginUrl);
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as { _id: string; email: string };
+    
+    // Load user from database
+    logger.debug('Loading user from database', { userId: decoded._id?.toString(), email: decoded.email });
+    const db = getDB();
+    const userDoc = await db.collection('users').findOne({ 
+      $or: [
+        { _id: new ObjectId(decoded._id) },
+ 
+        { email: decoded.email }
+      ]
+    });
+    
+    if (!userDoc) {
+      logger.error('User not found in database - redirecting to login', {
+        decoded
+      });
+      
+      const authUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+      const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login?redirect=${encodeURIComponent(authUrl)}`;
+      
+      return res.redirect(loginUrl);
+    }
+    
+    logger.info('User authenticated successfully', {
+      userId: userDoc._id?.toString(),
+      email: userDoc.email,
+      tenantId: userDoc.tenantId,
+      route: req.originalUrl
+    });
+    
+    req.user = {
+      id: userDoc._id || userDoc._id || decoded._id?.toString(),
+      email: userDoc.email,
+      name: userDoc.name,
+      picture: userDoc.picture,
+      role: userDoc.role,
+      tenantId: userDoc.tenantId,
+      emailVerified: userDoc.emailVerified,
+      companyDetailsCompleted: userDoc.companyDetailsCompleted,
+      authProvider: userDoc.authProvider,
+      createdAt: userDoc.createdAt,
+      updatedAt: userDoc.updatedAt
+    } as any;
+    next();
+  } catch (error) {
+    logger.error('Token verification failed - redirecting to login', {
+      error: error instanceof Error ? error.message : String(error),
+      url: req.originalUrl
+    });
+    
+    const authUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login?redirect=${encodeURIComponent(authUrl)}`;
+    
+    return res.redirect(loginUrl);
+  }
+};
+
+export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
+  // Check both cookie and Authorization header (for OIDC userinfo endpoint)
+  let token = req.cookies.token;
+  
+  // If no token in cookies, check Authorization header (Bearer token)
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    }
+  }
+
+  // console.log('==== Auth Middleware ====');
+  // console.log('Has token:', !!token);
+
+  if (!token) {
+    logger.warn('Authentication failed - No token in cookies', {
+      url: req.originalUrl,
+      ip: req.ip
+    });
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-jwt-secret') as { id: string; email: string };
+    
+    // Load user from database
+    logger.debug('Loading user from database', { userId: decoded.id?.toString(), email: decoded.email });
+    const db = getDB();
+    const userDoc = await db.collection('users').findOne({ 
+      $or: [
+        { _id: new ObjectId(decoded.id) },
+      
+        { email: decoded.email }
+      ]
+    });
+    
+    if (!userDoc) {
+      logger.error('User not found in database', {
+        decoded
+      });
+      return res.status(401).json({ error: 'User not found' });
+    }
+    logger.info('User authenticated successfully', {
+      userId: userDoc._id?.toString(),
+      email: userDoc.email,
+      tenantId: userDoc.tenantId,
+      route: req.originalUrl
+    });
+    
+    req.user = {
+      id: userDoc._id || userDoc._id || decoded.id?.toString(),
+      email: userDoc.email,
+      name: userDoc.name,
+      picture: userDoc.picture,
+      role: userDoc.role,
+      tenantId: userDoc.tenantId,
+      emailVerified: userDoc.emailVerified,
+      companyDetailsCompleted: userDoc.companyDetailsCompleted,
+      authProvider: userDoc.authProvider,
+      createdAt: userDoc.createdAt,
+      updatedAt: userDoc.updatedAt
+    } as any;
+    next();
+  } catch (error) {
+    logger.error('Token verification failed', {
+      error: error instanceof Error ? error.message : String(error),
+      url: req.originalUrl
+    });
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+};
+
+/**
+ * Session-based authentication middleware for Keycloak
+ * Checks if user is authenticated via session (Keycloak flow)
+ * Use this instead of authenticateToken for Keycloak-enabled routes
+ */
+export const authenticateSession = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Check if user is authenticated via session
+    const userId = req.session.userId;
+    
+    if (!userId) {
+      logger.warn('Authentication failed - No session', {
+        url: req.originalUrl,
+        ip: req.ip,
+        hasSession: !!req.session,
+        sessionID: req.sessionID
+      });
+      return res.status(401).json({ 
+        error: 'not_authenticated',
+        message: 'User not authenticated' 
+      });
+    }
+
+    // Load user from MongoDB
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      logger.error('User not found in database', {
+        userId,
+        sessionID: req.sessionID
+      });
+      // Clear invalid session
+      req.session.destroy(() => {});
+      return res.status(401).json({ 
+        error: 'user_not_found',
+        message: 'User not found' 
+      });
+    }
+
+    logger.debug('User authenticated via session', {
+      userId: user._id.toString(),
+      email: user.email,
+      tenantId: user.tenantId,
+      route: req.originalUrl
+    });
+    
+    // Attach user to request
+    req.user = {
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name,
+      picture: user.picture,
+      role: user.role,
+      tenantId: user.tenantId,
+      emailVerified: user.emailVerified,
+      companyDetailsCompleted: user.companyDetailsCompleted,
+      authProvider: user.authProvider,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    } as any;
+    
+    next();
+  } catch (error) {
+    logger.error('Session authentication failed', {
+      error: error instanceof Error ? error.message : String(error),
+      url: req.originalUrl
+    });
+    return res.status(500).json({ 
+      error: 'authentication_error',
+      message: 'Authentication failed' 
+    });
+  }
+};

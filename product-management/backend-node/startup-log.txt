@@ -1,0 +1,45 @@
+
+> oauth2-server@1.0.0 start
+> node dist/index.js
+
+[Socket.IO] 📦 Starting socket module imports...
+[CircuitBreaker:JavaVA] Initialized with: { failureThreshold: 5, successThreshold: 2, timeout: 60000 }
+[Socket.IO] ✅ Chat handlers imported
+[gRPC] 🔧 Initializing gRPC clients...
+[gRPC] 📡 Server: localhost:50051
+[gRPC] 📦 Creating ChatService client...
+[gRPC] ✅ ChatService client created
+[gRPC] 📦 Creating VoiceService client...
+[gRPC] ✅ VoiceService client created
+[gRPC] ✅ All gRPC clients initialized successfully
+[gRPC] 🎯 Next: Socket.IO will continue setup...
+[Socket.IO] ✅ Voice handlers imported (gRPC client should be initialized)
+[Socket.IO] ✅ VoIP stream handlers imported
+[Startup] ✅ Socket.IO config imported
+[Startup] ✅ Maintenance middleware imported
+[Startup] ✅ Auth routes imported
+[Startup] ✅ User routes imported
+[Startup] ✅ Products routes imported
+[Startup] ✅ User-products routes imported
+[Startup] ✅ Product-config routes imported
+[Startup] ✅ Subscription routes imported
+[Startup] ✅ Payment routes imported
+[Startup] ✅ Transactions routes imported
+[Startup] ✅ Voice routes imported
+[Startup] ✅ Usage routes imported
+[Startup] ✅ Chat routes imported
+[Startup] ✅ Assistant channels routes imported
+[Startup] ✅ Prompt routes imported
+[Startup] ✅ Circuit routes imported
+[Startup] ✅ Health routes imported
+[Startup] ✅ Agent routes imported
+[Startup] ✅ Analytics routes imported
+[Startup] ✅ Call-logs routes imported
+[Startup] ✅ Metrics routes imported
+[Startup] ✅ Logs routes imported
+✓ Passport configured (Keycloak-only mode)
+[Startup] ✅ Passport config imported
+[Startup] ✅ Logger imported
+[Startup] ✅ Request logger middleware imported
+[Startup] ✅ Error handlers imported
+[Startup] ✅ Mongoose imported

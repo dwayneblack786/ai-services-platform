@@ -1,0 +1,138 @@
+import express from 'express';
+import { requireRole, requireTenantOrAdmin, requireProjectAdmin } from '../middleware/rbac';
+import { UserRole, User } from '../../../../shared/types';
+
+const router = express.Router();
+
+// Get all tenants (PROJECT_ADMIN only)
+router.get('/', requireProjectAdmin, (req, res) => {
+  try {
+    const { users } = require('../config/passport');
+    
+    // Group users by tenant
+    const tenantMap = new Map<string, { tenantId: string; users: User[] }>();
+    
+    for (const [_, user] of users) {
+      if (!tenantMap.has(user.tenantId)) {
+        tenantMap.set(user.tenantId, {
+          tenantId: user.tenantId,
+          users: []
+        });
+      }
+      
+      const { passwordHash, ...userWithoutPassword } = user;
+      tenantMap.get(user.tenantId)!.users.push(userWithoutPassword as User);
+    }
+    
+    const tenants = Array.from(tenantMap.values());
+    res.json({ success: true, tenants });
+  } catch (error) {
+    console.error('Get tenants error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get users by tenant
+router.get('/:tenantId/users', requireTenantOrAdmin, (req, res) => {
+  try {
+    const { tenantId } = req.params;
+    const { users } = require('../config/passport');
+    
+    // Check if user has access to this tenant
+    if (req.tenantId !== 'ALL' && req.tenantId !== tenantId) {
+      return res.status(403).json({ error: 'Access denied to this tenant' });
+    }
+    
+    const tenantUsers: User[] = [];
+    for (const [_, user] of users) {
+      if (user.tenantId === tenantId) {
+        const { passwordHash, ...userWithoutPassword } = user;
+        tenantUsers.push(userWithoutPassword as User);
+      }
+    }
+    
+    res.json({ success: true, users: tenantUsers });
+  } catch (error) {
+    console.error('Get tenant users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get all users with tenant info (Admin or own tenant)
+router.get('/users/all', requireTenantOrAdmin, (req, res) => {
+  try {
+    const { users } = require('../config/passport');
+    const allUsers: User[] = [];
+    
+    for (const [_, user] of users) {
+      // If admin, return all users; otherwise only users from same tenant
+      if (req.tenantId === 'ALL' || user.tenantId === req.tenantId) {
+        const { passwordHash, ...userWithoutPassword } = user;
+        allUsers.push(userWithoutPassword as User);
+      }
+    }
+    
+    res.json({ success: true, users: allUsers });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Assign user to tenant (PROJECT_ADMIN only)
+router.put('/users/:userId/tenant', requireProjectAdmin, (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { tenantId } = req.body;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID is required' });
+    }
+    
+    const { users } = require('../config/passport');
+    const user = users.get(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Update user's tenant
+    user.tenantId = tenantId;
+    users.set(userId, user);
+    
+    const { passwordHash, ...userWithoutPassword } = user;
+    res.json({ 
+      success: true, 
+      message: 'User tenant updated successfully',
+      user: userWithoutPassword 
+    });
+  } catch (error) {
+    console.error('Update user tenant error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create a new tenant (PROJECT_ADMIN only)
+router.post('/', requireProjectAdmin, (req, res) => {
+  try {
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Tenant name is required' });
+    }
+    
+    // Generate new tenant ID
+    const tenantId = `tenant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    res.json({ 
+      success: true, 
+      tenant: { tenantId, name },
+      message: 'Tenant created successfully. You can now assign users to this tenant.'
+    });
+  } catch (error) {
+    console.error('Create tenant error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+export default router;
