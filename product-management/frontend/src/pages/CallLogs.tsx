@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { useNavigate } from 'react-router-dom';
+import { sessionCache } from '../services/cacheClient';
 import {
   PageContainer,
   Header,
@@ -54,7 +55,7 @@ const CallLogs: React.FC<CallLogsProps> = ({ productId }) => {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('token');
+      const token = await sessionCache.get('token');
 
       const response = await apiClient.get(
         `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/call-logs`,

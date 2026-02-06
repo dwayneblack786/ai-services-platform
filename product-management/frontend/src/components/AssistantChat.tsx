@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../services/apiClient';
 import { useSocket } from '../hooks/useSocket';
 import { useAuth } from '../context/AuthContext';
+import { sessionCache } from '../services/cacheClient';
 import VoiceVisualizer from './VoiceVisualizer';
 
 interface Message {
@@ -34,6 +35,86 @@ interface AssistantChatProps {
 
 // Read WebSocket preference from environment variable (default: true)
 const DEFAULT_USE_WEBSOCKET = import.meta.env.VITE_USE_WEBSOCKET !== 'false';
+
+const EmbedCodeSection: React.FC<{ productId?: string }> = ({ productId }) => {
+  const [showEmbed, setShowEmbed] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const { user } = useAuth();
+  const baseUrl = import.meta.env.VITE_CHAT_WIDGET_URL || window.location.origin;
+  const tenantId = user?.tenantId;
+  const embedCode = `<iframe\n  src="${baseUrl}/chat-widget?productId=${productId || 'va-service'}${tenantId ? `&tenantId=${tenantId}` : ''}"\n  width="400"\n  height="600"\n  style="border:none;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);"\n  allow="microphone"\n  title="AI Assistant Chat"\n></iframe>`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(embedCode).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div style={{ borderTop: '1px solid #e5e7eb' }}>
+      <button
+        onClick={() => setShowEmbed(!showEmbed)}
+        style={{
+          width: '100%',
+          padding: '10px 16px',
+          background: '#f9fafb',
+          border: 'none',
+          borderBottom: showEmbed ? '1px solid #e5e7eb' : 'none',
+          color: '#4f46e5',
+          fontSize: '13px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          textAlign: 'left',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}
+      >
+        <span>{showEmbed ? '▾' : '▸'}</span>
+        {'</>'} Embed Code
+      </button>
+      {showEmbed && (
+        <div style={{ padding: '12px 16px', background: '#f9fafb' }}>
+          <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#6b7280' }}>
+            Copy the code below to embed this chat widget on your website:
+          </p>
+          <pre style={{
+            margin: '0 0 8px 0',
+            padding: '12px',
+            background: '#1e1b4b',
+            color: '#c4b5fd',
+            borderRadius: '6px',
+            fontSize: '12px',
+            overflowX: 'auto',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+            fontFamily: 'monospace'
+          }}>
+            {embedCode}
+          </pre>
+          <button
+            onClick={handleCopy}
+            style={{
+              padding: '6px 14px',
+              background: copied ? '#10b981' : '#4f46e5',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'background 0.2s'
+            }}
+          >
+            {copied ? 'Copied!' : 'Copy to Clipboard'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const AssistantChat: React.FC<AssistantChatProps> = ({ 
   productId, 
@@ -259,8 +340,8 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       const newSessionId = response.data.sessionId;
       setSessionId(newSessionId);
       
-      // Store in local storage as well (as backup to httpOnly cookie)
-      localStorage.setItem('chatSessionId', newSessionId);
+      // Store in cache (Redis-backed with localStorage fallback)
+      await sessionCache.set('chatSessionId', newSessionId);
       
       // WebSocket room joining is handled by separate useEffect
       // that watches for sessionId and isConnected changes
@@ -310,8 +391,8 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       }
     }
     
-    // Clear local storage
-    localStorage.removeItem('chatSessionId');
+    // Clear from cache
+    await sessionCache.delete('chatSessionId');
     
     // Reset state
     setMessages([]);
@@ -439,7 +520,7 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       });
 
       // Wait for greeting response with timeout
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         const timeout = setTimeout(() => {
           console.warn('[Voice] Greeting initialization timeout after 10 seconds');
           setGreetingState('none');
@@ -1201,6 +1282,9 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         ref={greetingAudioRef}
         style={{ display: 'none' }}
       />
+
+      {/* Embed Code Section */}
+      <EmbedCodeSection productId={productId} />
 
       {/* Input */}
       <div style={{

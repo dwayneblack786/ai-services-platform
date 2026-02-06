@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { useSearchParams } from 'react-router-dom';
+import { sessionCache } from '../services/cacheClient';
 import {
   PageContainer,
   Header,
@@ -79,7 +80,7 @@ const Transcripts: React.FC<TranscriptsProps> = ({ productId }) => {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('token');
+      const token = await sessionCache.get('token');
 
       const response = await apiClient.get(
         `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/call-logs`,
@@ -102,7 +103,7 @@ const Transcripts: React.FC<TranscriptsProps> = ({ productId }) => {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('token');
+      const token = await sessionCache.get('token');
 
       const endpoint = callId 
         ? `/api/call-logs/${callId}`
