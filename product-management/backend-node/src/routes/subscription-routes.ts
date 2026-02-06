@@ -256,7 +256,7 @@ router.post('/create', async (req, res) => {
     
     // Verify payment method exists and belongs to user
     const paymentMethod = await db.collection('payment_methods').findOne({
-      _id: new ObjectId(paymentMethodId),
+      _id:  paymentMethodId,
       tenantId: user.tenantId,
       status: 'active'
     });
@@ -267,7 +267,7 @@ router.post('/create', async (req, res) => {
 
     // Verify product exists
     const product = await db.collection('products').findOne({
-      _id: new ObjectId(productId)
+      _id:  productId
     });
 
     if (!product) {

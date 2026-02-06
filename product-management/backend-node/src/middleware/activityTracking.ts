@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import UserActivity from '../models/UserActivity';
 import User from '../models/User';
 import logger from '../utils/logger';
+import { any } from 'zod/v4';
 
 /**
  * Middleware to track user activity
@@ -48,7 +49,7 @@ export const trackActivity = (eventType: 'login' | 'logout' | 'dashboard_view' |
       logger.error('Activity tracking failed', {
         error: error.message,
         eventType,
-        userId: req.user?._id || req.user?.id,
+        userId: /*req.user?._id   ||*/ req.user?.id,
       });
     }
 

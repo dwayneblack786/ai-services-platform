@@ -33,6 +33,10 @@ import Tenants from './pages/Tenants';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
 import Layout from './components/Layout';
+import PromptManagement from './pages/PromptManagement';
+import PromptEditor from './pages/PromptEditor';
+import TemplateSelector from './components/TemplateSelector';
+import TenantPrompts from './pages/TenantPrompts';
 // import dotEnv from  'dotenv';
 // dotEnv.config();
 
@@ -190,6 +194,58 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Tenants />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          {/* Prompt Management System (PMS) Routes */}
+          <Route
+            path="/prompts"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <PromptManagement />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/prompts/templates"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TemplateSelector />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/prompts/new"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <PromptEditor />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/prompts/edit/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <PromptEditor />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          {/* Tenant Prompts - Standalone full-page route */}
+          <Route
+            path="/tenant-prompts"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <TenantPrompts />
                 </Layout>
               </ProtectedRoute>
             }

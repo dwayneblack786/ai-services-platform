@@ -432,7 +432,7 @@ router.get('/tenant/callback', async (req: Request, res: Response) => {
       console.log('='.repeat(80));
       console.log('📊 Session Details:');
       console.log(`   - Session ID: ${req.sessionID}`);
-      console.log(`   - User ID: ${req.session.userId || req.session.passport?.user?.id}`);
+      console.log(`   - User ID: ${req.session?.userId || req.session.passport?.user?._id}`);
       console.log(`   - Tenant ID: ${req.session.tenantId}`);
       console.log(`   - Has Passport User: ${!!req.session.passport?.user}`);
       console.log(`   - Has Keycloak Token: ${!!req.session.keycloakAccessToken}`);

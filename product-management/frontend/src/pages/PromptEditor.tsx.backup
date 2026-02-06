@@ -1,0 +1,1012 @@
+/**
+ * Prompt Editor - 6-Layer Form with Multi-Channel & Tenant Isolation
+ *
+ * Features:
+ * - 6-layer prompt content structure
+ * - Channel selector (voice/chat/sms/whatsapp/email)
+ * - Tenant/Product isolation
+ * - Auto-save (30-second debounce)
+ * - Real-time validation
+ * - Version tracking
+ */
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import promptApi, { IPromptVersion, IPromptContent } from '../services/promptApi';
+import apiClient from '../services/apiClient';
+import styled from '@emotion/styled';
+import SplitPane from 'react-split-pane';
+import PromptPreview from '../components/PromptPreview';
+
+// Styled Components
+const EditorContainer = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+`;
+
+const Title = styled.h1`
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+`;
+
+const HeaderActions = styled.div`
+  display: flex;
+  gap: 12px;
+`;
+
+const Button = styled.button<{ variant?: 'primary' | 'secondary' | 'danger' }>`
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+
+  ${props => props.variant === 'primary' && `
+    background: #1976d2;
+    color: white;
+    &:hover { background: #1565c0; }
+  `}
+
+  ${props => props.variant === 'secondary' && `
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    &:hover { background: #e0e0e0; }
+  `}
+
+  ${props => props.variant === 'danger' && `
+    background: #d32f2f;
+    color: white;
+    &:hover { background: #c62828; }
+  `}
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const StatusBadge = styled.div<{ status: string }>`
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  ${props => {
+    switch (props.status) {
+      case 'draft': return 'background: #fff3e0; color: #e65100;';
+      case 'testing': return 'background: #e3f2fd; color: #0277bd;';
+      case 'staging': return 'background: #f3e5f5; color: #6a1b9a;';
+      case 'production': return 'background: #e8f5e9; color: #2e7d32;';
+      case 'archived': return 'background: #f5f5f5; color: #757575;';
+      default: return 'background: #f5f5f5; color: #757575;';
+    }
+  }}
+`;
+
+const SaveIndicator = styled.div<{ saving: boolean }>`
+  font-size: 14px;
+  color: ${props => props.saving ? '#1976d2' : '#4caf50'};
+  font-style: italic;
+`;
+
+const TogglePreviewButton = styled(Button)`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 8px 16px;
+`;
+
+const SplitPaneWrapper = styled.div`
+  .Resizer {
+    background: #e0e0e0;
+    opacity: 0.5;
+    z-index: 1;
+    box-sizing: border-box;
+    background-clip: padding-box;
+    transition: all 0.2s;
+  }
+
+  .Resizer:hover {
+    opacity: 1;
+    background: #1976d2;
+  }
+
+  .Resizer.horizontal {
+    height: 11px;
+    margin: -5px 0;
+    border-top: 5px solid rgba(255, 255, 255, 0);
+    border-bottom: 5px solid rgba(255, 255, 255, 0);
+    cursor: row-resize;
+    width: 100%;
+  }
+
+  .Resizer.vertical {
+    width: 11px;
+    margin: 0 -5px;
+    border-left: 5px solid rgba(255, 255, 255, 0);
+    border-right: 5px solid rgba(255, 255, 255, 0);
+    cursor: col-resize;
+  }
+
+  .Resizer.disabled {
+    cursor: not-allowed;
+  }
+
+  .Resizer.disabled:hover {
+    border-color: transparent;
+  }
+`;
+
+const EditorFormContainer = styled.div`
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 12px;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f5f5f5;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cccccc;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #999999;
+  }
+`;
+
+const MetadataSection = styled.div`
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+`;
+
+const LayerSection = styled.div`
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+`;
+
+const LayerHeader = styled.h2`
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const LayerNumber = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1976d2;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 20px;
+`;
+
+const Label = styled.label`
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 8px;
+`;
+
+const Input = styled.input`
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #1976d2;
+  }
+`;
+
+const Select = styled.select`
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #1976d2;
+  }
+`;
+
+const Textarea = styled.textarea`
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #1976d2;
+  }
+`;
+
+const ArrayInput = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const ArrayItem = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+`;
+
+const RemoveButton = styled.button`
+  padding: 6px 12px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+
+  &:hover {
+    background: #d32f2f;
+  }
+`;
+
+const AddButton = styled.button`
+  padding: 8px 16px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 8px;
+
+  &:hover {
+    background: #45a049;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  background: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+`;
+
+interface PromptEditorProps {}
+
+const PromptEditor: React.FC<PromptEditorProps> = () => {
+  const { id } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState<IPromptVersion | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const autoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Initialize empty prompt structure
+  const emptyPrompt: Partial<IPromptVersion> = {
+    name: '',
+    description: '',
+    category: '',
+    channelType: 'voice',
+    tenantId: '',
+    productId: '',
+    state: 'draft',
+    environment: 'development',
+    content: {
+      systemPrompt: '',
+      persona: {
+        tone: '',
+        personality: '',
+        allowedActions: [],
+        disallowedActions: []
+      },
+      businessContext: {
+        servicesOffered: [],
+        pricingInfo: '',
+        locations: [],
+        policies: '',
+        faqs: []
+      },
+      ragConfig: {
+        enabled: false
+      },
+      conversationBehavior: {
+        greeting: '',
+        fallbackMessage: '',
+        intentPrompts: {},
+        askForNameFirst: false,
+        conversationMemoryTurns: 10
+      },
+      constraints: {
+        prohibitedTopics: [],
+        complianceRules: [],
+        requireConsent: false,
+        maxConversationTurns: 50
+      },
+      customVariables: {}
+    }
+  };
+
+  // Load prompt if editing existing, or pre-fill from URL params (including template mode)
+  useEffect(() => {
+    const loadPrompt = async () => {
+      if (id) {
+        // Edit mode: Load existing prompt
+        try {
+          setLoading(true);
+          const data = await promptApi.getPrompt(id);
+          setPrompt(data);
+        } catch (err: any) {
+          setError(err.message || 'Failed to load prompt');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // Create mode: Check if creating from template
+        const templateId = searchParams.get('templateId');
+
+        if (templateId) {
+          // Template mode: Load template and pre-fill all 6 layers
+          try {
+            setLoading(true);
+            const templateResponse = await apiClient.get(`/api/pms/prompts/templates/${templateId}`);
+            const template = templateResponse.data;
+
+            // Clone template content and apply tenant/product info
+            const newPrompt = {
+              ...emptyPrompt,
+              name: template.name.replace(' Template', ''), // Remove "Template" from name
+              description: `Created from ${template.name}`,
+              category: template.category,
+              channelType: template.channelType,
+              productId: searchParams.get('productId') || template.productId,
+              tenantId: searchParams.get('tenantId') || '',
+              content: JSON.parse(JSON.stringify(template.content)), // Deep clone
+              baseTemplateId: template._id // Link back to template
+            } as IPromptVersion;
+
+            setPrompt(newPrompt);
+          } catch (err: any) {
+            console.error('Error loading template:', err);
+            setError(err.response?.data?.error || 'Failed to load template');
+          } finally {
+            setLoading(false);
+          }
+        } else {
+          // Standard create mode: Pre-fill from URL parameters
+          const newPrompt = { ...emptyPrompt } as IPromptVersion;
+
+          const channelType = searchParams.get('channelType');
+          const productId = searchParams.get('productId');
+          const tenantId = searchParams.get('tenantId');
+
+          if (channelType) {
+            newPrompt.channelType = channelType as any;
+          }
+          if (productId) {
+            newPrompt.productId = productId;
+          }
+          if (tenantId) {
+            newPrompt.tenantId = tenantId;
+          }
+
+          setPrompt(newPrompt);
+          setLoading(false);
+        }
+      }
+    };
+
+    loadPrompt();
+  }, [id, searchParams]);
+
+  // Auto-save with 30-second debounce
+  const triggerAutoSave = useCallback(() => {
+    if (autoSaveTimeout.current) {
+      clearTimeout(autoSaveTimeout.current);
+    }
+
+    autoSaveTimeout.current = setTimeout(async () => {
+      if (prompt && prompt._id && prompt.state === 'draft') {
+        try {
+          setSaving(true);
+          await promptApi.updateDraft(prompt._id, prompt);
+          console.log('Auto-saved at', new Date().toLocaleTimeString());
+        } catch (err: any) {
+          console.error('Auto-save failed:', err);
+        } finally {
+          setSaving(false);
+        }
+      }
+    }, 30000); // 30 seconds
+  }, [prompt]);
+
+  // Update field helper
+  const updateField = (path: string, value: any) => {
+    if (!prompt) return;
+
+    const keys = path.split('.');
+    const updated = { ...prompt };
+    let current: any = updated;
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      current[keys[i]] = { ...current[keys[i]] };
+      current = current[keys[i]];
+    }
+
+    current[keys[keys.length - 1]] = value;
+    setPrompt(updated);
+    triggerAutoSave();
+  };
+
+  // Handle save
+  const handleSave = async () => {
+    if (!prompt) return;
+
+    try {
+      setSaving(true);
+      if (prompt._id) {
+        await promptApi.updateDraft(prompt._id, prompt);
+      } else {
+        const created = await promptApi.createDraft({
+          name: prompt.name,
+          description: prompt.description,
+          category: prompt.category,
+          channelType: prompt.channelType,
+          tenantId: prompt.tenantId,
+          productId: prompt.productId,
+          content: prompt.content
+        });
+        setPrompt(created);
+      }
+      alert('Prompt saved successfully!');
+    } catch (err: any) {
+      setError(err.message || 'Failed to save prompt');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <EditorContainer>Loading...</EditorContainer>;
+  }
+
+  if (!prompt) {
+    return <EditorContainer>Prompt not found</EditorContainer>;
+  }
+
+  return (
+    <EditorContainer>
+      <Header>
+        <div>
+          <Title>{id ? `Edit: ${prompt.name}` : 'Create New Prompt'}</Title>
+          {prompt._id && <StatusBadge status={prompt.state}>{prompt.state}</StatusBadge>}
+          {prompt.baseTemplateId && (
+            <StatusBadge status="template" style={{ background: '#e8f5e9', color: '#2e7d32', marginLeft: '8px' }}>
+              📋 From Template
+            </StatusBadge>
+          )}
+        </div>
+        <HeaderActions>
+          <SaveIndicator saving={saving}>
+            {saving ? 'Saving...' : 'All changes saved'}
+          </SaveIndicator>
+          <TogglePreviewButton
+            variant="secondary"
+            onClick={() => setShowPreview(!showPreview)}
+            title={showPreview ? 'Hide preview panel' : 'Show preview panel'}
+          >
+            {showPreview ? '👁️ Hide Preview' : '👁️ Show Preview'}
+          </TogglePreviewButton>
+          <Button variant="secondary" onClick={() => navigate('/prompts')}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSave} disabled={saving}>
+            {id ? 'Update' : 'Create'} Prompt
+          </Button>
+        </HeaderActions>
+      </Header>
+
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+
+      {showPreview ? (
+        <SplitPaneWrapper>
+          <SplitPane
+            split="vertical"
+            minSize={400}
+            defaultSize="60%"
+            style={{ height: 'calc(100vh - 200px)' }}
+          >
+            <EditorFormContainer>
+              {/* Metadata Section */}
+              <MetadataSection>
+        <FormGroup>
+          <Label>Prompt Name *</Label>
+          <Input
+            type="text"
+            value={prompt.name}
+            onChange={(e) => updateField('name', e.target.value)}
+            placeholder="e.g., Healthcare Voice Assistant v3"
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Description</Label>
+          <Textarea
+            value={prompt.description || ''}
+            onChange={(e) => updateField('description', e.target.value)}
+            placeholder="Describe the purpose of this prompt..."
+            rows={3}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Channel Type *</Label>
+          <Select
+            value={prompt.channelType}
+            onChange={(e) => updateField('channelType', e.target.value)}
+          >
+            <option value="voice">Voice</option>
+            <option value="chat">Chat</option>
+            <option value="sms">SMS</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="email">Email</option>
+          </Select>
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Category</Label>
+          <Input
+            type="text"
+            value={prompt.category || ''}
+            onChange={(e) => updateField('category', e.target.value)}
+            placeholder="e.g., Virtual Assistant, IDP, Computer Vision"
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Tenant ID</Label>
+          <Input
+            type="text"
+            value={prompt.tenantId || ''}
+            onChange={(e) => updateField('tenantId', e.target.value)}
+            placeholder="Leave empty for platform-wide template"
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Product ID</Label>
+          <Input
+            type="text"
+            value={prompt.productId || ''}
+            onChange={(e) => updateField('productId', e.target.value)}
+            placeholder="Product identifier"
+          />
+        </FormGroup>
+      </MetadataSection>
+
+      {/* Layer 1: System Prompt */}
+      <LayerSection>
+        <LayerHeader>
+          <LayerNumber>1</LayerNumber>
+          System Prompt
+        </LayerHeader>
+        <FormGroup>
+          <Label>System Instructions *</Label>
+          <Textarea
+            value={prompt.content.systemPrompt}
+            onChange={(e) => updateField('content.systemPrompt', e.target.value)}
+            placeholder="You are a helpful assistant that..."
+            rows={6}
+          />
+        </FormGroup>
+      </LayerSection>
+
+      {/* Layer 2: Persona */}
+      <LayerSection>
+        <LayerHeader>
+          <LayerNumber>2</LayerNumber>
+          Persona
+        </LayerHeader>
+        <FormGroup>
+          <Label>Tone *</Label>
+          <Input
+            type="text"
+            value={prompt.content.persona.tone}
+            onChange={(e) => updateField('content.persona.tone', e.target.value)}
+            placeholder="e.g., professional, friendly, empathetic"
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Personality *</Label>
+          <Textarea
+            value={prompt.content.persona.personality}
+            onChange={(e) => updateField('content.persona.personality', e.target.value)}
+            placeholder="Describe the assistant's personality..."
+            rows={3}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Allowed Actions</Label>
+          <ArrayInput>
+            {prompt.content.persona.allowedActions.map((action, index) => (
+              <ArrayItem key={index}>
+                <Input
+                  type="text"
+                  value={action}
+                  onChange={(e) => {
+                    const updated = [...prompt.content.persona.allowedActions];
+                    updated[index] = e.target.value;
+                    updateField('content.persona.allowedActions', updated);
+                  }}
+                  placeholder="e.g., schedule_appointment"
+                />
+                <RemoveButton
+                  onClick={() => {
+                    const updated = prompt.content.persona.allowedActions.filter((_, i) => i !== index);
+                    updateField('content.persona.allowedActions', updated);
+                  }}
+                >
+                  Remove
+                </RemoveButton>
+              </ArrayItem>
+            ))}
+            <AddButton
+              onClick={() => {
+                const updated = [...prompt.content.persona.allowedActions, ''];
+                updateField('content.persona.allowedActions', updated);
+              }}
+            >
+              + Add Allowed Action
+            </AddButton>
+          </ArrayInput>
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Disallowed Actions</Label>
+          <ArrayInput>
+            {prompt.content.persona.disallowedActions.map((action, index) => (
+              <ArrayItem key={index}>
+                <Input
+                  type="text"
+                  value={action}
+                  onChange={(e) => {
+                    const updated = [...prompt.content.persona.disallowedActions];
+                    updated[index] = e.target.value;
+                    updateField('content.persona.disallowedActions', updated);
+                  }}
+                  placeholder="e.g., diagnose, prescribe"
+                />
+                <RemoveButton
+                  onClick={() => {
+                    const updated = prompt.content.persona.disallowedActions.filter((_, i) => i !== index);
+                    updateField('content.persona.disallowedActions', updated);
+                  }}
+                >
+                  Remove
+                </RemoveButton>
+              </ArrayItem>
+            ))}
+            <AddButton
+              onClick={() => {
+                const updated = [...prompt.content.persona.disallowedActions, ''];
+                updateField('content.persona.disallowedActions', updated);
+              }}
+            >
+              + Add Disallowed Action
+            </AddButton>
+          </ArrayInput>
+        </FormGroup>
+      </LayerSection>
+
+      {/* Layer 3: Business Context */}
+      <LayerSection>
+        <LayerHeader>
+          <LayerNumber>3</LayerNumber>
+          Business Context
+        </LayerHeader>
+        <FormGroup>
+          <Label>Services Offered</Label>
+          <ArrayInput>
+            {prompt.content.businessContext.servicesOffered.map((service, index) => (
+              <ArrayItem key={index}>
+                <Input
+                  type="text"
+                  value={service}
+                  onChange={(e) => {
+                    const updated = [...prompt.content.businessContext.servicesOffered];
+                    updated[index] = e.target.value;
+                    updateField('content.businessContext.servicesOffered', updated);
+                  }}
+                  placeholder="e.g., Primary Care"
+                />
+                <RemoveButton
+                  onClick={() => {
+                    const updated = prompt.content.businessContext.servicesOffered.filter((_, i) => i !== index);
+                    updateField('content.businessContext.servicesOffered', updated);
+                  }}
+                >
+                  Remove
+                </RemoveButton>
+              </ArrayItem>
+            ))}
+            <AddButton
+              onClick={() => {
+                const updated = [...prompt.content.businessContext.servicesOffered, ''];
+                updateField('content.businessContext.servicesOffered', updated);
+              }}
+            >
+              + Add Service
+            </AddButton>
+          </ArrayInput>
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Pricing Information</Label>
+          <Textarea
+            value={prompt.content.businessContext.pricingInfo || ''}
+            onChange={(e) => updateField('content.businessContext.pricingInfo', e.target.value)}
+            placeholder="Describe pricing, copays, insurance..."
+            rows={3}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Policies</Label>
+          <Textarea
+            value={prompt.content.businessContext.policies || ''}
+            onChange={(e) => updateField('content.businessContext.policies', e.target.value)}
+            placeholder="Company policies, terms of service..."
+            rows={4}
+          />
+        </FormGroup>
+      </LayerSection>
+
+      {/* Layer 4: RAG Configuration (Placeholder for Phase 2.5) */}
+      <LayerSection>
+        <LayerHeader>
+          <LayerNumber>4</LayerNumber>
+          RAG Configuration
+        </LayerHeader>
+        <FormGroup>
+          <Label>Enable RAG</Label>
+          <input
+            type="checkbox"
+            checked={prompt.content.ragConfig.enabled}
+            onChange={(e) => updateField('content.ragConfig.enabled', e.target.checked)}
+          />
+          <span style={{ marginLeft: '8px', fontSize: '14px', color: '#666' }}>
+            (RAG configuration coming in Phase 2.5)
+          </span>
+        </FormGroup>
+      </LayerSection>
+
+      {/* Layer 5: Conversation Behavior */}
+      <LayerSection>
+        <LayerHeader>
+          <LayerNumber>5</LayerNumber>
+          Conversation Behavior
+        </LayerHeader>
+        <FormGroup>
+          <Label>Greeting Message *</Label>
+          <Textarea
+            value={prompt.content.conversationBehavior.greeting}
+            onChange={(e) => updateField('content.conversationBehavior.greeting', e.target.value)}
+            placeholder="Hello! How can I help you today?"
+            rows={2}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Fallback Message</Label>
+          <Textarea
+            value={prompt.content.conversationBehavior.fallbackMessage || ''}
+            onChange={(e) => updateField('content.conversationBehavior.fallbackMessage', e.target.value)}
+            placeholder="I'm sorry, I didn't understand that..."
+            rows={2}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Ask for Name First</Label>
+          <input
+            type="checkbox"
+            checked={prompt.content.conversationBehavior.askForNameFirst}
+            onChange={(e) => updateField('content.conversationBehavior.askForNameFirst', e.target.checked)}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Conversation Memory Turns</Label>
+          <Input
+            type="number"
+            value={prompt.content.conversationBehavior.conversationMemoryTurns}
+            onChange={(e) => updateField('content.conversationBehavior.conversationMemoryTurns', parseInt(e.target.value))}
+            min={1}
+            max={100}
+          />
+        </FormGroup>
+      </LayerSection>
+
+      {/* Layer 6: Constraints */}
+      <LayerSection>
+        <LayerHeader>
+          <LayerNumber>6</LayerNumber>
+          Constraints & Compliance
+        </LayerHeader>
+        <FormGroup>
+          <Label>Prohibited Topics</Label>
+          <ArrayInput>
+            {prompt.content.constraints.prohibitedTopics.map((topic, index) => (
+              <ArrayItem key={index}>
+                <Input
+                  type="text"
+                  value={topic}
+                  onChange={(e) => {
+                    const updated = [...prompt.content.constraints.prohibitedTopics];
+                    updated[index] = e.target.value;
+                    updateField('content.constraints.prohibitedTopics', updated);
+                  }}
+                  placeholder="e.g., medical diagnosis"
+                />
+                <RemoveButton
+                  onClick={() => {
+                    const updated = prompt.content.constraints.prohibitedTopics.filter((_, i) => i !== index);
+                    updateField('content.constraints.prohibitedTopics', updated);
+                  }}
+                >
+                  Remove
+                </RemoveButton>
+              </ArrayItem>
+            ))}
+            <AddButton
+              onClick={() => {
+                const updated = [...prompt.content.constraints.prohibitedTopics, ''];
+                updateField('content.constraints.prohibitedTopics', updated);
+              }}
+            >
+              + Add Prohibited Topic
+            </AddButton>
+          </ArrayInput>
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Compliance Rules</Label>
+          <ArrayInput>
+            {prompt.content.constraints.complianceRules.map((rule, index) => (
+              <ArrayItem key={index}>
+                <Input
+                  type="text"
+                  value={rule}
+                  onChange={(e) => {
+                    const updated = [...prompt.content.constraints.complianceRules];
+                    updated[index] = e.target.value;
+                    updateField('content.constraints.complianceRules', updated);
+                  }}
+                  placeholder="e.g., HIPAA compliant"
+                />
+                <RemoveButton
+                  onClick={() => {
+                    const updated = prompt.content.constraints.complianceRules.filter((_, i) => i !== index);
+                    updateField('content.constraints.complianceRules', updated);
+                  }}
+                >
+                  Remove
+                </RemoveButton>
+              </ArrayItem>
+            ))}
+            <AddButton
+              onClick={() => {
+                const updated = [...prompt.content.constraints.complianceRules, ''];
+                updateField('content.constraints.complianceRules', updated);
+              }}
+            >
+              + Add Compliance Rule
+            </AddButton>
+          </ArrayInput>
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Require User Consent</Label>
+          <input
+            type="checkbox"
+            checked={prompt.content.constraints.requireConsent}
+            onChange={(e) => updateField('content.constraints.requireConsent', e.target.checked)}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label>Max Conversation Turns</Label>
+          <Input
+            type="number"
+            value={prompt.content.constraints.maxConversationTurns || 50}
+            onChange={(e) => updateField('content.constraints.maxConversationTurns', parseInt(e.target.value))}
+            min={1}
+            max={200}
+          />
+        </FormGroup>
+      </LayerSection>
+
+              {/* Save Button (Footer) */}
+              <div style={{ textAlign: 'center', marginTop: '32px', marginBottom: '32px' }}>
+                <Button variant="primary" onClick={handleSave} disabled={saving} style={{ padding: '12px 48px', fontSize: '16px' }}>
+                  {saving ? 'Saving...' : (id ? 'Save Changes' : 'Create Prompt')}
+                </Button>
+              </div>
+            </EditorFormContainer>
+
+            {/* Preview Panel */}
+            <PromptPreview prompt={prompt} modelType="gpt-4" />
+          </SplitPane>
+        </SplitPaneWrapper>
+      ) : null}
+
+      {!showPreview && (
+        <>
+          {/* All form content renders here when preview is hidden */}
+        </>
+      )}
+    </EditorContainer>
+  );
+};
+
+export default PromptEditor;

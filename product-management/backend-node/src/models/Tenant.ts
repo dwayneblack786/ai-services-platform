@@ -15,6 +15,8 @@ export interface ITenant extends Document {
   industry?: string;
   website?: string;
   createdBy: string;
+  createdAt: string;
+
   status: 'active' | 'suspended' | 'inactive';
   // Keycloak provisioning tracking
   keycloakRealmName?: string;

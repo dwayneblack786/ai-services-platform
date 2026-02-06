@@ -5,13 +5,12 @@ import { styles } from '../styles/Products.styles';
 import { Product } from '../types';
 import { useAuth } from '../context/AuthContext';
 import AssistantChannels from './AssistantChannels';
-import PromptConfiguration from './PromptConfiguration';
 import AssistantChat from '../components/AssistantChat';
 import CallLogs from './CallLogs';
 import Transcripts from './Transcripts';
 import Analytics from './Analytics';
 
-type TabType = 'configuration' | 'assistant-channels' | 'prompt-config' | 'assistant-chat' | 'call-logs' | 'transcripts' | 'analytics';
+type TabType = 'configuration' | 'assistant-channels' | 'assistant-chat' | 'call-logs' | 'transcripts' | 'analytics';
 
 interface ProductConfigurationType {
   _id?: string;
@@ -27,7 +26,6 @@ const VirtualAssistantConfig = () => {
   const { isTenantAdmin } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>((tab as TabType) || 'configuration');
-  const [promptConfigChannel, setPromptConfigChannel] = useState<'voice' | 'chat'>('voice');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [configuration, setConfiguration] = useState<Record<string, any>>({
@@ -110,7 +108,6 @@ const VirtualAssistantConfig = () => {
   const tabs = [
     { id: 'configuration' as TabType, label: 'Configuration', icon: '⚙️', adminOnly: false },
     { id: 'assistant-channels' as TabType, label: 'Assistant Channels', icon: '🤖', adminOnly: true },
-    { id: 'prompt-config' as TabType, label: 'Prompt Configuration', icon: '🔧', adminOnly: true },
     { id: 'assistant-chat' as TabType, label: 'Assistant Chat', icon: '💬', adminOnly: false },
     { id: 'call-logs' as TabType, label: 'Call Logs', icon: '📞', adminOnly: false },
     { id: 'transcripts' as TabType, label: 'Transcripts', icon: '📝', adminOnly: false },
@@ -239,16 +236,8 @@ const VirtualAssistantConfig = () => {
         );
       case 'assistant-channels':
         return <AssistantChannels productId={productId} onNavigate={(tab) => {
-          if (tab.startsWith('prompt-config:')) {
-            const channel = tab.split(':')[1] as 'voice' | 'chat';
-            setPromptConfigChannel(channel);
-            navigateToTab('prompt-config');
-          } else {
-            navigateToTab(tab as TabType);
-          }
+          navigateToTab(tab as TabType);
         }} />;
-      case 'prompt-config':
-        return <PromptConfiguration productId={productId} initialTab={promptConfigChannel} />;
       case 'assistant-chat':
         return <AssistantChat productId={productId} />;
       case 'call-logs':

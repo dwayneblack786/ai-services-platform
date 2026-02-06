@@ -10,6 +10,7 @@ import YAML from 'yamljs';
 import path from 'path';
 import { env, validateEnv } from './config/env';
 import { connectRedis, redisClient } from './config/redis';
+import { redisPubSubService } from './services/redis-pubsub.service';
 import { initializeSocketIO } from './config/socket';
 console.log('[Startup] ✅ Socket.IO config imported');
 import { maintenanceMode } from './middleware/maintenance';
@@ -47,6 +48,18 @@ import assistantChannelsRoutes from './routes/assistant-channels-routes-v2';
 console.log('[Startup] ✅ Assistant channels routes imported');
 import promptRoutes from './routes/prompt-routes-v2';
 console.log('[Startup] ✅ Prompt routes imported');
+import promptManagementRoutes from './routes/prompt-management-routes';
+console.log('[Startup] ✅ Prompt Management (PMS) routes imported');
+import tenantPromptRoutes from './routes/tenant-prompt-routes';
+console.log('[Startup] ✅ Tenant Prompt routes imported');
+import promptTestingRoutes from './routes/prompt-testing-routes';
+console.log('[Startup] ✅ Prompt Testing routes imported');
+import ragRoutes from './routes/rag-routes';
+console.log('[Startup] ✅ RAG routes imported');
+import pmsMetricsRoutes from './routes/metrics-routes';
+console.log('[Startup] ✅ PMS Metrics routes (Phase 7) imported');
+import snapshotRoutes from './routes/snapshot-routes';
+console.log('[Startup] ✅ Snapshot routes (Phase 7) imported');
 
 import circuitRoutes from './routes/circuit-routes';
 console.log('[Startup] ✅ Circuit routes imported');
@@ -398,8 +411,12 @@ const sessionConfig: session.SessionOptions = {
 if (env.NODE_ENV === 'production') {
   // Initialize Redis connection (required in production)
   connectRedis()
-    .then(() => {
+    .then(async () => {
       logger.info('✅ Redis connected successfully - sessions will persist');
+
+      // Initialize Redis Pub/Sub for cross-service cache invalidation (Phase 7)
+      await redisPubSubService.init();
+      logger.info('✅ Redis Pub/Sub initialized for cache invalidation');
     })
     .catch(err => {
       logger.error('❌ Redis connection failed in production - this is critical!', { error: err.message });
@@ -426,8 +443,12 @@ if (env.NODE_ENV === 'production') {
   
   // Still try to connect to Redis in background (optional for dev)
   connectRedis()
-    .then(() => {
+    .then(async () => {
       logger.info('ℹ️  Redis available in development (not used for sessions)');
+
+      // Initialize Redis Pub/Sub for cache invalidation (Phase 7)
+      await redisPubSubService.init();
+      logger.info('✅ Redis Pub/Sub initialized in development');
     })
     .catch(err => {
       logger.info('ℹ️  Redis not available in development - using memory store', { error: err.message });
@@ -487,6 +508,12 @@ try {
   app.use('/api/chat', chatRoutes);
   app.use('/api/assistant-channels', assistantChannelsRoutes);
   app.use('/api/prompts', promptRoutes);
+  app.use('/api/pms/prompts', promptManagementRoutes); // PMS: Prompt Management System
+  app.use('/api/pms/tenant-prompts', tenantPromptRoutes); // PMS: Tenant Prompt Bindings
+  app.use('/api/pms/prompt-testing', promptTestingRoutes); // PMS: Automated Prompt Testing
+  app.use('/api/pms/rag', ragRoutes); // PMS: Per-Prompt RAG Configuration
+  app.use('/api/pms/metrics', pmsMetricsRoutes); // PMS Phase 7: Usage Metrics
+  app.use('/api/pms/snapshots', snapshotRoutes); // PMS Phase 7: Session Snapshots
   app.use('/api/circuit', circuitRoutes);
   app.use('/api/health', healthRoutes);
   app.use('/api/cache', cacheRoutes); // Unified cache API

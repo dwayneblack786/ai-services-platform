@@ -9,7 +9,8 @@ Write-Host "🔐 Checking Keycloak..." -ForegroundColor Yellow
 try {
     $keycloakTest = Invoke-WebRequest -Uri "http://localhost:9999" -Method GET -TimeoutSec 3 -ErrorAction Stop
     Write-Host "✅ Keycloak is running" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "⚠️  Keycloak is not running. Please start Keycloak:" -ForegroundColor Red
     Write-Host "   http://localhost:9999 (admin/admin)`n" -ForegroundColor Yellow
     $response = Read-Host "Do you want to continue anyway? (y/n)"
@@ -24,7 +25,8 @@ try {
     $mongoTest = Get-Process mongod -ErrorAction SilentlyContinue
     if ($mongoTest) {
         Write-Host "✅ MongoDB is running (PID: $($mongoTest.Id))" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "⚠️  MongoDB is not running. Please start MongoDB:" -ForegroundColor Red
         Write-Host "   mongod --dbpath C:\data\db`n" -ForegroundColor Yellow
         $response = Read-Host "Do you want to continue anyway? (y/n)"
@@ -32,7 +34,8 @@ try {
             exit 1
         }
     }
-} catch {
+}
+catch {
     Write-Host "⚠️  Could not check MongoDB status" -ForegroundColor Yellow
 }
 
@@ -42,7 +45,7 @@ Write-Host ""
 
 # Kill any existing node processes on our ports
 Write-Host "🧹 Cleaning up existing processes..." -ForegroundColor Yellow
-$ports = @(5000, 5173,  8000)
+$ports = @(5000, 5173, 8000, 5174, 8136, 50051)
 foreach ($port in $ports) {
     $connections = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
     if ($connections) {
@@ -50,7 +53,8 @@ foreach ($port in $ports) {
             try {
                 Stop-Process -Id $conn.OwningProcess -Force -ErrorAction SilentlyContinue
                 Write-Host "  Killed process on port $port (PID: $($conn.OwningProcess))" -ForegroundColor Gray
-            } catch {
+            }
+            catch {
                 # Ignore errors
             }
         }
@@ -158,11 +162,14 @@ Write-Host "Waiting for services to initialize..." -ForegroundColor Gray
 Start-Sleep -Seconds 10
 
 Write-Host "`n🏥 Health Checks:" -ForegroundColor Yellow
-$healthChecks =VA-Service"; URL = "http://localhost:8136/health" },
-    @{ Name = " @(
+$healthChecks =
+@(
+
+    @{ Name = "VA-Service"; URL = "http://localhost:8136/health" },
     @{ Name = "Keycloak"; URL = "http://localhost:9999" },
-    @{ Name = "Product Mgmt"; URL = "http://localhost:5000/health" },
-    @{ Name = "Prompt Mgmt"; URL = "http://localhost:5001/health" }
+    @{ Name = "Product Mgmt"; URL = "http://localhost:5000/health" }
+    # ,
+    # @{ Name = "Prompt Mgmt"; URL = "http://localhost:5001/health" }
 )
 
 foreach ($check in $healthChecks) {
@@ -170,10 +177,12 @@ foreach ($check in $healthChecks) {
         $response = Invoke-WebRequest -Uri $check.URL -Method GET -TimeoutSec 5 -ErrorAction Stop
         if ($response.StatusCode -eq 200) {
             Write-Host "  ✅ $($check.Name) - Healthy" -ForegroundColor Green
-        } else {
+        }
+        else {
             Write-Host "  ⚠️  $($check.Name) - Status: $($response.StatusCode)" -ForegroundColor Yellow
         }
-    } catch {
+    }
+    catch {
         Write-Host "  ❌ $($check.Name) - Not responding yet (may still be starting)" -ForegroundColor Red
     }
 }

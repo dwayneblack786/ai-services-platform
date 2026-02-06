@@ -1,5 +1,8 @@
 module.exports = {
   preset: 'ts-jest',
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
+  },
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
@@ -25,8 +28,10 @@ module.exports = {
   },
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
+  globalSetup: '<rootDir>/tests/globalSetup.ts',
+  globalTeardown: '<rootDir>/tests/globalTeardown.ts',
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  testTimeout: 10000,
+  testTimeout: 30000,
   verbose: true,
   clearMocks: true,
   resetMocks: true,

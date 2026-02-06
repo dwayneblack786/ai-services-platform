@@ -48,6 +48,10 @@ const SettingsDropdown = () => {
             <span style={styles.itemIcon}>📊</span>
             <span>All Reports</span>
           </button>
+          <button onClick={() => handleNavigation('/prompts')} style={styles.dropdownItem}>
+            <span style={styles.itemIcon}>📝</span>
+            <span>Prompt Management</span>
+          </button>
         </div>
       )}
     </div>

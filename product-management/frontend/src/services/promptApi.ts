@@ -1,0 +1,290 @@
+/**
+ * Prompt Management System (PMS) API Client
+ *
+ * Handles all API calls to the PMS backend:
+ * - CRUD operations for prompts
+ * - Version management
+ * - Active prompt retrieval (tenant/product/channel isolation)
+ * - Auto-save support
+ */
+
+import { ApiClient } from './apiClient';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// Create PMS API client instance
+const pmsApiClient = new ApiClient({
+  baseURL: API_BASE_URL,
+  timeout: 15000,
+  name: 'PromptManagementAPI'
+});
+
+// Type definitions
+export interface IPromptVersion {
+  baseTemplateId: any;
+  _id: string;
+  promptId: string;
+  version: number;
+  name: string;
+  description?: string;
+  category?: string;
+  channelType: 'voice' | 'chat' | 'sms' | 'whatsapp' | 'email';
+  tenantId?: string;
+  productId?: string;
+  content: IPromptContent;
+  state: 'draft' | 'testing' | 'staging' | 'production' | 'archived';
+  environment: 'development' | 'testing' | 'staging' | 'production';
+  isActive: boolean;
+  createdBy: {
+    userId: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+  createdAt: string;
+  updatedBy?: {
+    userId: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+  updatedAt?: string;
+  basedOn?: string;
+  changes?: Array<{
+    field: string;
+    oldValue: any;
+    newValue: any;
+    description?: string;
+  }>;
+  metrics?: {
+    totalUses: number;
+    avgLatency: number;
+    errorRate: number;
+  };
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletedBy?: {
+    userId: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+}
+
+export interface IPromptContent {
+  systemPrompt: string;
+  persona: {
+    tone: string;
+    personality: string;
+    allowedActions: string[];
+    disallowedActions: string[];
+  };
+  businessContext: {
+    servicesOffered: string[];
+    pricingInfo?: string;
+    locations?: Array<{
+      name: string;
+      address: string;
+      city: string;
+      phone: string;
+      hours: string;
+    }>;
+    policies?: string;
+    faqs?: Array<{
+      question: string;
+      answer: string;
+    }>;
+  };
+  ragConfig: {
+    enabled: boolean;
+    // RAG config fields (Phase 2.5)
+  };
+  conversationBehavior: {
+    greeting: string;
+    fallbackMessage?: string;
+    intentPrompts?: { [key: string]: string };
+    askForNameFirst: boolean;
+    conversationMemoryTurns: number;
+  };
+  constraints: {
+    prohibitedTopics: string[];
+    complianceRules: string[];
+    requireConsent: boolean;
+    maxConversationTurns?: number;
+  };
+  customVariables?: { [key: string]: string };
+}
+
+export interface ICreateDraftParams {
+  name: string;
+  description?: string;
+  category?: string;
+  channelType: 'voice' | 'chat' | 'sms' | 'whatsapp' | 'email';
+  tenantId?: string;
+  productId?: string;
+  content: Partial<IPromptContent>;
+}
+
+export interface IGetActivePromptParams {
+  tenantId?: string;
+  productId?: string;
+  channelType: string;
+  environment: 'development' | 'testing' | 'staging' | 'production';
+}
+
+export interface IListPromptsParams {
+  tenantId?: string;
+  productId?: string;
+  state?: string;
+  channelType?: string;
+  environment?: string;
+  includeDeleted?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface IListPromptsResponse {
+  prompts: IPromptVersion[];
+  total: number;
+}
+
+/**
+ * Prompt Management API
+ */
+export const promptApi = {
+  /**
+   * Create a new draft prompt
+   */
+  async createDraft(params: ICreateDraftParams): Promise<IPromptVersion> {
+    const response = await pmsApiClient.post('/api/pms/prompts/drafts', params);
+    return response.data;
+  },
+
+  /**
+   * Get a prompt by ID
+   */
+  async getPrompt(id: string): Promise<IPromptVersion> {
+    const response = await pmsApiClient.get(`/api/pms/prompts/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Get active prompt for tenant/product/channel/environment
+   */
+  async getActivePrompt(params: IGetActivePromptParams): Promise<IPromptVersion> {
+    const queryParams = new URLSearchParams();
+    if (params.tenantId) queryParams.append('tenantId', params.tenantId);
+    if (params.productId) queryParams.append('productId', params.productId);
+    queryParams.append('channelType', params.channelType);
+    queryParams.append('environment', params.environment);
+
+    const response = await pmsApiClient.get(`/api/pms/prompts/active?${queryParams.toString()}`);
+    return response.data;
+  },
+
+  /**
+   * Update a draft prompt
+   * Returns: { prompt, isNewVersion } - isNewVersion=true if a new version was created
+   */
+  async updateDraft(id: string, updates: Partial<IPromptVersion>): Promise<{ prompt: IPromptVersion; isNewVersion: boolean }> {
+    const response = await pmsApiClient.put(`/api/pms/prompts/${id}`, updates);
+    return response.data;
+  },
+
+  /**
+   * Promote prompt to next state (draft -> testing -> production)
+   */
+  async promotePrompt(id: string, targetState: 'testing' | 'production'): Promise<IPromptVersion> {
+    const response = await pmsApiClient.post(`/api/pms/prompts/${id}/promote`, { targetState });
+    return response.data;
+  },
+
+  /**
+   * Create a new version from existing prompt
+   */
+  async createNewVersion(id: string): Promise<IPromptVersion> {
+    const response = await pmsApiClient.post(`/api/pms/prompts/${id}/versions`);
+    return response.data;
+  },
+
+  /**
+   * Get version history for a prompt
+   */
+  async getVersionHistory(promptId: string): Promise<IPromptVersion[]> {
+    const response = await pmsApiClient.get(`/api/pms/prompts/${promptId}/versions`);
+    return response.data;
+  },
+
+  /**
+   * Soft delete a prompt (marks as deleted, preserves data)
+   */
+  async softDeletePrompt(id: string): Promise<void> {
+    await pmsApiClient.delete(`/api/pms/prompts/${id}`);
+  },
+
+  /**
+   * Restore a soft-deleted prompt
+   */
+  async restorePrompt(id: string): Promise<IPromptVersion> {
+    const response = await pmsApiClient.post(`/api/pms/prompts/${id}/restore`);
+    return response.data;
+  },
+
+  /**
+   * Hard delete a prompt (permanent removal)
+   */
+  async hardDeletePrompt(id: string): Promise<void> {
+    await pmsApiClient.delete(`/api/pms/prompts/${id}/hard`);
+  },
+
+  /**
+   * Delete a draft prompt (alias for softDeletePrompt for backward compatibility)
+   */
+  async deleteDraft(id: string): Promise<void> {
+    await this.softDeletePrompt(id);
+  },
+
+  /**
+   * List prompts with filters
+   */
+  async listPrompts(params: IListPromptsParams): Promise<IListPromptsResponse> {
+    const queryParams = new URLSearchParams();
+    if (params.tenantId) queryParams.append('tenantId', params.tenantId);
+    if (params.productId) queryParams.append('productId', params.productId);
+    if (params.state) queryParams.append('state', params.state);
+    if (params.channelType) queryParams.append('channelType', params.channelType);
+    if (params.environment) queryParams.append('environment', params.environment);
+    if (params.includeDeleted !== undefined) queryParams.append('includeDeleted', params.includeDeleted.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.offset) queryParams.append('offset', params.offset.toString());
+
+    const response = await pmsApiClient.get(`/api/pms/prompts?${queryParams.toString()}`);
+    return response.data;
+  }
+  ,
+
+  /**
+   * Get usage metrics for a prompt version (Phase 7)
+   */
+  async getMetrics(promptVersionId: string): Promise<any> {
+    const response = await pmsApiClient.get(`/api/pms/metrics/${promptVersionId}`);
+    return response.data.metrics;
+  }
+};
+
+export default promptApi;
+
+/**
+ * Phase 7: Metrics API
+ */
+
+/**
+ * Get usage metrics for a prompt version
+ */
+export const getMetrics = async (promptVersionId: string): Promise<any> => {
+  const response = await pmsApiClient.get(`/api/pms/metrics/${promptVersionId}`);
+  return response.data.metrics;
+};
+
+// Add to promptApi object
+promptApi.getMetrics = getMetrics;

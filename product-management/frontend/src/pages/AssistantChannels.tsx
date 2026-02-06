@@ -137,6 +137,12 @@ const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavi
     }
   };
 
+  // Navigate to the standalone tenant prompts page,
+  // filtered to the specified channel and product via URL query params.
+  const navigateToPromptConfig = (channelType: 'voice' | 'chat') => {
+    navigate(`/tenant-prompts?productId=${productId}&channel=${channelType}`);
+  };
+
   if (loading) {
     return <PageContainer>Loading channels...</PageContainer>;
   }
@@ -224,13 +230,13 @@ const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavi
           )}
 
           <ButtonGroup>
-            <Button 
-              onClick={() => onNavigate?.('prompt-config:voice')}
+            <Button
+              onClick={() => navigateToPromptConfig('voice')}
               title="Configure voice channel settings, prompts, and voice preferences"
             >
               Configure Voice Prompts
             </Button>
-            <SecondaryButton 
+            <SecondaryButton
               onClick={() => navigate(`/voice-demo?productId=${productId}`)}
               title="Try out the interactive voice demo with real-time speech-to-text and text-to-speech"
             >
@@ -287,9 +293,9 @@ const AssistantChannels: React.FC<AssistantChannelsProps> = ({ productId, onNavi
             </ConfigSection>
           )}
 
-          <Button 
-            style={{ marginTop: '16px' }} 
-            onClick={() => onNavigate?.('prompt-config:chat')}
+          <Button
+            style={{ marginTop: '16px' }}
+            onClick={() => navigateToPromptConfig('chat')}
             title="Configure chat channel settings, greetings, and behavior"
           >
             Configure Chat Prompts
