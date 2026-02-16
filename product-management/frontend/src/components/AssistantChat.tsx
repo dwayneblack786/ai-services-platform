@@ -1403,15 +1403,15 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
             onKeyDown={handleKeyPress}
             placeholder={
               menuOptions && !optionSelected
-                ? "Please select an option above..."
+                ? "Select an option above or type your message..."
                 : "Type your message... (Ctrl+Enter to send)"
             }
             title={
               menuOptions && !optionSelected
-                ? "Please select an option from the menu above"
+                ? "You can select an option from the menu or type your message directly"
                 : "Type your message here. Press Ctrl+Enter to send or Enter for new line."
             }
-            disabled={!sessionId || isLoading || (menuOptions !== null && !optionSelected)}
+            disabled={!sessionId || isLoading}
             rows={3}
             style={{
               flex: 1,
