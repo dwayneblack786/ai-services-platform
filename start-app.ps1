@@ -19,6 +19,49 @@ catch {
     }
 }
 
+# Check if Redis is running
+Write-Host "🔐 Checking Redis..." -ForegroundColor Yellow
+[string]$HostName = "127.0.0.1"
+[int]$Port = 6379
+   
+
+try {
+    $tcpClient = New-Object System.Net.Sockets.TcpClient($HostName, $Port)
+    $stream = $tcpClient.GetStream()
+    $writer = New-Object System.IO.StreamWriter($stream)
+    $reader = New-Object System.IO.StreamReader($stream)
+
+    # Send the Redis PING command followed by a carriage return and newline
+    $writer.WriteLine("PING`r`n")
+    $writer.Flush()
+
+    # Read the response from the server
+    $response = $reader.ReadLine()
+
+    if ($response -eq "+PONG") {
+        Write-Host "✅Connection successful. Redis server responded with '$response'." -ForegroundColor Green
+    }
+    else {
+        Write-Host "⚠️Connection established, but received unexpected response: '$response'" -ForegroundColor Yellow
+    }
+}
+catch {
+    Write-Host "⚠️Connection failed: $_. Check that your Podman container is running and port forwarding is correct." -ForegroundColor Red
+    Write-Host "⚠️  Redis is not running. Please start Redis:" -ForegroundColor Red
+    Write-Host "   redis://default@127.0.0.1:6379`n" -ForegroundColor Yellow
+    $response = Read-Host "Do you want to continue anyway? (y/n)"
+    if ($response -ne 'y') {
+        exit 1
+    }
+}
+finally {
+    # Clean up resources
+    if ($reader) { $reader.Dispose() }
+    if ($writer) { $writer.Dispose() }
+    if ($stream) { $stream.Dispose() }
+    if ($tcpClient) { $tcpClient.Dispose() }
+}
+
 # Check if MongoDB is running
 Write-Host "📊 Checking MongoDB..." -ForegroundColor Yellow
 try {
@@ -132,6 +175,7 @@ Write-Host "================================`n" -ForegroundColor Cyan
 
 Write-Host "📋 Service URLs:" -ForegroundColor Yellow
 Write-Host "  Keycloak (IdP):       http://localhost:9999 (admin/admin)" -ForegroundColor White
+Write-Host "  Whisper ServerTTS/SST: http://localhost:8000" -ForegroundColor White
 Write-Host "  VA-Service HTTP:      http://localhost:8136" -ForegroundColor White
 Write-Host "  VA-Service gRPC:      localhost:50051" -ForegroundColor White
 Write-Host "  Product Management:   http://localhost:5173" -ForegroundColor White
@@ -167,9 +211,8 @@ $healthChecks =
 
     @{ Name = "VA-Service"; URL = "http://localhost:8136/health" },
     @{ Name = "Keycloak"; URL = "http://localhost:9999" },
-    @{ Name = "Product Mgmt"; URL = "http://localhost:5000/health" }
-    # ,
-    # @{ Name = "Prompt Mgmt"; URL = "http://localhost:5001/health" }
+    @{ Name = "Product Mgmt"; URL = "http://localhost:5000/health" }    ,
+    @{ Name = "Whisper ServerTTS/SST"; URL = "http://localhost:8000/health" }
 )
 
 foreach ($check in $healthChecks) {

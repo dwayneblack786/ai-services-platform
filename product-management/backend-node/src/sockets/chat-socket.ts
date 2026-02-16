@@ -4,12 +4,15 @@ import { getDB } from '../config/database';
 import { javaVAClient } from '../services/apiClient';
 import logger, { createModuleLogger } from '../utils/logger';
 import { assistantService } from '../services/assistant-service';
+import { promptService } from '../services/prompt.service';
 
 const socketLogger = createModuleLogger('chat-socket');
 
 interface ChatMessageData {
   sessionId: string;
   message: string;
+  isMenuSelection?: boolean; // Flag to indicate this is a menu option selection
+  selectedPromptId?: string; // The ID of the selected prompt
 }
 
 interface TypingData {
@@ -56,21 +59,54 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
 
     // Handle sending a message
     socket.on('chat:send-message', async (data: ChatMessageData) => {
-      const { sessionId, message } = data;
+      const { sessionId, message, isMenuSelection, selectedPromptId } = data;
       try {
         if (!sessionId || !message) {
-          socket.emit('chat:error', { 
-            error: 'Missing required fields: sessionId and message' 
+          socket.emit('chat:error', {
+            error: 'Missing required fields: sessionId and message'
           });
           return;
         }
 
-        socketLogger.debug('Message received', { 
-          sessionId, 
+        socketLogger.debug('Message received', {
+          sessionId,
           messageLength: message.length,
           userId: user.id,
-          socketId: socket.id 
+          isMenuSelection,
+          selectedPromptId,
+          socketId: socket.id
         });
+
+        // If this is a menu selection, validate it
+        let promptId = selectedPromptId;
+        if (isMenuSelection && !promptId) {
+          // Try to validate the message as a prompt name
+          const validation = await promptService.validatePromptSelection(
+            message,
+            user.tenantId,
+            'va-service',
+            'chat'
+          );
+
+          if (validation.valid && validation.promptId) {
+            promptId = validation.promptId;
+            socketLogger.info('Menu option validated', {
+              sessionId,
+              promptId,
+              promptName: validation.promptName
+            });
+          } else {
+            socketLogger.warn('Invalid menu selection', {
+              sessionId,
+              message,
+              userId: user.id
+            });
+            socket.emit('chat:error', {
+              error: 'Invalid menu selection. Please select a valid option.'
+            });
+            return;
+          }
+        }
 
         // Echo user's message immediately for instant feedback
         socket.emit('chat:message-sent', {
@@ -93,7 +129,8 @@ export function setupChatHandlers(socket: AuthenticatedSocket): void {
           context: {
             productId: 'va-service',
             userRole: (user as any).role,
-            userName: (user as any).name
+            userName: (user as any).name,
+            promptId // Pass the selected prompt ID to the assistant
           }
         });
 

@@ -36,32 +36,39 @@ public class ChatSessionController {
 
 	/**
 	 * Initialize a chat session Called when user starts a chat conversation Fetches
-	 * customer chat configuration from MongoDB
-	 * 
+	 * customer chat configuration from MongoDB and returns available prompt options
+	 *
 	 * @param request Contains customerId and optional productId
-	 * @return Session ID
+	 * @return Session ID, greeting, and menu options
 	 */
 	@PostMapping("/session")
-	public ResponseEntity<Map<String, String>> startSession(@RequestBody Map<String, String> request) {
+	public ResponseEntity<Map<String, Object>> startSession(@RequestBody Map<String, String> request) {
 		try {
 			String customerId = request.get("customerId");
 			String productId = request.getOrDefault("productId", "va-service");
 
 			logger.info("[ChatController] Starting session - customerId: {}, productId: {}", customerId, productId);
 
-			Map<String, String> sessionData = chatSessionService.startSession(customerId, productId);
-			
+			Map<String, Object> sessionData = chatSessionService.startSession(customerId, productId);
+
 			logger.debug("[ChatController] Received session data: {}", sessionData);
 			logger.debug("[ChatController] Greeting from service: {}", sessionData.get("greeting"));
 
-			Map<String, String> response = new HashMap<>();
+			Map<String, Object> response = new HashMap<>();
 			response.put("sessionId", sessionData.get("sessionId"));
 			response.put("customerId", customerId);
 			response.put("productId", productId);
 			response.put("status", "initialized");
 			response.put("message", "Chat session started with configuration from MongoDB");
 			response.put("greeting", sessionData.get("greeting")); // Include greeting from LLM
-			
+
+			// Include menu options if available
+			if (sessionData.containsKey("options")) {
+				response.put("options", sessionData.get("options"));
+				response.put("promptText", sessionData.get("promptText"));
+				logger.debug("[ChatController] Including menu options in response");
+			}
+
 			logger.debug("[ChatController] Returning response: {}", response);
 
 			return ResponseEntity.ok(response);

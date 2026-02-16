@@ -154,14 +154,14 @@ public class ChatServiceImpl extends ChatServiceImplBase {
 			logger.info("gRPC StartSession - customerId: {}, productId: {}",
 					request.getCustomerId(), request.getProductId());
 
-			Map<String, String> result = chatSessionService.startSession(
+			Map<String, Object> result = chatSessionService.startSession(
 					request.getCustomerId(),
 					request.getProductId()
 					);
 
 			com.ai.va.grpc.SessionResponse response = com.ai.va.grpc.SessionResponse.newBuilder()
-					.setSessionId(result.get("sessionId"))
-					.setGreeting(result.getOrDefault("greeting", "Hello! How can I assist you today?"))
+					.setSessionId((String) result.get("sessionId"))
+					.setGreeting((String) result.getOrDefault("greeting", "Hello! How can I assist you today?"))
 					.setSuccess(true)
 					.build();
 

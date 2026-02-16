@@ -3,6 +3,7 @@ import { authenticateSession } from '../middleware/auth';
 import { streamRateLimiter, trackTokenUsage } from '../middleware/rateLimiter';
 import { getDB } from '../config/database';
 import { javaVAClient } from '../services/apiClient';
+import { promptService } from '../services/prompt.service';
 // Using native fetch (Node.js 18+)
 
 const router = express.Router();
@@ -16,6 +17,15 @@ interface ChatMessageRequest {
   message: string;
 }
 
+interface MenuOption {
+  id: string;
+  text: string;
+  value: string;
+  icon?: string;
+  dtmfKey?: string;
+  requiresInput?: boolean;
+}
+
 interface ChatResponse {
   sessionId: string;
   message: string;
@@ -24,6 +34,8 @@ interface ChatResponse {
   requiresAction?: boolean;
   suggestedAction?: string;
   messages?: string[];
+  options?: MenuOption[]; // NEW: Session menu options
+  promptText?: string; // NEW: Prompt for option selection
 }
 
 // POST /chat/session
@@ -170,10 +182,13 @@ router.post('/session', authenticateSession, async (req: Request, res: Response)
     
     console.log('[Chat Session] Extracted greeting:', actualGreeting);
 
+    // Java service now returns menu options directly in javaResponse.data
+    // No need to query menu service here
+
     // Include chat configuration in response
     // Use greeting from Java (LLM response) if available, otherwise fallback to DB config
     const response = {
-      ...javaResponse.data,
+      ...javaResponse.data,  // This now includes options[] and promptText from Java
       chatConfig: {
         greeting: actualGreeting,
         typingIndicator: channels.chat.typingIndicator !== false,

@@ -19,6 +19,7 @@ import com.ai.va.model.ChannelType;
 import com.ai.va.model.ChatRequest;
 import com.ai.va.model.ChatResponse;
 import com.ai.va.model.LlmResult;
+import com.ai.va.model.MenuOption;
 import com.ai.va.model.PromptContext;
 import com.ai.va.model.SessionState;
 import com.ai.va.model.Turn;
@@ -53,6 +54,9 @@ public class ChatSessionService {
 
 	@Autowired
 	private MongoDBService mongoDBService;
+
+	@Autowired
+	private PromptService promptService;
 
 	// In-memory session storage (consider Redis for production)
 	private final Map<String, SessionState> activeSessions = new ConcurrentHashMap<>();
@@ -899,9 +903,9 @@ public class ChatSessionService {
 	 *
 	 * @param customerId Customer ID for context (tenantId)
 	 * @param productId Product ID (e.g., "va-service")
-	 * @return Map containing sessionId and greeting message
+	 * @return Map containing sessionId, greeting message, and available prompt options
 	 */
-	public Map<String, String> startSession(String customerId, String productId) {
+	public Map<String, Object> startSession(String customerId, String productId) {
 		// Check if customer has an active session and end it
 		String existingSessionId = customerToSessionMap.get(customerId);
 		if (existingSessionId != null) {
@@ -954,10 +958,22 @@ public class ChatSessionService {
 
 		logger.debug("[ChatSession] Greeting message being returned to controller: {}", greetingMessage);
 
-		// Return both sessionId and greeting message
-		Map<String, String> result = new HashMap<>();
+		// Query available production prompts for this tenant/product/channel
+		List<MenuOption> menuOptions = promptService.getProductionPrompts(customerId, productId, "chat");
+		logger.info("[ChatSession] Found {} menu options for chat channel", menuOptions != null ? menuOptions.size() : 0);
+
+		// Return sessionId, greeting, and menu options
+		Map<String, Object> result = new HashMap<>();
 		result.put("sessionId", sessionId);
 		result.put("greeting", greetingMessage);
+
+		// Add menu options if available
+		if (menuOptions != null && !menuOptions.isEmpty()) {
+			result.put("options", menuOptions);
+			result.put("promptText", "Select a service:");
+			logger.debug("[ChatSession] Including {} menu options in response", menuOptions.size());
+		}
+
 		logger.debug("[ChatSession] Result map: {}", result);
 		return result;
 	}

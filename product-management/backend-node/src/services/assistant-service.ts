@@ -17,7 +17,17 @@ export interface AssistantMessageParams {
     productId?: string;
     userRole?: string;
     userName?: string;
+    promptId?: string; // Selected prompt from session menu
   };
+}
+
+export interface MenuOption {
+  id: string;
+  text: string;
+  value: string;
+  icon?: string;
+  dtmfKey?: string; // For voice: "1", "2", "3"
+  requiresInput?: boolean;
 }
 
 export interface AssistantResponse {
@@ -27,6 +37,8 @@ export interface AssistantResponse {
   requiresAction?: boolean;
   suggestedAction?: string;
   conversationId?: string;
+  options?: MenuOption[]; // NEW: Session menu options
+  promptText?: string; // NEW: "Please select an option:"
   metadata?: {
     source: 'text' | 'voice';
     processingTime?: number;
@@ -69,7 +81,8 @@ export class AssistantService {
             userName: params.context?.userName,
             userEmail: params.userEmail,
             productId: params.context?.productId || 'va-service',
-            source: params.source
+            source: params.source,
+            promptId: params.context?.promptId // Include selected prompt ID
           }
         },
         {

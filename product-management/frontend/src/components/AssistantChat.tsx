@@ -4,12 +4,22 @@ import { useSocket } from '../hooks/useSocket';
 import { useAuth } from '../context/AuthContext';
 import { sessionCache } from '../services/cacheClient';
 import VoiceVisualizer from './VoiceVisualizer';
+import { MessageBubble } from './MessageBubble';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
   intent?: string;
+}
+
+interface MenuOption {
+  id: string;
+  text: string;
+  value: string;
+  icon?: string;
+  dtmfKey?: string;
+  requiresInput?: boolean;
 }
 
 interface ChatResponse {
@@ -20,6 +30,8 @@ interface ChatResponse {
   intent?: string;
   requiresAction?: boolean;
   suggestedAction?: string;
+  options?: MenuOption[]; // NEW: Session menu options
+  promptText?: string; // NEW: Prompt for option selection
   chatConfig?: {
     greeting: string;
     typingIndicator: boolean;
@@ -143,7 +155,13 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
   const [greetingState, setGreetingState] = useState<'none' | 'initializing' | 'playing' | 'played'>('none');
   const [greetingAudio, setGreetingAudio] = useState<string | null>(null);
   const [greetingText, setGreetingText] = useState<string | null>(null);
-  
+
+  // Menu options state
+  const [menuOptions, setMenuOptions] = useState<MenuOption[] | null>(null);
+  const [promptText, setPromptText] = useState<string | null>(null);
+  const [optionSelected, setOptionSelected] = useState(false);
+  const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -257,7 +275,10 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       setIsAssistantTyping(false);
       setIsLoading(false); // Clear loading state when response is received
       setMessages(prev => [...prev, normalizeMessage(data)]);
-      
+
+      // Reset option selection to show menu again after assistant response
+      setOptionSelected(false);
+
       // Handle action requirements
       if (data.requiresAction) {
         setRequiresAction(true);
@@ -346,6 +367,17 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       // WebSocket room joining is handled by separate useEffect
       // that watches for sessionId and isConnected changes
       
+      // Capture menu options if provided
+      if (response.data.options && response.data.options.length > 0) {
+        setMenuOptions(response.data.options);
+        setPromptText(response.data.promptText || 'Please select an option:');
+        setOptionSelected(false); // Reset for new session
+      } else {
+        setMenuOptions(null);
+        setPromptText(null);
+        setOptionSelected(true); // No menu, allow free text
+      }
+
       // If resuming session, load history
       if (response.data.status === 'resumed' && response.data.messages) {
         setMessages(response.data.messages.map((msg: any) => normalizeMessage({
@@ -355,15 +387,15 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         })));
       } else {
         // New session - show greeting
-        const greeting = response.data.chatConfig?.greeting || 
-                        response.data.message || 
+        const greeting = response.data.chatConfig?.greeting ||
+                        response.data.message ||
                         'Hello! I\'m your AI assistant. How can I help you today?';
         setMessages([normalizeMessage({
           role: 'assistant',
           content: greeting
         })]);
       }
-      
+
       setError(null);
     } catch (err: any) {
       const errorMsg = err.response?.data?.error || 'Failed to start chat session. Please try again.';
@@ -447,11 +479,20 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
     try {
       if (useWebSocket && socket && isConnected) {
         // Use WebSocket for real-time messaging
-        console.log('[Chat] Sending via WebSocket');
+        console.log('[Chat] Sending via WebSocket', {
+          hasPromptId: !!selectedPromptId,
+          promptId: selectedPromptId
+        });
         socket.emit('chat:send-message', {
           sessionId,
-          message: messageToSend
+          message: messageToSend,
+          isMenuSelection: !!selectedPromptId,
+          selectedPromptId: selectedPromptId || undefined
         });
+
+        // Clear the selected prompt ID after sending
+        setSelectedPromptId(null);
+
         // Loading will be cleared when response is received
       } else {
         // Use agent endpoint for AI-powered responses
@@ -496,6 +537,21 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
       sendMessage();
     }
     // Allow Enter for new lines without modifier keys
+  };
+
+  // Handle option button click - loads text into input field as suggestion
+  const handleOptionSelect = (option: MenuOption) => {
+    // Load option text into input field
+    setInputMessage(option.text);
+
+    // Store the selected prompt ID (option.id is the promptId from database)
+    setSelectedPromptId(option.id);
+
+    // Mark as selected to hide options (user can still modify before sending)
+    setOptionSelected(true);
+
+    // Focus input so user can submit or modify
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   // Initialize voice session with greeting
@@ -1028,39 +1084,83 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
           backgroundColor: '#f9fafb'
         }}>
           {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            style={{
-              marginBottom: '16px',
+            <MessageBubble
+              key={idx}
+              role={msg.role}
+              content={msg.content}
+              timestamp={msg.timestamp}
+              intent={msg.intent}
+              showIntent={false}  // Can be made configurable later
+            />
+          ))}
+
+        {/* Option Bubbles in Chat Context - Show persistently after greeting */}
+        {menuOptions && messages.length > 0 && (
+          <div style={{ marginBottom: '16px' }}>
+            {promptText && (
+              <div style={{
+                textAlign: 'left',
+                marginBottom: '12px',
+                padding: '8px 12px',
+                backgroundColor: '#f0f9ff',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: '600',
+                color: '#1e40af'
+              }}>
+                {promptText}
+              </div>
+            )}
+            <div style={{
               display: 'flex',
-              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
-            }}
-          >
-            <div
-              style={{
-                maxWidth: '70%',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                backgroundColor: msg.role === 'user' ? '#4f46e5' : '#ffffff',
-                color: msg.role === 'user' ? '#ffffff' : '#000000',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word'
-              }}
-            >
-              {msg.content}
-              {msg.intent && (
-                <div style={{ 
-                  fontSize: '10px', 
-                  opacity: 0.6, 
-                  marginTop: '4px' 
-                }}>
-                  Intent: {msg.intent}
-                </div>
-              )}
+              flexDirection: 'column',
+              gap: '8px',
+              alignItems: 'flex-start'
+            }}>
+              {menuOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => handleOptionSelect(option)}
+                  disabled={isLoading}
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: 'white',
+                    border: '2px solid #e0e7ff',
+                    borderRadius: '20px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#4f46e5',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                    opacity: isLoading ? 0.5 : 1
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.backgroundColor = '#eef2ff';
+                      e.currentTarget.style.borderColor = '#4f46e5';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.15)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'white';
+                    e.currentTarget.style.borderColor = '#e0e7ff';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                  }}
+                >
+                  {option.icon && <span style={{ fontSize: '16px' }}>{option.icon}</span>}
+                  <span>{option.text}</span>
+                </button>
+              ))}
             </div>
           </div>
-        ))}
+        )}
+
         {(isLoading || isAssistantTyping) && (
           <div style={{ textAlign: 'left', color: '#6b7280', marginBottom: '16px' }}>
             <div style={{
@@ -1298,9 +1398,17 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Type your message... (Ctrl+Enter to send)"
-            title="Type your message here. Press Ctrl+Enter to send or Enter for new line."
-            disabled={!sessionId || isLoading}
+            placeholder={
+              menuOptions && !optionSelected
+                ? "Please select an option above..."
+                : "Type your message... (Ctrl+Enter to send)"
+            }
+            title={
+              menuOptions && !optionSelected
+                ? "Please select an option from the menu above"
+                : "Type your message here. Press Ctrl+Enter to send or Enter for new line."
+            }
+            disabled={!sessionId || isLoading || (menuOptions !== null && !optionSelected)}
             rows={3}
             style={{
               flex: 1,

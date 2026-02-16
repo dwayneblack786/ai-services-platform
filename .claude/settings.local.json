@@ -21,7 +21,18 @@
       "Bash(NODE_OPTIONS=\"--max-old-space-size=4096\" npx:*)",
       "Bash(powershell:*)",
       "Bash(npm test:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run test:voice:*)",
+      "Bash(npm run generate:codecs:*)",
+      "Bash(npm run test:voip:codec:*)",
+      "Bash(npm run test:voip:simulation:*)",
+      "Bash(npm run test:orchestrator:*)",
+      "Bash(npm run test:integration:voice:*)",
+      "Bash(npm run check:*)",
+      "Bash(mongosh:*)",
+      "Bash(MONGODB_URI='mongodb://localhost:27017' node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

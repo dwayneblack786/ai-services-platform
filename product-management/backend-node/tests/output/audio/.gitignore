@@ -1,0 +1,9 @@
+# Ignore all audio output files
+*.mp3
+*.wav
+*.webm
+*.ogg
+
+# Keep directory structure
+!.gitkeep
+!.gitignore

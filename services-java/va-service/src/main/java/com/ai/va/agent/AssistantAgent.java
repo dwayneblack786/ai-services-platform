@@ -1,6 +1,8 @@
 package com.ai.va.agent;
 
 import com.ai.va.client.LlmClient;
+import com.ai.va.service.PromptService;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +27,12 @@ public class AssistantAgent {
     
     @Autowired
     private LlmClient llmClient;
-    
+
     @Autowired
     private AgentMemory memory;
+
+    @Autowired
+    private PromptService promptService;
     
     /**
      * Execute a user request using available tools
@@ -83,40 +88,133 @@ public class AssistantAgent {
      */
     private String buildSystemPrompt(Map<String, Object> context) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("You are a friendly and helpful AI assistant. Your goal is to have natural, engaging conversations.\n\n");
-        
-        prompt.append("CRITICAL INSTRUCTIONS:\n");
-        prompt.append("1. When a user asks multiple questions, you MUST answer EVERY single question thoroughly.\n");
-        prompt.append("2. Address each question in the order they were asked.\n");
-        prompt.append("3. Use clear numbering (1., 2., 3., etc.) if there are multiple questions.\n");
-        prompt.append("4. Never skip or ignore any question - if you can't answer something, explain why.\n");
-        prompt.append("5. Be conversational, warm, and personable in your responses.\n\n");
-        
-        prompt.append("EXAMPLE - If user asks:\n");
-        prompt.append("\"1. Hello, how are you?\n");
-        prompt.append("2. What can you help with?\n");
-        prompt.append("3. Tell me about services\"\n\n");
-        prompt.append("You MUST respond with:\n");
-        prompt.append("\"Hello! I'm doing great, thank you for asking! I'm here to help you today.\n\n");
-        prompt.append("I can help you with many things including:\n");
-        prompt.append("- Answering questions and providing information\n");
-        prompt.append("- Looking up orders and customer information\n");
-        prompt.append("- Scheduling appointments\n");
-        prompt.append("- And much more!\n\n");
-        prompt.append("As for our services, we offer [describe services]...\"\n\n");
-        
-        prompt.append("Available capabilities:\n");
-        prompt.append("- Looking up information\n");
-        prompt.append("- Processing orders\n");
-        prompt.append("- Scheduling appointments\n");
-        prompt.append("- Answering questions\n\n");
-        
+
+        // Check if promptId is provided in context
+        String promptId = context != null ? (String) context.get("promptId") : null;
+
+        if (promptId != null && !promptId.isEmpty()) {
+            logger.info("[AssistantAgent] Loading prompt configuration for promptId: {}", promptId);
+
+            // Load full prompt configuration from MongoDB
+            Document promptDoc = promptService.getPromptById(promptId);
+
+            if (promptDoc != null) {
+                logger.debug("[AssistantAgent] Found prompt: {}", promptDoc.getString("name"));
+
+                // Extract prompt content structure
+                Document content = (Document) promptDoc.get("content");
+                if (content != null) {
+                    // Use custom system prompt if available
+                    String systemPrompt = content.getString("systemPrompt");
+                    if (systemPrompt != null && !systemPrompt.isEmpty()) {
+                        prompt.append(systemPrompt).append("\n\n");
+                        logger.debug("[AssistantAgent] Using custom system prompt from prompt configuration");
+                    }
+
+                    // Add persona section
+                    Document persona = (Document) content.get("persona");
+                    if (persona != null) {
+                        String tone = persona.getString("tone");
+                        String personality = persona.getString("personality");
+                        if (tone != null) {
+                            prompt.append("TONE: ").append(tone).append("\n");
+                        }
+                        if (personality != null) {
+                            prompt.append("PERSONALITY: ").append(personality).append("\n");
+                        }
+                        prompt.append("\n");
+                    }
+
+                    // Add business context
+                    Document businessContext = (Document) content.get("businessContext");
+                    if (businessContext != null) {
+                        @SuppressWarnings("unchecked")
+                        List<String> services = (List<String>) businessContext.get("servicesOffered");
+                        if (services != null && !services.isEmpty()) {
+                            prompt.append("SERVICES OFFERED:\n");
+                            for (String service : services) {
+                                prompt.append("- ").append(service).append("\n");
+                            }
+                            prompt.append("\n");
+                        }
+
+                        String policies = businessContext.getString("policies");
+                        if (policies != null && !policies.isEmpty()) {
+                            prompt.append("POLICIES: ").append(policies).append("\n\n");
+                        }
+                    }
+
+                    // Add conversation behavior
+                    Document conversationBehavior = (Document) content.get("conversationBehavior");
+                    if (conversationBehavior != null) {
+                        String fallback = conversationBehavior.getString("fallbackMessage");
+                        if (fallback != null && !fallback.isEmpty()) {
+                            prompt.append("FALLBACK RESPONSE: ").append(fallback).append("\n\n");
+                        }
+                    }
+
+                    // Add constraints
+                    Document constraints = (Document) content.get("constraints");
+                    if (constraints != null) {
+                        @SuppressWarnings("unchecked")
+                        List<String> prohibited = (List<String>) constraints.get("prohibitedTopics");
+                        if (prohibited != null && !prohibited.isEmpty()) {
+                            prompt.append("PROHIBITED TOPICS:\n");
+                            for (String topic : prohibited) {
+                                prompt.append("- ").append(topic).append("\n");
+                            }
+                            prompt.append("\n");
+                        }
+                    }
+
+                    logger.info("[AssistantAgent] Built system prompt from prompt configuration: {} chars", prompt.length());
+                } else {
+                    logger.warn("[AssistantAgent] Prompt document has no content field, using default");
+                }
+            } else {
+                logger.warn("[AssistantAgent] Prompt not found for promptId: {}, using default", promptId);
+            }
+        }
+
+        // If no custom prompt loaded, use default
+        if (prompt.length() == 0) {
+            logger.debug("[AssistantAgent] Using default system prompt");
+            prompt.append("You are a friendly and helpful AI assistant. Your goal is to have natural, engaging conversations.\n\n");
+
+            prompt.append("CRITICAL INSTRUCTIONS:\n");
+            prompt.append("1. When a user asks multiple questions, you MUST answer EVERY single question thoroughly.\n");
+            prompt.append("2. Address each question in the order they were asked.\n");
+            prompt.append("3. Use clear numbering (1., 2., 3., etc.) if there are multiple questions.\n");
+            prompt.append("4. Never skip or ignore any question - if you can't answer something, explain why.\n");
+            prompt.append("5. Be conversational, warm, and personable in your responses.\n\n");
+
+            prompt.append("EXAMPLE - If user asks:\n");
+            prompt.append("\"1. Hello, how are you?\n");
+            prompt.append("2. What can you help with?\n");
+            prompt.append("3. Tell me about services\"\n\n");
+            prompt.append("You MUST respond with:\n");
+            prompt.append("\"Hello! I'm doing great, thank you for asking! I'm here to help you today.\n\n");
+            prompt.append("I can help you with many things including:\n");
+            prompt.append("- Answering questions and providing information\n");
+            prompt.append("- Looking up orders and customer information\n");
+            prompt.append("- Scheduling appointments\n");
+            prompt.append("- And much more!\n\n");
+            prompt.append("As for our services, we offer [describe services]...\"\n\n");
+
+            prompt.append("Available capabilities:\n");
+            prompt.append("- Looking up information\n");
+            prompt.append("- Processing orders\n");
+            prompt.append("- Scheduling appointments\n");
+            prompt.append("- Answering questions\n\n");
+        }
+
+        // Add general context information
         if (context != null && !context.isEmpty()) {
             prompt.append("User context: ").append(context.toString()).append("\n\n");
         }
-        
+
         prompt.append("Remember: Be thorough, conversational, and answer EVERYTHING the user asks!");
-        
+
         return prompt.toString();
     }
     
