@@ -1,11 +1,21 @@
 import { getDB } from '../config/database';
 import { ObjectId } from 'mongodb';
+import { Types } from 'mongoose';
+import PromptVersionModel from '../models/PromptVersion';
+import PromptAuditLogModel from '../models/PromptAuditLog';
 
 /**
  * Prompt Service
  * Handles session prompt configuration and selection validation
  * Dynamically loads tenant-specific prompts from prompt_versions collection
  */
+
+export interface IActor {
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export interface MenuOption {
   id: string;
@@ -154,6 +164,172 @@ export class PromptService {
     } catch (error: any) {
       console.error('[PromptService] Error mapping DTMF:', error);
       return null;
+    }
+  }
+
+  /**
+   * Create a new prompt from a template
+   * Used during product signup to provision tenant-specific prompts
+   */
+  async createFromTemplate(
+    templateId: string | ObjectId,
+    tenantId: string,
+    productId: string | ObjectId,
+    actor: IActor
+  ): Promise<any> {
+    try {
+      // Fetch the template prompt
+      const template = await PromptVersionModel.findById(templateId);
+
+      if (!template) {
+        throw new Error(`Template not found: ${templateId}`);
+      }
+
+      if (!template.isTemplate) {
+        throw new Error(`Prompt ${templateId} is not a template`);
+      }
+
+      // Clone the template as a new tenant-specific draft prompt
+      const newPrompt = new PromptVersionModel({
+        // Identity
+        promptId: new Types.ObjectId(),
+        version: 1,
+        tenantId,
+        productId: ObjectId.isValid(productId as string) ? new ObjectId(productId as string) : productId,
+        channelType: template.channelType,
+
+        // Metadata
+        name: template.name,
+        description: template.description,
+        icon: template.icon,
+
+        // Template tracking
+        isTemplate: false,
+        baseTemplateId: template._id,
+        templateDescription: template.templateDescription,
+
+        // State
+        state: 'draft',
+        environment: 'development',
+        isActive: true,
+        isDeleted: false,
+        canRollback: false,
+
+        // Copy all 6 content layers (nested in content object)
+        content: {
+          systemPrompt: template.content.systemPrompt,
+          persona: template.content.persona,
+          businessContext: template.content.businessContext,
+          ragConfig: template.content.ragConfig,
+          conversationBehavior: template.content.conversationBehavior,
+          constraints: template.content.constraints,
+          customVariables: template.content.customVariables
+        },
+
+        // Audit
+        createdBy: {
+          userId: actor.userId,
+          name: actor.name,
+          email: actor.email,
+          role: actor.role
+        },
+
+        // Initialize metrics
+        metrics: {
+          totalUses: 0,
+          successCount: 0,
+          errorCount: 0,
+          avgLatency: 0,
+          p95Latency: 0,
+          p99Latency: 0,
+          avgTokensUsed: 0,
+          totalCost: 0,
+          lastUsedAt: new Date(),
+          errorRate: 0,
+          successRate: 0
+        }
+      });
+
+      const savedPrompt = await newPrompt.save();
+
+      // Log audit trail
+      await PromptAuditLogModel.create({
+        promptId: savedPrompt._id,
+        promptVersion: savedPrompt.version,
+        action: 'created_from_template',
+        actor: {
+          userId: actor.userId,
+          name: actor.name,
+          email: actor.email,
+          role: actor.role
+        },
+        changes: [{
+          field: 'template',
+          oldValue: null,
+          newValue: {
+            templateId: template._id.toString(),
+            templateName: template.name,
+            tenantId,
+            productId: productId.toString()
+          }
+        }],
+        context: {
+          tenantId,
+          productId: productId.toString(),
+          environment: 'development'
+        }
+      });
+
+      console.log(`[PromptService] Created prompt from template: ${template.name} → ${savedPrompt._id}`);
+
+      return savedPrompt;
+    } catch (error: any) {
+      console.error('[PromptService] Error creating from template:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all templates for a product
+   * Returns templates grouped by channel type
+   */
+  async getTemplatesByProduct(
+    productId: string | ObjectId
+  ): Promise<{ voice: any[]; chat: any[]; sms: any[]; whatsapp: any[]; email: any[] }> {
+    try {
+      const productObjectId = ObjectId.isValid(productId as string)
+        ? new ObjectId(productId as string)
+        : productId;
+
+      const templates = await PromptVersionModel.find({
+        isTemplate: true,
+        productId: productObjectId,
+        isActive: true,
+        isDeleted: { $ne: true },
+        state: 'production'
+      }).sort({ channelType: 1, name: 1 });
+
+      // Group by channel type
+      const grouped = {
+        voice: templates.filter(t => t.channelType === 'voice'),
+        chat: templates.filter(t => t.channelType === 'chat'),
+        sms: templates.filter(t => t.channelType === 'sms'),
+        whatsapp: templates.filter(t => t.channelType === 'whatsapp'),
+        email: templates.filter(t => t.channelType === 'email')
+      };
+
+      console.log(`[PromptService] Found templates for product ${productId}:`, {
+        voice: grouped.voice.length,
+        chat: grouped.chat.length,
+        sms: grouped.sms.length,
+        whatsapp: grouped.whatsapp.length,
+        email: grouped.email.length
+      });
+
+      return grouped;
+    } catch (error: any) {
+      console.error('[PromptService] Error fetching templates:', error);
+      throw error;
     }
   }
 }
