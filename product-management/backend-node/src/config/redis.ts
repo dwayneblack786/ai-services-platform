@@ -48,4 +48,11 @@ export const connectRedis = async () => {
   }
 };
 
+export const getRedisClient = () => {
+  if (!redisClient.isOpen) {
+    throw new Error('Redis client is not connected');
+  }
+  return redisClient;
+};
+
 export { redisClient };

@@ -32,6 +32,8 @@ import productConfigurationRoutes from './routes/product-configuration-routes';
 console.log('[Startup] ✅ Product-config routes imported');
 import subscriptionRoutes from './routes/subscription-routes';
 console.log('[Startup] ✅ Subscription routes imported');
+import productSignupRoutes from './routes/product-signup-routes';
+console.log('[Startup] ✅ Product Signup routes imported');
 import paymentRoutes from './routes/payment-routes';
 console.log('[Startup] ✅ Payment routes imported');
 import transactionsRoutes from './routes/transactions-routes';
@@ -499,6 +501,7 @@ try {
   app.use('/api/product-configurations', productConfigurationRoutes);
   app.use('/api/subscriptions', subscriptionRoutes);
   app.use('/api/subscriptions-info', subscriptionsRoutes);
+  app.use('/api/product-signup', productSignupRoutes);
   app.use('/api/payment-methods', paymentRoutes);
   app.use('/api/transactions', transactionsRoutes);
   app.use('/api/tenants', tenantRoutes);
