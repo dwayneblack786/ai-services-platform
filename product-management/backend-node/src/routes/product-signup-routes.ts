@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticateSession } from '../middleware/auth';
 import { productSignupSessionService } from '../services/productSignupSession.service';
 import { tenantPromptService } from '../services/tenantPrompt.service';
+import { sendSignupConfirmationEmail } from '../services/email.service';
 import ProductModel from '../models/Product';
 import { ProductSubscriptionModel } from '../models/ProductSubscription';
 import mongoose from 'mongoose';
@@ -441,6 +442,30 @@ router.post('/session/:sessionId/complete', async (req, res) => {
           }
         }
       );
+    }
+
+    // Send confirmation email (Phase 2)
+    try {
+      const configureUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/products/${session.productId}/configure`;
+
+      await sendSignupConfirmationEmail(
+        user.email,
+        user.name || user.firstName || user.email.split('@')[0],
+        product.name,
+        {
+          tier: session.selectedTierId || 'standard',
+          amount: session.lockedPrice,
+          currency: session.currency,
+          billingCycle,
+          nextBillingDate
+        },
+        configureUrl
+      );
+
+      console.log(`[ProductSignup] Confirmation email sent to ${user.email}`);
+    } catch (emailError: any) {
+      console.error('[ProductSignup] Failed to send confirmation email:', emailError);
+      // Don't fail the request if email fails
     }
 
     res.json({

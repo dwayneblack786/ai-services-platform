@@ -1,4 +1,5 @@
 import cron from 'node-cron';
+import { checkAbandonedSignupsJob } from './checkAbandonedSignups.job';
 
 /**
  * Job Queue Infrastructure
@@ -111,10 +112,9 @@ export const jobScheduler = new JobScheduler();
 export function initializeJobs(): void {
   console.log('[JobScheduler] Initializing job queue...');
 
-  // Jobs will be registered here as they are created
-  // Example:
-  // import { checkAbandonedSignupsJob } from './checkAbandonedSignups.job';
-  // jobScheduler.register(checkAbandonedSignupsJob);
+  // Register all jobs
+  // Phase 2: Abandoned signup reminder job
+  jobScheduler.register(checkAbandonedSignupsJob);
 
   // Start all registered jobs
   jobScheduler.startAll();

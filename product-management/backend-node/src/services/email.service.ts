@@ -752,7 +752,7 @@ export const sendPasswordResetConfirmationEmail = async (
   email: string
 ): Promise<boolean> => {
   const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
-  
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -761,10 +761,10 @@ export const sendPasswordResetConfirmationEmail = async (
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Password Reset Successful</title>
       <style>
-        body { 
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-          line-height: 1.8; 
-          color: #333; 
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.8;
+          color: #333;
           background-color: #f4f4f4;
           margin: 0;
           padding: 20px;
@@ -777,10 +777,10 @@ export const sendPasswordResetConfirmationEmail = async (
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           overflow: hidden;
         }
-        .header { 
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
-          color: white; 
-          padding: 40px 30px; 
+        .header {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: white;
+          padding: 40px 30px;
           text-align: center;
         }
         .header h1 {
@@ -788,8 +788,8 @@ export const sendPasswordResetConfirmationEmail = async (
           font-size: 28px;
           font-weight: 600;
         }
-        .content { 
-          background: white; 
+        .content {
+          background: white;
           padding: 40px 30px;
         }
         .content p {
@@ -803,19 +803,19 @@ export const sendPasswordResetConfirmationEmail = async (
           margin: 25px 0;
           border-radius: 4px;
         }
-        .button { 
-          display: inline-block; 
-          padding: 16px 40px; 
+        .button {
+          display: inline-block;
+          padding: 16px 40px;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white !important; 
-          text-decoration: none; 
-          border-radius: 8px; 
+          color: white !important;
+          text-decoration: none;
+          border-radius: 8px;
           font-weight: 600;
           box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
-        .footer { 
+        .footer {
           background: #f9f9f9;
-          text-align: center; 
+          text-align: center;
           padding: 30px;
           border-top: 1px solid #e0e0e0;
         }
@@ -826,22 +826,22 @@ export const sendPasswordResetConfirmationEmail = async (
         <div class="header">
           <h1>✅ Password Reset Successful</h1>
         </div>
-        
+
         <div class="content">
           <p style="font-size: 18px; font-weight: 600; color: #10b981;">Password Updated Successfully!</p>
-          
+
           <p>Your password has been successfully reset. You can now sign in with your new password.</p>
-          
+
           <div class="success-box">
             <p style="margin: 0; font-weight: 600; color: #059669;">🔒 Your Account is Secure</p>
             <p style="margin: 10px 0 0; font-size: 14px;">If you didn't make this change, please contact us immediately.</p>
           </div>
-          
+
           <div style="text-align: center; margin: 30px 0;">
             <a href="${loginUrl}" class="button">Sign In Now</a>
           </div>
         </div>
-        
+
         <div class="footer">
           <p>Questions? Contact support@aiservices.com</p>
           <p style="margin-top: 15px; color: #999;">© ${new Date().getFullYear()} AI Services Platform</p>
@@ -850,10 +850,483 @@ export const sendPasswordResetConfirmationEmail = async (
     </body>
     </html>
   `;
-  
+
   return sendEmail({
     to: email,
     subject: '✅ Password Reset Successful - AI Services Platform',
+    html
+  });
+};
+
+/**
+ * Send reminder email for abandoned product signup
+ * Phase 2: Email Notifications System
+ */
+export const sendSignupReminderEmail = async (
+  email: string,
+  userName: string,
+  productName: string,
+  resumeLink: string,
+  expiresAt: Date,
+  sessionId: string
+): Promise<boolean> => {
+  const cancelUrl = `${process.env.API_URL || 'http://localhost:3000'}/api/product-signup/session/${sessionId}/cancel`;
+
+  // Calculate time remaining
+  const now = new Date();
+  const timeRemaining = expiresAt.getTime() - now.getTime();
+  const minutesRemaining = Math.floor(timeRemaining / (1000 * 60));
+  const hoursRemaining = Math.floor(minutesRemaining / 60);
+  const displayMinutes = minutesRemaining % 60;
+
+  let timeRemainingText = '';
+  if (hoursRemaining > 0) {
+    timeRemainingText = `${hoursRemaining} hour${hoursRemaining > 1 ? 's' : ''} and ${displayMinutes} minute${displayMinutes !== 1 ? 's' : ''}`;
+  } else {
+    timeRemainingText = `${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}`;
+  }
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Complete Your Signup - ${productName}</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.8;
+          color: #333;
+          background-color: #f4f4f4;
+          margin: 0;
+          padding: 20px;
+        }
+        .email-wrapper {
+          max-width: 600px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+        }
+        .header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 28px;
+          font-weight: 600;
+        }
+        .header p {
+          margin: 10px 0 0;
+          font-size: 16px;
+          opacity: 0.95;
+        }
+        .content {
+          background: white;
+          padding: 40px 30px;
+        }
+        .content p {
+          margin: 0 0 20px;
+          font-size: 16px;
+        }
+        .greeting {
+          font-size: 18px;
+          font-weight: 600;
+          color: #667eea;
+          margin-bottom: 20px;
+        }
+        .product-box {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 12px;
+          padding: 25px;
+          margin: 25px 0;
+          text-align: center;
+          color: white;
+        }
+        .product-box h2 {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 600;
+        }
+        .urgency-box {
+          background: #fff3cd;
+          border-left: 4px solid #ffc107;
+          padding: 15px 20px;
+          margin: 25px 0;
+          border-radius: 4px;
+        }
+        .button-container {
+          text-align: center;
+          margin: 35px 0;
+        }
+        .button {
+          display: inline-block;
+          padding: 16px 40px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white !important;
+          text-decoration: none;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 16px;
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+          transition: transform 0.2s;
+        }
+        .button:hover {
+          transform: translateY(-2px);
+        }
+        .button-secondary {
+          display: inline-block;
+          padding: 12px 30px;
+          background: white;
+          color: #667eea !important;
+          text-decoration: none;
+          border: 2px solid #667eea;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          margin-top: 15px;
+        }
+        .link-text {
+          font-size: 13px;
+          color: #666;
+          background: #f9f9f9;
+          padding: 15px;
+          border-radius: 6px;
+          word-break: break-all;
+          margin: 20px 0;
+        }
+        .link-text a {
+          color: #667eea;
+          text-decoration: none;
+        }
+        .footer {
+          background: #f9f9f9;
+          text-align: center;
+          padding: 30px;
+          border-top: 1px solid #e0e0e0;
+        }
+        .footer p {
+          margin: 5px 0;
+          font-size: 13px;
+          color: #666;
+        }
+        .emoji {
+          font-size: 24px;
+          margin-right: 8px;
+        }
+        .timer {
+          background: white;
+          color: #ffc107;
+          padding: 15px;
+          border-radius: 8px;
+          font-size: 20px;
+          font-weight: bold;
+          margin: 15px 0;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper">
+        <div class="header">
+          <h1><span class="emoji">⏰</span> Complete Your Signup!</h1>
+          <p>You're almost there</p>
+        </div>
+
+        <div class="content">
+          <p class="greeting">Hello ${userName},</p>
+
+          <p>You started signing up for <strong>${productName}</strong>, but didn't complete the process. We wanted to make sure you didn't miss out!</p>
+
+          <div class="product-box">
+            <h2>${productName}</h2>
+            <p style="margin: 10px 0 0; opacity: 0.95; font-size: 14px;">Your subscription is waiting</p>
+          </div>
+
+          <div class="urgency-box">
+            <p style="margin: 0; font-weight: 600; color: #856404;">⏱️ Time-Sensitive Notice</p>
+            <p style="margin: 10px 0 0; font-size: 14px; color: #856404;">Your signup session expires in:</p>
+            <div class="timer">${timeRemainingText}</div>
+            <p style="margin: 10px 0 0; font-size: 13px; color: #856404;">After that, you'll need to start over with current pricing.</p>
+          </div>
+
+          <p>The good news? Your payment information and pricing are locked in. Just click the button below to pick up where you left off:</p>
+
+          <div class="button-container">
+            <a href="${resumeLink}" class="button">
+              ✓ Complete My Signup
+            </a>
+          </div>
+
+          <div class="link-text">
+            <strong>Having trouble with the button?</strong><br>
+            Copy and paste this link into your browser:<br>
+            <a href="${resumeLink}">${resumeLink}</a>
+          </div>
+
+          <p style="text-align: center; margin-top: 30px;">
+            <a href="${cancelUrl}" class="button-secondary">Not Interested? Cancel This Signup</a>
+          </p>
+
+          <p style="font-size: 14px; color: #999; margin-top: 30px; text-align: center;">
+            This is a one-time reminder. If you don't complete your signup, your session will expire automatically.
+          </p>
+        </div>
+
+        <div class="footer">
+          <p><strong>Need help?</strong> Contact our support team at support@aiservices.com</p>
+          <p style="margin-top: 15px; color: #999;">© ${new Date().getFullYear()} AI Services Platform. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `⏰ Complete Your ${productName} Signup - ${timeRemainingText} Remaining`,
+    html
+  });
+};
+
+/**
+ * Send confirmation email after successful product signup
+ * Phase 2: Email Notifications System
+ */
+export const sendSignupConfirmationEmail = async (
+  email: string,
+  userName: string,
+  productName: string,
+  subscriptionDetails: {
+    tier: string;
+    amount: number;
+    currency: string;
+    billingCycle: string;
+    nextBillingDate: Date;
+  },
+  configureUrl: string
+): Promise<boolean> => {
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: subscriptionDetails.currency
+  }).format(subscriptionDetails.amount);
+
+  const formattedNextBilling = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(subscriptionDetails.nextBillingDate);
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Subscription Confirmed - ${productName}</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.8;
+          color: #333;
+          background-color: #f4f4f4;
+          margin: 0;
+          padding: 20px;
+        }
+        .email-wrapper {
+          max-width: 600px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+        }
+        .header {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: white;
+          padding: 40px 30px;
+          text-align: center;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 28px;
+          font-weight: 600;
+        }
+        .header p {
+          margin: 10px 0 0;
+          font-size: 16px;
+          opacity: 0.95;
+        }
+        .content {
+          background: white;
+          padding: 40px 30px;
+        }
+        .content p {
+          margin: 0 0 20px;
+          font-size: 16px;
+        }
+        .greeting {
+          font-size: 18px;
+          font-weight: 600;
+          color: #10b981;
+          margin-bottom: 20px;
+        }
+        .success-box {
+          background: #d1fae5;
+          border-left: 4px solid #10b981;
+          padding: 20px;
+          margin: 25px 0;
+          border-radius: 4px;
+        }
+        .subscription-details {
+          background: #f8f9ff;
+          border-radius: 12px;
+          padding: 25px;
+          margin: 25px 0;
+        }
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 12px 0;
+          border-bottom: 1px solid #e0e0e0;
+        }
+        .detail-row:last-child {
+          border-bottom: none;
+        }
+        .detail-label {
+          font-weight: 600;
+          color: #666;
+        }
+        .detail-value {
+          color: #333;
+          font-weight: 600;
+        }
+        .button-container {
+          text-align: center;
+          margin: 35px 0;
+        }
+        .button {
+          display: inline-block;
+          padding: 16px 40px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white !important;
+          text-decoration: none;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 16px;
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+          transition: transform 0.2s;
+        }
+        .button:hover {
+          transform: translateY(-2px);
+        }
+        .info-box {
+          background: #fff3cd;
+          border-left: 4px solid #ffc107;
+          padding: 15px 20px;
+          margin: 25px 0;
+          border-radius: 4px;
+        }
+        .footer {
+          background: #f9f9f9;
+          text-align: center;
+          padding: 30px;
+          border-top: 1px solid #e0e0e0;
+        }
+        .footer p {
+          margin: 5px 0;
+          font-size: 13px;
+          color: #666;
+        }
+        .emoji {
+          font-size: 24px;
+          margin-right: 8px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper">
+        <div class="header">
+          <h1><span class="emoji">🎉</span> Subscription Confirmed!</h1>
+          <p>Welcome to ${productName}</p>
+        </div>
+
+        <div class="content">
+          <p class="greeting">Hello ${userName},</p>
+
+          <p>Great news! Your subscription to <strong>${productName}</strong> has been successfully activated. You're all set to start using your new AI-powered service!</p>
+
+          <div class="success-box">
+            <p style="margin: 0; font-weight: 600; color: #059669; font-size: 16px;">✓ Payment Processed Successfully</p>
+            <p style="margin: 10px 0 0; font-size: 14px; color: #059669;">Your account is now active and ready to use.</p>
+          </div>
+
+          <div class="subscription-details">
+            <h3 style="margin: 0 0 20px; color: #667eea; font-size: 18px;">📋 Subscription Details</h3>
+
+            <div class="detail-row">
+              <span class="detail-label">Product:</span>
+              <span class="detail-value">${productName}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Plan:</span>
+              <span class="detail-value">${subscriptionDetails.tier.charAt(0).toUpperCase() + subscriptionDetails.tier.slice(1)}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Amount:</span>
+              <span class="detail-value">${formattedAmount}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Billing Cycle:</span>
+              <span class="detail-value">${subscriptionDetails.billingCycle.charAt(0).toUpperCase() + subscriptionDetails.billingCycle.slice(1)}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Next Billing Date:</span>
+              <span class="detail-value">${formattedNextBilling}</span>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <p style="margin: 0; font-weight: 600; color: #856404;">🚀 What's Next?</p>
+            <p style="margin: 10px 0 0; font-size: 14px; color: #856404;">Configure your AI prompts and start using ${productName} right away!</p>
+          </div>
+
+          <div class="button-container">
+            <a href="${configureUrl}" class="button">
+              ⚙️ Configure ${productName}
+            </a>
+          </div>
+
+          <p style="font-size: 14px; color: #666; background: #f9f9f9; padding: 15px; border-radius: 6px; margin: 25px 0;">
+            <strong>💡 Pro Tip:</strong> Your personalized voice and chat prompts have been automatically provisioned for your account. Head to the configuration page to customize them for your specific needs.
+          </p>
+
+          <p style="font-size: 14px; color: #999; margin-top: 30px; text-align: center;">
+            You can manage your subscription, update payment methods, or cancel anytime from your account dashboard.
+          </p>
+        </div>
+
+        <div class="footer">
+          <p><strong>Need help getting started?</strong> Contact our support team at support@aiservices.com</p>
+          <p style="margin-top: 15px;">View your subscription details anytime in your account dashboard.</p>
+          <p style="margin-top: 15px; color: #999;">© ${new Date().getFullYear()} AI Services Platform. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `🎉 Welcome to ${productName} - Subscription Confirmed!`,
     html
   });
 };

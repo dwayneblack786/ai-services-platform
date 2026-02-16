@@ -265,6 +265,16 @@ async function gracefulShutdown(signal: string) {
     logger.info('Stopping circuit breaker monitoring...');
     stopCircuitBreakerMonitoring();
 
+    // Step 4.6: Stop background jobs (Phase 2)
+    try {
+      logger.info('Stopping background jobs...');
+      const { shutdownJobs } = require('./jobs');
+      shutdownJobs();
+      logger.info('Background jobs stopped');
+    } catch (jobError: any) {
+      logger.warn('Failed to stop background jobs', { error: jobError.message });
+    }
+
     // Step 5: Close database connections
     logger.info('Closing MongoDB connection...');
     await mongoose.connection.close();
@@ -581,13 +591,23 @@ try {
       socketIO: 'enabled',
       environment: process.env.NODE_ENV
     });
-    
+
+    // Initialize background jobs (Phase 2)
+    try {
+      const { initializeJobs } = require('./jobs');
+      initializeJobs();
+      logger.info('Background jobs initialized');
+    } catch (jobError: any) {
+      logger.error('Failed to initialize background jobs', { error: jobError.message });
+      console.error('⚠️  Warning: Background jobs failed to start:', jobError.message);
+    }
+
     // Register graceful shutdown handlers after server is running
     // This ensures httpServer and io are initialized before handlers are called
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
     logger.info('Graceful shutdown handlers registered');
-    
+
     console.log('\n' + '='.repeat(60));
     console.log('✅ [10/10] SERVER STARTED SUCCESSFULLY');
     console.log('='.repeat(60));

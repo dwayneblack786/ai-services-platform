@@ -32,7 +32,8 @@
       "Bash(mongosh:*)",
       "Bash(MONGODB_URI='mongodb://localhost:27017' node:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(redis-cli ping:*)"
     ]
   }
 }
