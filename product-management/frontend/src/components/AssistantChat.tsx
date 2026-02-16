@@ -486,12 +486,14 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
         socket.emit('chat:send-message', {
           sessionId,
           message: messageToSend,
-          isMenuSelection: !!selectedPromptId,
+          isMenuSelection: optionSelected && !!selectedPromptId, // Only flag first message as menu selection
           selectedPromptId: selectedPromptId || undefined
         });
 
-        // Clear the selected prompt ID after sending
-        setSelectedPromptId(null);
+        // Clear the optionSelected flag after first message, but keep selectedPromptId for the session
+        if (optionSelected) {
+          setOptionSelected(false);
+        }
 
         // Loading will be cleared when response is received
       } else {
@@ -503,7 +505,8 @@ export const AssistantChat: React.FC<AssistantChatProps> = ({
             sessionId,
             message: messageToSend,
             context: {
-              productId: productId || 'va-service'
+              productId: productId || 'va-service',
+              promptId: selectedPromptId || undefined
             }
           });
           
