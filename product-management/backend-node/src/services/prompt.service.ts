@@ -49,9 +49,10 @@ export class PromptService {
       console.log('[PromptService] Loading dynamic menu for:', { tenantId, productId, channelType });
 
       // Convert productId to ObjectId if it's a valid ObjectId string
+      // Use Types.ObjectId (Mongoose/bson 7.x) not mongodb's ObjectId (bson 6.x)
       let productQuery: any = productId;
-      if (ObjectId.isValid(productId) && productId.length === 24) {
-        productQuery = new ObjectId(productId);
+      if (Types.ObjectId.isValid(productId) && productId.length === 24) {
+        productQuery = new Types.ObjectId(productId);
         console.log('[PromptService] Using ObjectId for productId:', productQuery);
       } else {
         console.log('[PromptService] Using string for productId:', productQuery);
@@ -195,7 +196,7 @@ export class PromptService {
         promptId: new Types.ObjectId(),
         version: 1,
         tenantId,
-        productId: ObjectId.isValid(productId as string) ? new ObjectId(productId as string) : productId,
+        productId: Types.ObjectId.isValid(productId as string) ? new Types.ObjectId(productId as string) : productId,
         channelType: template.channelType,
 
         // Metadata
@@ -297,8 +298,10 @@ export class PromptService {
     productId: string | ObjectId
   ): Promise<{ voice: any[]; chat: any[]; sms: any[]; whatsapp: any[]; email: any[] }> {
     try {
-      const productObjectId = ObjectId.isValid(productId as string)
-        ? new ObjectId(productId as string)
+      // Use Mongoose Types.ObjectId (bson 7.x) — not mongodb's ObjectId (bson 6.x) —
+      // to avoid BSONVersionError when passing to Mongoose queries.
+      const productObjectId = Types.ObjectId.isValid(productId as string)
+        ? new Types.ObjectId(productId as string)
         : productId;
 
       const templates = await PromptVersionModel.find({

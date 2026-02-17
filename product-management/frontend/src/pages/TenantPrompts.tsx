@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '../services/apiClient';
 import VersionStatus from '../components/VersionStatus';
 import PromptDashboardCard from '../components/PromptDashboardCard';
+import { useAuth } from '../context/AuthContext';
 
 
 interface PromptBinding {
@@ -41,10 +42,19 @@ interface TenantPromptsProps {
 const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { virtualAssistantProducts, isLoadingSubscriptions } = useAuth();
 
   // Get productId from props (when used as embedded component) or URL query (when standalone route)
   const productId = propProductId || searchParams.get('productId') || undefined;
   const activeChannel = (searchParams.get('channel') as 'voice' | 'chat') || 'voice';
+
+  // Auto-redirect to the tenant's first VA product if no productId in URL
+  useEffect(() => {
+    if (!productId && !isLoadingSubscriptions && virtualAssistantProducts.length > 0) {
+      const firstProduct = virtualAssistantProducts[0];
+      setSearchParams({ productId: firstProduct._id.toString(), channel: 'voice' });
+    }
+  }, [productId, isLoadingSubscriptions, virtualAssistantProducts, setSearchParams]);
 
   // View mode: detail (default) or dashboard
   const [view, setView] = useState<'detail' | 'dashboard'>(
@@ -170,6 +180,17 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
   };
 
   const currentBinding = activeChannel === 'voice' ? bindings.voice : bindings.chat;
+
+  if (!productId) {
+    if (isLoadingSubscriptions) {
+      return <div style={{ padding: '24px', color: '#666' }}>Loading prompts...</div>;
+    }
+    return (
+      <div style={{ padding: '24px', color: '#666' }}>
+        No virtual assistant product found. Please subscribe to a product first.
+      </div>
+    );
+  }
 
   if (loading) {
     return <div style={{ padding: '24px', color: '#666' }}>Loading prompts...</div>;

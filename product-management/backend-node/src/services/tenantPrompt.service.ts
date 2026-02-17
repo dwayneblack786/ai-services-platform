@@ -65,8 +65,9 @@ export class TenantPromptService {
     productId: string,
     actor: IActor
   ): Promise<{ newCount: number; templates: { channelType: string; promptId: string; name: string }[] }> {
-    // Get all templates for this product
-    const templates = await promptService.getTemplatesByProduct(productId);
+    // Get all templates for this product (returns grouped object — flatten to array)
+    const grouped = await promptService.getTemplatesByProduct(productId);
+    const templates = [...grouped.voice, ...grouped.chat, ...grouped.sms, ...grouped.whatsapp, ...grouped.email];
 
     // Collect all already-pulled template IDs across both channels
     const bindings = await TenantPromptBinding.find({
@@ -90,12 +91,12 @@ export class TenantPromptService {
       const channelType = template.channelType as 'voice' | 'chat';
 
       // Create the tenant draft from this template
-      const newPrompt = await promptService.createFromTemplate({
-        templateId: template._id.toString(),
+      const newPrompt = await promptService.createFromTemplate(
+        template._id.toString(),
         tenantId,
         productId,
         actor
-      });
+      );
 
       // Get or create the binding for this channel
       const binding = await this.getOrCreateBinding(tenantId, productId, channelType);
