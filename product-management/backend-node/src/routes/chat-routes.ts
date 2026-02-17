@@ -15,6 +15,7 @@ interface ChatSessionRequest {
 interface ChatMessageRequest {
   sessionId: string;
   message: string;
+  promptId?: string; // Optional: MongoDB ObjectId of the selected prompt_version
 }
 
 interface MenuOption {
@@ -220,24 +221,68 @@ router.post('/session', authenticateSession, async (req: Request, res: Response)
   }
 });
 
+// POST /chat/select-prompt
+// Called when a user clicks a prompt from the session menu.
+// Establishes a prompt-scoped sub-session with the selected prompt's full config loaded.
+// Returns the sub-sessionId (use this for subsequent /chat/message calls) and status
+// ("new" or "resumed"). If resumed, conversation history is included.
+router.post('/select-prompt', authenticateSession, async (req: Request, res: Response) => {
+  try {
+    const { sessionId, promptId, productId } = req.body;
+    const customerId = (req.user as any)?.tenantId || (req.user as any)?.id;
+
+    console.log('[Chat SelectPrompt]', { sessionId, promptId, customerId });
+
+    if (!promptId) {
+      return res.status(400).json({ error: 'Missing required field: promptId' });
+    }
+
+    const javaResponse = await javaVAClient.post(
+      '/chat/select-prompt',
+      { sessionId, customerId, productId: productId || 'va-service', promptId },
+      { timeout: 10000 },
+      () => ({
+        sessionId,
+        status: 'error',
+        greeting: 'I apologize, but I was unable to load that service. Please try again.'
+      })
+    );
+
+    console.log('[Chat SelectPrompt] Result:', {
+      sessionId: javaResponse.data.sessionId,
+      status: javaResponse.data.status,
+      promptId
+    });
+
+    return res.json(javaResponse.data);
+
+  } catch (error) {
+    console.error('[Chat SelectPrompt] Error:', error);
+    return res.status(500).json({
+      error: 'Failed to select prompt',
+      circuitState: javaVAClient.getCircuitState()
+    });
+  }
+});
+
 // POST /chat/message
 // Send a message in an active chat session
 router.post('/message', authenticateSession, async (req: Request, res: Response) => {
   try {
-    const { sessionId, message }: ChatMessageRequest = req.body;
+    const { sessionId, message, promptId }: ChatMessageRequest = req.body;
 
-    console.log('[Chat Message]', { sessionId, messageLength: message?.length });
+    console.log('[Chat Message]', { sessionId, messageLength: message?.length, promptId });
 
     if (!sessionId || !message) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: sessionId and message' 
+      return res.status(400).json({
+        error: 'Missing required fields: sessionId and message'
       });
     }
 
-    // Forward to Java VA service
+    // Forward to Java VA service — include promptId so history is keyed correctly
     const javaResponse = await javaVAClient.post<ChatResponse>(
       '/chat/message',
-      { sessionId, message },
+      { sessionId, message, promptId },
       { timeout: 30000 },
       () => ({
         sessionId,

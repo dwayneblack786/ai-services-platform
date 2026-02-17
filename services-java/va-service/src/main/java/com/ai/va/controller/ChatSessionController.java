@@ -79,8 +79,40 @@ public class ChatSessionController {
 	}
 
 	/**
+	 * Select a prompt from the menu and establish a prompt-scoped sub-session.
+	 *
+	 * On first click: loads the prompt_version from MongoDB, assembles the system
+	 * prompt from its 6 content layers, and starts a new sub-session.
+	 * On repeat click: resumes the existing (customerId, promptId) conversation.
+	 *
+	 * @param request Contains parentSessionId, customerId, productId, promptId
+	 * @return sessionId (may differ from parent), status, optional history
+	 */
+	@PostMapping("/select-prompt")
+	public ResponseEntity<Map<String, Object>> selectPrompt(@RequestBody Map<String, String> request) {
+		try {
+			String parentSessionId = request.get("sessionId");
+			String customerId = request.get("customerId");
+			String productId = request.getOrDefault("productId", "va-service");
+			String promptId = request.get("promptId");
+
+			logger.info("[ChatController] selectPrompt - customerId: {}, promptId: {}", customerId, promptId);
+
+			if (customerId == null || promptId == null) {
+				return ResponseEntity.badRequest().body(Map.of("error", "customerId and promptId are required"));
+			}
+
+			Map<String, Object> result = chatSessionService.selectPrompt(parentSessionId, customerId, productId, promptId);
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			logger.error("[ChatController] ERROR in selectPrompt: {}", e.getMessage(), e);
+			throw new RuntimeException("Failed to select prompt: " + e.getMessage(), e);
+		}
+	}
+
+	/**
 	 * Process a chat message Called for each message from the user
-	 * 
+	 *
 	 * @param request Contains sessionId and message
 	 * @return Assistant's response
 	 */

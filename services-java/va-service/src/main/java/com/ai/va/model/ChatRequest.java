@@ -9,6 +9,7 @@ public class ChatRequest {
     private String sessionId;
     private String customerId;
     private String message; // User's text message
+    private String promptId; // Optional: MongoDB ObjectId of selected prompt_version
 
     public ChatRequest() {
     }
@@ -42,11 +43,20 @@ public class ChatRequest {
         this.message = message;
     }
 
+    public String getPromptId() {
+        return promptId;
+    }
+
+    public void setPromptId(String promptId) {
+        this.promptId = promptId;
+    }
+
     @Override
     public String toString() {
         return "ChatRequest{" +
                 "sessionId='" + sessionId + '\'' +
                 ", customerId='" + customerId + '\'' +
+                ", promptId='" + promptId + '\'' +
                 ", messageLength=" + (message != null ? message.length() : 0) +
                 '}';
     }

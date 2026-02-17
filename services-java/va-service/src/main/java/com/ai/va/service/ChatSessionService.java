@@ -64,6 +64,9 @@ public class ChatSessionService {
 	// Track active session by customer (one session per customer)
 	private final Map<String, String> customerToSessionMap = new ConcurrentHashMap<>();
 
+	// Track per-prompt sub-sessions: "customerId::promptId" → sessionId
+	private final Map<String, String> promptSessionMap = new ConcurrentHashMap<>();
+
 	/**
 	 * Build location-based response from available data
 	 */
@@ -525,6 +528,7 @@ public class ChatSessionService {
 	public ChatResponse processMessage(ChatRequest request) {
 		String sessionId = request.getSessionId();
 		String userMessage = request.getMessage();
+		String promptId = request.getPromptId(); // may be null for non-prompt sessions
 
 		SessionState state = activeSessions.get(sessionId);
 		if (state == null) {
@@ -532,11 +536,11 @@ public class ChatSessionService {
 		}
 
 		try {
-			logger.info("[ChatSession] Processing message for session: {}", sessionId);
+			logger.info("[ChatSession] Processing message for session: {}, promptId: {}", sessionId, promptId);
 
-			// Save user message to MongoDB
+			// Save user message to MongoDB (promptId may be null — handled in saveChatHistory)
 			com.ai.va.model.ChatMessage userMsg = new com.ai.va.model.ChatMessage("user", userMessage);
-			saveChatHistory(sessionId, state.getCustomerId(), state.getProductId(), userMsg);
+			saveChatHistory(sessionId, state.getCustomerId(), state.getProductId(), promptId, userMsg);
 
 			// 1. Add user message to conversation
 			state.addTurn(Turn.caller(userMessage));
@@ -565,7 +569,7 @@ public class ChatSessionService {
 			// Save assistant message to MongoDB
 			com.ai.va.model.ChatMessage assistantMsg = new com.ai.va.model.ChatMessage(
 					"assistant", assistantMessage, state.getCurrentIntent());
-			saveChatHistory(sessionId, state.getCustomerId(), state.getProductId(), assistantMsg);
+			saveChatHistory(sessionId, state.getCustomerId(), state.getProductId(), promptId, assistantMsg);
 
 			// 5. Usage metrics (only LLM for chat channel)
 			usageService.trackLlmUsage(sessionId, llmResult.getTokensIn(), llmResult.getTokensOut());
@@ -818,12 +822,27 @@ public class ChatSessionService {
 	}
 
 	/**
-	 * Save chat history to MongoDB
+	 * Save chat history to MongoDB (legacy overload — no promptId)
 	 */
 	public void saveChatHistory(String sessionId, String customerId, String productId,
 			com.ai.va.model.ChatMessage message) {
+		saveChatHistory(sessionId, customerId, productId, null, message);
+	}
+
+	/**
+	 * Save chat history to MongoDB with optional promptId for prompt-scoped sessions.
+	 * When promptId is non-null the document is keyed by (customerId, promptId) so
+	 * the conversation can be resumed across app sessions.
+	 */
+	public void saveChatHistory(String sessionId, String customerId, String productId,
+			String promptId, com.ai.va.model.ChatMessage message) {
 		try {
-			org.bson.Document query = new org.bson.Document("sessionId", sessionId);
+			// For prompt-scoped sessions query by (customerId + promptId) so we find
+			// the same document even after a server restart with a new sessionId.
+			org.bson.Document query = (promptId != null)
+					? new org.bson.Document("customerId", customerId).append("promptId", promptId).append("isActive", true)
+					: new org.bson.Document("sessionId", sessionId);
+
 			org.bson.Document history = mongoDBService.findOne("chat_messages", query);
 
 			org.bson.Document messageDoc = new org.bson.Document()
@@ -843,16 +862,25 @@ public class ChatSessionService {
 						.append("lastUpdatedAt", new java.util.Date())
 						.append("isActive", true);
 
+				if (promptId != null) {
+					newHistory.append("promptId", promptId);
+				}
+
 				mongoDBService.insertOne("chat_messages", newHistory);
-				logger.debug("[ChatHistory] Created new history for session: {}", sessionId);
+				logger.debug("[ChatHistory] Created new history for session: {}, promptId: {}", sessionId, promptId);
 			} else {
-				// Append message to existing history
+				// Append message to existing history — also update sessionId in case it changed (cross-session resume)
+				org.bson.Document setFields = new org.bson.Document("lastUpdatedAt", new java.util.Date());
+				if (!sessionId.equals(history.getString("sessionId"))) {
+					setFields.append("sessionId", sessionId);
+				}
 				org.bson.Document update = new org.bson.Document("$push",
 						new org.bson.Document("messages", messageDoc))
-						.append("$set", new org.bson.Document("lastUpdatedAt", new java.util.Date()));
+						.append("$set", setFields);
 
-				mongoDBService.getCollection("chat_messages").updateOne(query, update);
-				logger.debug("[ChatHistory] Updated history for session: {}", sessionId);
+				mongoDBService.getCollection("chat_messages").updateOne(
+						new org.bson.Document("_id", history.getObjectId("_id")), update);
+				logger.debug("[ChatHistory] Updated history for session: {}, promptId: {}", sessionId, promptId);
 			}
 		} catch (Exception e) {
 			logger.error("[ChatHistory] Error saving message: {}", e.getMessage(), e);
@@ -894,6 +922,258 @@ public class ChatSessionService {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Select a prompt and establish a prompt-scoped sub-session.
+	 *
+	 * Rules:
+	 * 1. If (customerId, promptId) already has an in-memory session → resume it.
+	 * 2. If (customerId, promptId) has persisted history in MongoDB → restore it.
+	 * 3. Otherwise → create a new sub-session keyed to this (customerId, promptId) pair.
+	 *
+	 * Each prompt sub-session maintains its own conversation transcript and system prompt,
+	 * assembled from the prompt_version document's 6 content layers.
+	 *
+	 * @param parentSessionId The parent session ID from startSession()
+	 * @param customerId      The customer/tenant ID
+	 * @param productId       The product ID
+	 * @param promptId        The MongoDB ObjectId of the selected prompt_version
+	 * @return Map with sessionId, status ("new" or "resumed"), optional history
+	 */
+	public Map<String, Object> selectPrompt(String parentSessionId, String customerId, String productId, String promptId) {
+		String promptSessionKey = customerId + "::" + promptId;
+
+		// 1. Check in-memory first (same server session)
+		String existingSessionId = promptSessionMap.get(promptSessionKey);
+		if (existingSessionId != null && activeSessions.containsKey(existingSessionId)) {
+			logger.info("[SelectPrompt] Resuming in-memory session for key: {}", promptSessionKey);
+			SessionState existing = activeSessions.get(existingSessionId);
+			Map<String, Object> result = new HashMap<>();
+			result.put("sessionId", existingSessionId);
+			result.put("status", "resumed");
+			result.put("promptId", promptId);
+			result.put("greeting", "Welcome back! How can I continue helping you?");
+			result.put("turnCount", existing.getTurnCount());
+			return result;
+		}
+
+		// 2. Check MongoDB for prior history (cross-session resume)
+		try {
+			org.bson.Document query = new org.bson.Document("customerId", customerId)
+					.append("promptId", promptId)
+					.append("isActive", true);
+			org.bson.Document existingHistory = mongoDBService.findOne("chat_messages", query);
+
+			if (existingHistory != null) {
+				String historicSessionId = existingHistory.getString("sessionId");
+				logger.info("[SelectPrompt] Restoring session from MongoDB for key: {}, sessionId: {}", promptSessionKey, historicSessionId);
+
+				SessionState restored = restoreSessionFromHistory(customerId, productId, promptId, existingHistory);
+				activeSessions.put(historicSessionId, restored);
+				promptSessionMap.put(promptSessionKey, historicSessionId);
+
+				Map<String, Object> result = new HashMap<>();
+				result.put("sessionId", historicSessionId);
+				result.put("status", "resumed");
+				result.put("promptId", promptId);
+				result.put("greeting", "Welcome back! How can I continue helping you?");
+				result.put("history", existingHistory.get("messages"));
+				result.put("turnCount", restored.getTurnCount());
+				return result;
+			}
+		} catch (Exception e) {
+			logger.error("[SelectPrompt] Error checking MongoDB for existing history: {}", e.getMessage(), e);
+		}
+
+		// 3. No prior history — create a fresh sub-session with prompt context loaded
+		String subSessionId = UUID.randomUUID().toString();
+		SessionState session = new SessionState(subSessionId, ChannelType.CHAT);
+		session.setCustomerId(customerId);
+		session.setProductId(productId);
+
+		String greetingMessage = "Hello! How can I help you today?";
+
+		try {
+			// Load the prompt_version document from MongoDB
+			org.bson.Document promptDoc = promptService.getPromptById(promptId);
+			if (promptDoc != null) {
+				// Assemble ChannelConfiguration from the prompt's 6 content layers
+				ChannelConfiguration promptConfig = buildChannelConfigFromPrompt(promptDoc, customerId, productId);
+				session.setChannelConfiguration(promptConfig);
+
+				// Generate a greeting specific to this prompt's persona
+				greetingMessage = generateInitialGreeting(session, promptConfig, subSessionId);
+				logger.info("[SelectPrompt] Loaded prompt '{}' and generated greeting for session: {}",
+						promptDoc.getString("name"), subSessionId);
+			} else {
+				logger.warn("[SelectPrompt] Prompt not found for id: {}, using default config", promptId);
+				// Fall back to generic channel config
+				ChannelConfiguration chatConfig = configurationService.getChatConfiguration(customerId, productId);
+				if (chatConfig != null) {
+					session.setChannelConfiguration(chatConfig);
+					greetingMessage = generateInitialGreeting(session, chatConfig, subSessionId);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("[SelectPrompt] Error loading prompt config: {}", e.getMessage(), e);
+		}
+
+		activeSessions.put(subSessionId, session);
+		promptSessionMap.put(promptSessionKey, subSessionId);
+
+		// Save initial greeting to MongoDB with promptId stamped on the document
+		com.ai.va.model.ChatMessage greetingMsg = new com.ai.va.model.ChatMessage("assistant", greetingMessage);
+		saveChatHistory(subSessionId, customerId, productId, promptId, greetingMsg);
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("sessionId", subSessionId);
+		result.put("status", "new");
+		result.put("promptId", promptId);
+		result.put("greeting", greetingMessage);
+		return result;
+	}
+
+	/**
+	 * Restore a SessionState from a MongoDB chat_messages document.
+	 * Re-loads the prompt config and rebuilds the in-memory transcript.
+	 */
+	private SessionState restoreSessionFromHistory(String customerId, String productId, String promptId,
+			org.bson.Document historyDoc) {
+		String sessionId = historyDoc.getString("sessionId");
+		SessionState session = new SessionState(sessionId, ChannelType.CHAT);
+		session.setCustomerId(customerId);
+		session.setProductId(productId);
+
+		// Re-load prompt configuration
+		try {
+			org.bson.Document promptDoc = promptService.getPromptById(promptId);
+			if (promptDoc != null) {
+				ChannelConfiguration promptConfig = buildChannelConfigFromPrompt(promptDoc, customerId, productId);
+				session.setChannelConfiguration(promptConfig);
+			}
+		} catch (Exception e) {
+			logger.error("[RestoreSession] Error reloading prompt config: {}", e.getMessage(), e);
+		}
+
+		// Rebuild transcript from stored messages
+		try {
+			@SuppressWarnings("unchecked")
+			java.util.List<org.bson.Document> messages = (java.util.List<org.bson.Document>) historyDoc.get("messages");
+			if (messages != null) {
+				for (org.bson.Document msg : messages) {
+					String role = msg.getString("role");
+					String content = msg.getString("content");
+					if ("user".equals(role)) {
+						session.addTurn(Turn.caller(content));
+					} else if ("assistant".equals(role)) {
+						session.addTurn(Turn.assistant(content));
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("[RestoreSession] Error rebuilding transcript: {}", e.getMessage(), e);
+		}
+
+		logger.info("[RestoreSession] Restored session {} with {} turns", sessionId, session.getTurnCount());
+		return session;
+	}
+
+	/**
+	 * Build a ChannelConfiguration from a prompt_version MongoDB document.
+	 * Assembles the 6 content layers: systemPrompt, persona, businessContext,
+	 * ragConfig, conversationBehavior, constraints.
+	 */
+	private ChannelConfiguration buildChannelConfigFromPrompt(org.bson.Document promptDoc,
+			String customerId, String productId) {
+		ChannelConfiguration config = new ChannelConfiguration();
+		config.setEnabled(true);
+
+		org.bson.Document content = promptDoc.get("content", org.bson.Document.class);
+		if (content == null) {
+			logger.warn("[BuildConfig] Prompt document has no 'content' field for promptId: {}", promptDoc.getObjectId("_id"));
+			return config;
+		}
+
+		// Layer 1 + 5: systemPrompt and constraints → CustomPrompts
+		com.ai.va.model.CustomPrompts customPrompts = new com.ai.va.model.CustomPrompts();
+		customPrompts.setSystemPrompt(content.getString("systemPrompt"));
+
+		org.bson.Document constraints = content.get("constraints", org.bson.Document.class);
+		if (constraints != null) {
+			@SuppressWarnings("unchecked")
+			java.util.List<String> prohibited = (java.util.List<String>) constraints.get("prohibitedTopics");
+			customPrompts.setProhibitedTopics(prohibited);
+
+			@SuppressWarnings("unchecked")
+			java.util.List<String> complianceRules = (java.util.List<String>) constraints.get("complianceRules");
+			customPrompts.setComplianceRules(complianceRules);
+			customPrompts.setPrivacyPolicy(constraints.getString("privacyPolicy"));
+			customPrompts.setEscalationPolicy(constraints.getString("escalationPolicy"));
+		}
+		config.setCustomPrompts(customPrompts);
+
+		// Layer 2 + 3: persona and businessContext → PromptContext
+		com.ai.va.model.PromptContext promptContext = new com.ai.va.model.PromptContext();
+
+		org.bson.Document persona = content.get("persona", org.bson.Document.class);
+		if (persona != null) {
+			promptContext.setTone(persona.getString("tone"));
+			promptContext.setPersonality(persona.getString("personality"));
+			@SuppressWarnings("unchecked")
+			java.util.List<String> allowed = (java.util.List<String>) persona.get("allowedActions");
+			promptContext.setAllowedActions(allowed);
+			@SuppressWarnings("unchecked")
+			java.util.List<String> disallowed = (java.util.List<String>) persona.get("disallowedActions");
+			promptContext.setDisallowedActions(disallowed);
+		}
+
+		org.bson.Document businessContext = content.get("businessContext", org.bson.Document.class);
+		if (businessContext != null) {
+			promptContext.setTenantName(businessContext.getString("tenantName"));
+			promptContext.setTenantIndustry(businessContext.getString("industry"));
+			promptContext.setBusinessContext(businessContext.getString("description"));
+			@SuppressWarnings("unchecked")
+			java.util.List<String> services = (java.util.List<String>) businessContext.get("servicesOffered");
+			promptContext.setServicesOffered(services);
+			promptContext.setPricingInfo(businessContext.getString("pricingInfo"));
+			promptContext.setBusinessHours(businessContext.getString("businessHours"));
+			promptContext.setPolicies(businessContext.getString("policies"));
+			@SuppressWarnings("unchecked")
+			java.util.List<Object> locations = (java.util.List<Object>) businessContext.get("locations");
+			promptContext.setLocations(locations);
+		}
+
+		// Layer 4: conversationBehavior
+		org.bson.Document behavior = content.get("conversationBehavior", org.bson.Document.class);
+		if (behavior != null) {
+			promptContext.setMaxResponseLength(behavior.getInteger("maxResponseLength"));
+			promptContext.setDefaultLanguage(behavior.getString("defaultLanguage"));
+			Boolean askForName = behavior.getBoolean("askForNameFirst");
+			promptContext.setAskForNameFirst(askForName);
+			Boolean confirmActions = behavior.getBoolean("confirmBeforeActions");
+			promptContext.setConfirmBeforeActions(confirmActions);
+		}
+
+		config.setPromptContext(promptContext);
+
+		// Layer 3: ragConfig
+		org.bson.Document ragDoc = content.get("ragConfig", org.bson.Document.class);
+		if (ragDoc != null) {
+			com.ai.va.model.RagConfiguration ragConfig = new com.ai.va.model.RagConfiguration();
+			Boolean ragEnabled = ragDoc.getBoolean("enabled");
+			ragConfig.setEnabled(ragEnabled != null && ragEnabled);
+			// Sources would require deeper mapping — leave for RAG phase
+			config.setRagConfig(ragConfig);
+		}
+
+		// Set greeting from customPrompts if available
+		if (customPrompts.getSystemPrompt() != null) {
+			config.setGreeting(content.getString("greeting"));
+		}
+
+		logger.debug("[BuildConfig] Built ChannelConfiguration from prompt: {}", promptDoc.getString("name"));
+		return config;
 	}
 
 	/**
