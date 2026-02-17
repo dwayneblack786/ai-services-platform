@@ -238,7 +238,7 @@ export interface IPromptVersion extends Document {
   };
 }
 
-const PromptVersionSchema = new Schema<IPromptVersion>({
+export const PromptVersionSchema = new Schema<IPromptVersion>({
   // Identity
   promptId: { type: Schema.Types.ObjectId, required: true, index: true },
   version: { type: Number, required: true, default: 1 },

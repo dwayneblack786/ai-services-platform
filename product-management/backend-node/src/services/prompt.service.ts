@@ -2,8 +2,19 @@ import { getDB } from '../config/database';
 import { ObjectId } from 'mongodb';
 import { Types } from 'mongoose';
 import PromptVersionModel from '../models/PromptVersion';
+import ProductPromptTemplate from '../models/ProductPromptTemplate';
+import TenantPromptVersionModel from '../models/TenantPromptVersion';
 import PromptAuditLogModel from '../models/PromptAuditLog';
 import TenantPromptBinding from '../models/TenantPromptBinding';
+
+/**
+ * Returns the correct model for reads/writes based on prompt type.
+ * System prompts (isTemplate:true) → product_prompt_templates
+ * Tenant prompts (isTemplate:false) → tenant_prompt_versions
+ */
+function modelFor(isTemplate: boolean) {
+  return isTemplate ? ProductPromptTemplate : TenantPromptVersionModel;
+}
 
 /**
  * Prompt Service
@@ -135,7 +146,7 @@ export class PromptService {
       // NOTE: We don't use tenant_prompt_bindings here because the unique constraint
       // (tenant+product+channel) prevents multiple bindings per channel.
       // Instead, we fetch all production prompts and let the user choose.
-      const prompts = await db.collection('prompt_versions').find({
+      const prompts = await db.collection('tenant_prompt_versions').find({
         tenantId,
         productId: productQuery,
         channelType,
@@ -258,8 +269,11 @@ export class PromptService {
   ): Promise<any> {
     const { templateId, tenantId, productId, actor } = params;
     try {
-      // Fetch the template prompt
-      const template = await PromptVersionModel.findById(templateId);
+      // Fetch the template prompt — check new collection first, fall back to legacy
+      let template = await ProductPromptTemplate.findById(templateId);
+      if (!template) {
+        template = await PromptVersionModel.findOne({ _id: templateId, isTemplate: true });
+      }
 
       if (!template) {
         throw new Error(`Template not found: ${templateId}`);
@@ -273,8 +287,8 @@ export class PromptService {
         ? (Types.ObjectId.isValid(productId as string) ? new Types.ObjectId(productId as string) : productId)
         : template.productId;
 
-      // Clone the template as a new tenant-specific draft prompt
-      const newPrompt = new PromptVersionModel({
+      // Clone the template as a new tenant-specific draft prompt (goes to tenant_prompt_versions)
+      const newPrompt = new TenantPromptVersionModel({
         // Identity
         promptId: new Types.ObjectId(),
         version: 1,
@@ -368,7 +382,7 @@ export class PromptService {
         ? new Types.ObjectId(productIdStr)
         : undefined;
 
-      const templates = await PromptVersionModel.find({
+      const templates = await ProductPromptTemplate.find({
         isTemplate: true,
         productId: productObjectId,
         isActive: true,
@@ -406,10 +420,10 @@ export class PromptService {
    * Fetch a single prompt by _id. Logs 'accessed'.
    */
   async getPrompt(id: string, actor: IActor): Promise<any> {
-    const prompt = await PromptVersionModel.findOne({
-      _id: id,
-      isDeleted: { $ne: true }
-    });
+    // Search both collections; templates first (less common read path)
+    let prompt = await ProductPromptTemplate.findOne({ _id: id, isDeleted: { $ne: true } });
+    if (!prompt) prompt = await TenantPromptVersionModel.findOne({ _id: id, isDeleted: { $ne: true } });
+    if (!prompt) prompt = await PromptVersionModel.findOne({ _id: id, isDeleted: { $ne: true } }); // legacy fallback
     if (!prompt) return null;
 
     await logAudit(
@@ -444,7 +458,10 @@ export class PromptService {
         : filters.productId;
     }
     // environment is stored on the doc but production prompts are environment-agnostic here
-    return PromptVersionModel.findOne(query);
+    // Tenant prompts live in tenant_prompt_versions; fall back to legacy collection
+    const result = await TenantPromptVersionModel.findOne(query);
+    if (result) return result;
+    return PromptVersionModel.findOne(query); // legacy fallback
   }
 
   /**
@@ -468,7 +485,8 @@ export class PromptService {
       ? new Types.ObjectId(productId)
       : (productId || undefined);
 
-    const prompt = new PromptVersionModel({
+    const Model = modelFor(isTemplate || false);
+    const prompt = new Model({
       promptId: new Types.ObjectId(),
       version: 1,
       name,
@@ -512,8 +530,10 @@ export class PromptService {
     updates: any,
     actor: IActor
   ): Promise<{ prompt: any; isNewVersion: boolean }> {
-    // First fetch to check immutability
-    const existing = await PromptVersionModel.findById(id);
+    // First fetch to check immutability — search both collections
+    let existing = await ProductPromptTemplate.findById(id);
+    if (!existing) existing = await TenantPromptVersionModel.findById(id);
+    if (!existing) existing = await PromptVersionModel.findById(id); // legacy fallback
     if (!existing) throw new PromptNotFoundError(id);
 
     if (existing.isTemplate && existing.state !== 'draft') {
@@ -540,7 +560,8 @@ export class PromptService {
     const filter: any = { _id: id, state: 'draft' };
     if (typeof __v === 'number') filter.__v = __v;
 
-    const updated = await PromptVersionModel.findOneAndUpdate(
+    const UpdateModel = modelFor(existing.isTemplate === true);
+    const updated = await UpdateModel.findOneAndUpdate(
       filter,
       {
         $set: {
@@ -574,15 +595,19 @@ export class PromptService {
    * Increments version by 1, sets basedOn to source._id.
    */
   async createNewVersion(id: string, actor: IActor): Promise<any> {
-    const source = await PromptVersionModel.findById(id);
+    let source = await ProductPromptTemplate.findById(id);
+    if (!source) source = await TenantPromptVersionModel.findById(id);
+    if (!source) source = await PromptVersionModel.findById(id); // legacy fallback
     if (!source) throw new PromptNotFoundError(id);
 
+    const SourceModel = modelFor(source.isTemplate === true);
+
     // Find the highest version for this logical prompt
-    const latest = await PromptVersionModel.findOne({ promptId: source.promptId, isDeleted: { $ne: true } })
+    const latest = await SourceModel.findOne({ promptId: source.promptId, isDeleted: { $ne: true } })
       .sort({ version: -1 });
     const nextVersion = (latest?.version ?? source.version) + 1;
 
-    const newDraft = new PromptVersionModel({
+    const newDraft = new SourceModel({
       promptId: source.promptId,
       version: nextVersion,
       name: source.name,
@@ -634,8 +659,12 @@ export class PromptService {
     targetState: 'testing' | 'production',
     actor: IActor
   ): Promise<any> {
-    const prompt = await PromptVersionModel.findById(id);
+    let prompt = await ProductPromptTemplate.findById(id);
+    if (!prompt) prompt = await TenantPromptVersionModel.findById(id);
+    if (!prompt) prompt = await PromptVersionModel.findById(id); // legacy fallback
     if (!prompt) throw new PromptNotFoundError(id);
+
+    const PromoteModel = modelFor(prompt.isTemplate === true);
 
     // Validate transition
     const isSystemPrompt = prompt.isTemplate === true;
@@ -655,12 +684,12 @@ export class PromptService {
 
     if (targetState === 'production') {
       // Deactivate all other production versions with the same promptId
-      await PromptVersionModel.updateMany(
+      await PromoteModel.updateMany(
         { promptId: prompt.promptId, state: 'production', _id: { $ne: prompt._id } },
         { $set: { isActive: false, state: 'archived' } }
       );
 
-      const promoted = await PromptVersionModel.findByIdAndUpdate(
+      const promoted = await PromoteModel.findByIdAndUpdate(
         id,
         {
           $set: {
@@ -705,7 +734,7 @@ export class PromptService {
       return promoted;
     } else {
       // Promote to testing
-      const promoted = await PromptVersionModel.findByIdAndUpdate(
+      const promoted = await PromoteModel.findByIdAndUpdate(
         id,
         {
           $set: {
@@ -740,10 +769,14 @@ export class PromptService {
     targetVersionId: string,
     actor: IActor
   ): Promise<any> {
-    const current = await PromptVersionModel.findById(currentId);
+    let current = await TenantPromptVersionModel.findById(currentId);
+    if (!current) current = await PromptVersionModel.findById(currentId); // legacy fallback
     if (!current) throw new PromptNotFoundError(currentId);
 
-    const target = await PromptVersionModel.findById(targetVersionId);
+    const RollbackModel = modelFor(current.isTemplate === true);
+
+    let target = await RollbackModel.findById(targetVersionId);
+    if (!target) target = await PromptVersionModel.findById(targetVersionId); // legacy fallback
     if (!target) throw new PromptNotFoundError(targetVersionId);
 
     if (!target.canRollback) {
@@ -751,13 +784,13 @@ export class PromptService {
     }
 
     // Deactivate all current production versions for this promptId
-    await PromptVersionModel.updateMany(
+    await RollbackModel.updateMany(
       { promptId: current.promptId, state: 'production' },
       { $set: { isActive: false, state: 'archived' } }
     );
 
     // Reactivate the target version
-    const restored = await PromptVersionModel.findByIdAndUpdate(
+    const restored = await RollbackModel.findByIdAndUpdate(
       targetVersionId,
       {
         $set: {
@@ -800,20 +833,29 @@ export class PromptService {
    * Returns all versions sorted newest first.
    */
   async getVersionHistory(idOrPromptId: string): Promise<any[]> {
-    // Resolve stable promptId: try as _id first, follow to promptId
+    // Resolve stable promptId: try as _id first across both collections
     let stablePromptId: Types.ObjectId;
+    let historyModel: typeof ProductPromptTemplate | typeof TenantPromptVersionModel | typeof PromptVersionModel = TenantPromptVersionModel;
 
-    const doc = await PromptVersionModel.findById(idOrPromptId).select('promptId');
+    let doc: any = await TenantPromptVersionModel.findById(idOrPromptId).select('promptId isTemplate');
+    if (!doc) doc = await ProductPromptTemplate.findById(idOrPromptId).select('promptId isTemplate');
+    if (!doc) doc = await PromptVersionModel.findById(idOrPromptId).select('promptId isTemplate'); // legacy
+
     if (doc?.promptId) {
       stablePromptId = doc.promptId;
+      historyModel = modelFor(doc.isTemplate === true) as any;
     } else if (Types.ObjectId.isValid(idOrPromptId)) {
       stablePromptId = new Types.ObjectId(idOrPromptId);
     } else {
       throw new PromptNotFoundError(idOrPromptId);
     }
 
-    return PromptVersionModel.find({ promptId: stablePromptId, isDeleted: { $ne: true } })
-      .sort({ version: -1 });
+    // Search in the resolved model; also check legacy collection for mixed data
+    const results = await (historyModel as any).find({ promptId: stablePromptId, isDeleted: { $ne: true } }).sort({ version: -1 });
+    if (results.length > 0) return results;
+
+    // Fallback: legacy prompt_versions collection
+    return PromptVersionModel.find({ promptId: stablePromptId, isDeleted: { $ne: true } }).sort({ version: -1 });
   }
 
   /**
@@ -847,10 +889,39 @@ export class PromptService {
     const limit = filters.limit ?? 50;
     const offset = filters.offset ?? 0;
 
-    const [prompts, total] = await Promise.all([
-      PromptVersionModel.find(query).sort({ updatedAt: -1 }).skip(offset).limit(limit),
-      PromptVersionModel.countDocuments(query)
+    // Route to specific collection when isTemplate filter is set, otherwise query both
+    if (typeof filters.isTemplate === 'boolean') {
+      const Model = modelFor(filters.isTemplate);
+      const [prompts, total] = await Promise.all([
+        Model.find(query).sort({ updatedAt: -1 }).skip(offset).limit(limit),
+        Model.countDocuments(query)
+      ]);
+      return { prompts, total };
+    }
+
+    // No isTemplate filter: merge results from both collections + legacy
+    const templateQuery = { ...query };
+    const tenantQuery = { ...query };
+    delete templateQuery.tenantId; // templates have no tenantId
+    if (filters.tenantId) delete templateQuery.tenantId; // keep tenant query filter
+
+    const [templateDocs, tenantDocs, legacyDocs] = await Promise.all([
+      ProductPromptTemplate.find(query).sort({ updatedAt: -1 }),
+      TenantPromptVersionModel.find(query).sort({ updatedAt: -1 }),
+      PromptVersionModel.find(query).sort({ updatedAt: -1 })
     ]);
+
+    const knownIds = new Set([
+      ...templateDocs.map((d: any) => d._id.toString()),
+      ...tenantDocs.map((d: any) => d._id.toString())
+    ]);
+    const uniqueLegacy = legacyDocs.filter((d: any) => !knownIds.has(d._id.toString()));
+
+    const all = [...templateDocs, ...tenantDocs, ...uniqueLegacy]
+      .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+    const total = all.length;
+    const prompts = all.slice(offset, offset + limit);
 
     return { prompts, total };
   }
@@ -859,14 +930,17 @@ export class PromptService {
    * Soft-delete a prompt. Refuses to delete active production prompts.
    */
   async softDeletePrompt(id: string, actor: IActor): Promise<boolean> {
-    const prompt = await PromptVersionModel.findById(id);
+    let prompt: any = await ProductPromptTemplate.findById(id);
+    if (!prompt) prompt = await TenantPromptVersionModel.findById(id);
+    if (!prompt) prompt = await PromptVersionModel.findById(id); // legacy
     if (!prompt) return false;
 
     if (prompt.state === 'production' && prompt.isActive) {
       throw new PromptStateError('Cannot delete an active production prompt. Archive or rollback first.');
     }
 
-    await PromptVersionModel.findByIdAndUpdate(id, {
+    const DeleteModel = modelFor(prompt.isTemplate === true);
+    await DeleteModel.findByIdAndUpdate(id, {
       $set: {
         isDeleted: true,
         deletedAt: new Date(),
@@ -888,14 +962,17 @@ export class PromptService {
    * Restore a soft-deleted prompt to draft state.
    */
   async restorePrompt(id: string, actor: IActor): Promise<any> {
-    const prompt = await PromptVersionModel.findById(id);
+    let prompt: any = await ProductPromptTemplate.findById(id);
+    if (!prompt) prompt = await TenantPromptVersionModel.findById(id);
+    if (!prompt) prompt = await PromptVersionModel.findById(id); // legacy
     if (!prompt) throw new PromptNotFoundError(id);
 
     if (!prompt.isDeleted) {
       throw new PromptStateError('Prompt is not deleted.');
     }
 
-    const restored = await PromptVersionModel.findByIdAndUpdate(
+    const RestoreModel = modelFor(prompt.isTemplate === true);
+    const restored = await RestoreModel.findByIdAndUpdate(
       id,
       {
         $set: {
@@ -923,14 +1000,17 @@ export class PromptService {
    * Permanently delete a prompt. Only allowed if soft-deleted or state='draft'.
    */
   async hardDeletePrompt(id: string, actor: IActor): Promise<boolean> {
-    const prompt = await PromptVersionModel.findById(id);
+    let prompt: any = await ProductPromptTemplate.findById(id);
+    if (!prompt) prompt = await TenantPromptVersionModel.findById(id);
+    if (!prompt) prompt = await PromptVersionModel.findById(id); // legacy
     if (!prompt) return false;
 
     if (!prompt.isDeleted && prompt.state !== 'draft') {
       throw new PromptStateError('Hard delete only allowed on soft-deleted prompts or drafts.');
     }
 
-    await PromptVersionModel.findByIdAndDelete(id);
+    const HardDeleteModel = modelFor(prompt.isTemplate === true);
+    await HardDeleteModel.findByIdAndDelete(id);
 
     await logAudit(
       prompt._id as Types.ObjectId,
@@ -947,7 +1027,9 @@ export class PromptService {
    * Get a single system prompt template by _id.
    */
   async getTemplate(id: string): Promise<any> {
-    return PromptVersionModel.findOne({ _id: id, isTemplate: true, isDeleted: { $ne: true } });
+    const t = await ProductPromptTemplate.findOne({ _id: id, isTemplate: true, isDeleted: { $ne: true } });
+    if (t) return t;
+    return PromptVersionModel.findOne({ _id: id, isTemplate: true, isDeleted: { $ne: true } }); // legacy
   }
 }
 

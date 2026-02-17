@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
 import TenantPromptBinding, { ITenantPromptBinding } from '../models/TenantPromptBinding';
 import PromptVersionModel from '../models/PromptVersion';
+import TenantPromptVersionModel from '../models/TenantPromptVersion';
 import { PromptService, IActor } from './prompt.service';
 
 const promptService = new PromptService();
@@ -86,12 +87,15 @@ export class TenantPromptService {
     // Also detect templates already used via baseTemplateId on existing tenant prompts.
     // This makes pull idempotent even when pulledTemplateIds was not populated initially.
     const templateObjectIds = templates.map(t => new Types.ObjectId(t._id.toString()));
-    const existingFromTemplate = await PromptVersionModel.find({
-      tenantId,
-      isTemplate: false,
-      baseTemplateId: { $in: templateObjectIds }
-    }).select('baseTemplateId');
-    for (const p of existingFromTemplate) {
+    const baseTemplateFilter = { tenantId, isTemplate: false, baseTemplateId: { $in: templateObjectIds } };
+    const selectField = 'baseTemplateId';
+
+    // Check both new and legacy collections
+    const [existingFromTemplate, existingLegacy] = await Promise.all([
+      TenantPromptVersionModel.find(baseTemplateFilter).select(selectField),
+      PromptVersionModel.find(baseTemplateFilter).select(selectField)
+    ]);
+    for (const p of [...existingFromTemplate, ...existingLegacy]) {
       if (p.baseTemplateId) allPulledIds.add(p.baseTemplateId.toString());
     }
 
