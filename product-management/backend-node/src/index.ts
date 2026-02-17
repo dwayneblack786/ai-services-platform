@@ -48,8 +48,7 @@ import chatRoutes from './routes/chat-routes';
 console.log('[Startup] ✅ Chat routes imported');
 import assistantChannelsRoutes from './routes/assistant-channels-routes-v2';
 console.log('[Startup] ✅ Assistant channels routes imported');
-import promptRoutes from './routes/prompt-routes-v2';
-console.log('[Startup] ✅ Prompt routes imported');
+// prompt-routes-v2.ts removed — /api/prompts now served by prompt-management-routes.ts
 import promptManagementRoutes from './routes/prompt-management-routes';
 console.log('[Startup] ✅ Prompt Management (PMS) routes imported');
 import tenantPromptRoutes from './routes/tenant-prompt-routes';
@@ -102,14 +101,7 @@ console.log('[Startup] ✅ Security middleware imported');
 import mongoose from 'mongoose';
 console.log('[Startup] ✅ Mongoose imported');
 
-// faulty routes below - to be fixed
-import subscriptionsRoutes from './routes/subscriptions-routes';
-console.log('[Startup] ✅ Subscriptions-info routes imported');
-import tenantRoutes from './routes/tenant-routes';
-console.log('[Startup] ✅ Tenant routes imported');
-import tenantAuthRoutes from './routes/tenant-auth';
-console.log('[Startup] ✅ Tenant-auth routes imported');
-// end faulty routes
+// Removed faulty routes: subscriptions-routes, tenant-routes, tenant-auth
 
 console.log('[Startup] 🎉 ALL IMPORTS COMPLETED - Starting main execution...');
 
@@ -510,18 +502,16 @@ try {
   app.use('/api/user-products', userProductsRoutes);
   app.use('/api/product-configurations', productConfigurationRoutes);
   app.use('/api/subscriptions', subscriptionRoutes);
-  app.use('/api/subscriptions-info', subscriptionsRoutes);
   app.use('/api/product-signup', productSignupRoutes);
   app.use('/api/payment-methods', paymentRoutes);
   app.use('/api/transactions', transactionsRoutes);
-  app.use('/api/tenants', tenantRoutes);
   app.use('/voice', voiceRoutes);
   app.use('/api/usage', usageRoutes);
   app.use('/api/usage', usageEventsRoutes);
   app.use('/api/chat', chatRoutes);
   app.use('/api/assistant-channels', assistantChannelsRoutes);
-  app.use('/api/prompts', promptRoutes);
-  app.use('/api/pms/prompts', promptManagementRoutes); // PMS: Prompt Management System
+  app.use('/api/prompts', promptManagementRoutes); // PMS: Prompt Management System (replaces legacy prompt-routes-v2)
+  app.use('/api/pms/prompts', promptManagementRoutes); // PMS: Prompt Management System (alias)
   app.use('/api/pms/tenant-prompts', tenantPromptRoutes); // PMS: Tenant Prompt Bindings
   app.use('/api/pms/prompt-testing', promptTestingRoutes); // PMS: Automated Prompt Testing
   app.use('/api/pms/rag', ragRoutes); // PMS: Per-Prompt RAG Configuration
@@ -535,7 +525,6 @@ try {
   app.use('/api/call-logs', callLogsRoutes);
   app.use('/api/metrics', metricsRoutes);
   app.use('/api/logs', logsRoutes);
-  app.use('/api/auth', tenantAuthRoutes); // Keycloak tenant-aware authentication
 
   console.log('✅ [8/10] All routes registered successfully');
 } catch (error: any) {

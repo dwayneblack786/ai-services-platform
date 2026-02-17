@@ -104,12 +104,12 @@ export class TenantPromptService {
       const channelType = template.channelType as 'voice' | 'chat';
 
       // Create the tenant draft from this template
-      const newPrompt = await promptService.createFromTemplate(
-        template._id.toString(),
+      const newPrompt = await promptService.createFromTemplate({
+        templateId: template._id.toString(),
         tenantId,
         productId,
         actor
-      );
+      });
 
       // Get or create the binding for this channel
       const binding = await this.getOrCreateBinding(tenantId, productId, channelType);

@@ -1,320 +1,179 @@
-# Prompt Configuration Architecture - Implementation Complete
+# Prompt Configuration Architecture
 
-📑 **Table of Contents**
-- [✅ Architecture Overview](#-architecture-overview)
-  - [1. prompt_templates Collection (Read-Only Defaults)](#1-prompt_templates-collection-read-only-defaults)
-  - [2. assistant_channels Collection (User Customizations)](#2-assistant_channels-collection-user-customizations)
-- [🔄 Data Flow](#-data-flow)
-- [📦 Database Structure](#-database-structure)
-  - [prompt_templates Collection](#prompt_templates-collection)
-  - [assistant_channels Collection](#assistant_channels-collection)
-- [🎯 API Behavior](#-api-behavior)
-  - [GET /api/assistant-channels](#get-apiassistant-channels)
-  - [PATCH /api/assistant-channels](#patch-apiassistant-channels)
-- [🚀 Implementation Files](#-implementation-files)
-  - [Updated Files](#updated-files)
-  - [New Files](#new-files)
-- [📋 Usage](#-usage)
-  - [Seed Templates](#seed-templates)
-  - [Test Loading Logic](#test-loading-logic)
-  - [API Endpoints](#api-endpoints)
-- [🎨 Frontend Integration](#-frontend-integration)
-  - [Initial Load](#initial-load)
-  - [Save Changes](#save-changes)
-- [✅ Benefits](#-benefits)
-- [🧪 Test Results](#-test-results)
-- [📊 Current State](#-current-state)
-  - [Templates in Database](#templates-in-database)
-  - [For Test Customer (ten-splendor-florida-33064)](#for-test-customer-ten-splendor-florida-33064)
-- [🔧 Next Steps](#-next-steps)
-- [📝 Notes](#-notes)
+## Overview
+
+The Prompt Management System (PMS) uses a single `prompt_versions` collection with two distinct record types: **system prompts** (managed by platform admins) and **tenant prompts** (provisioned per-tenant). The `tenant_prompt_bindings` collection tracks which version is active for each tenant+product+channel.
 
 ---
 
-## ✅ Architecture Overview
-
-The system now uses a **two-tier configuration model**:
-
-### 1. `prompt_templates` Collection (Read-Only Defaults)
-- **Purpose**: Store default/template configurations
-- **Types**:
-  - **System defaults** (`isDefault: true`): Used for new customers
-  - **Customer templates** (`isDefault: false`, has `customerId`): Customer-specific defaults
-- **Usage**: Loaded when user has NO saved configuration
-
-### 2. `assistant_channels` Collection (User Customizations)
-- **Purpose**: Store user's customized configurations
-- **Created**: On first PATCH/save operation
-- **Usage**: Loaded when user HAS made customizations
-
-## 🔄 Data Flow
+## Two Prompt Domains
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    GET /api/assistant-channels                   │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-                 ┌────────────────────────┐
-                 │ Check assistant_channels│
-                 └────────────────────────┘
-                              ↓
-                    ┌─────────┴─────────┐
-                    │                   │
-              ✅ Found            ❌ Not Found
-                    │                   │
-                    ↓                   ↓
-        ┌───────────────────┐  ┌────────────────────┐
-        │ Load from         │  │ Load from          │
-        │ assistant_channels│  │ prompt_templates   │
-        └───────────────────┘  └────────────────────┘
-                    │                   │
-                    └─────────┬─────────┘
-                              ↓
-                    ┌──────────────────┐
-                    │ Return config to │
-                    │    Frontend UI   │
-                    └──────────────────┘
-                              ↓
-                    ┌──────────────────┐
-                    │  User Edits UI   │
-                    └──────────────────┘
-                              ↓
-                 ┌────────────────────────┐
-                 │PATCH /api/assistant-   │
-                 │       channels         │
-                 └────────────────────────┘
-                              ↓
-                    ┌──────────────────┐
-                    │ Save/Upsert to   │
-                    │assistant_channels│
-                    └──────────────────┘
-                              ↓
-                    ┌──────────────────┐
-                    │ Future GETs load │
-                    │ from assistant_  │
-                    │    channels      │
-                    └──────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│  ADMIN LAYER — System Prompts (isTemplate: true, tenantId: null)         │
+│  Managed via: Settings → Prompt Management                               │
+│  Lifecycle:   draft → production                                         │
+│  Rule:        Immutable once published — use "New Version" to iterate    │
+└──────────────────────────────────────────────────────────────────────────┘
+                         ↓  Pull (delta only)
+                POST /api/pms/tenant-prompts/:productId/pull
+                         ↓  copies with baseTemplateId reference
+┌──────────────────────────────────────────────────────────────────────────┐
+│  TENANT LAYER — Tenant Prompts (isTemplate: false, tenantId: set)        │
+│  Managed via: Product → Assistant Channels → Configure [Voice|Chat]      │
+│  Lifecycle:   draft → testing → production                               │
+│  Rule:        Editable while draft; immutable once testing/production    │
+└──────────────────────────────────────────────────────────────────────────┘
+                         ↓  Active production version
+                         ↓  read by Java VA service at session start
+┌──────────────────────────────────────────────────────────────────────────┐
+│  RUNTIME LAYER — assistant_channels                                      │
+│  Used by:     Java PromptAssembler to build final session prompt         │
+│  Not versioned through PMS — static voice/chat channel config            │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 📦 Database Structure
+---
 
-### prompt_templates Collection
-
-**Example 1: System Default (Healthcare)**
-```json
-{
-  "_id": ObjectId("6967bb844fbad54fe6d18f3e"),
-  "name": "Healthcare - Default Template",
-  "industry": "healthcare",
-  "isDefault": true,
-  "promptContext": {
-    "tenantName": "Healthcare Practice",
-    "servicesOffered": ["Primary Care", "Preventive Care"],
-    "tone": "professional and empathetic",
-    // ... all configuration fields
-  },
-  "customPrompts": { /* safety rules */ },
-  "ragConfig": { /* RAG config */ }
-}
-```
-
-**Example 2: Customer-Specific Template**
-```json
-{
-  "_id": ObjectId("6967bb844fbad54fe6d18f3f"),
-  "name": "Acme Healthcare - Custom Configuration",
-  "customerId": "ten-splendor-florida-33064",
-  "industry": "healthcare",
-  "isDefault": false,
-  "promptContext": {
-    "tenantName": "Acme Healthcare",
-    "servicesOffered": ["Primary Care", "Urgent Care", "Telehealth", ...],
-    "locations": [/* 2 offices */],
-    "faqs": [/* 4 FAQs */],
-    // ... 30+ comprehensive fields
-  },
-  "customPrompts": { /* safety & compliance */ },
-  "ragConfig": { /* 2 sources */ }
-}
-```
-
-### assistant_channels Collection
-
-**Created on First Save**
-```json
-{
-  "_id": ObjectId("..."),
-  "customerId": "ten-splendor-florida-33064",
-  "productId": "prod-va-basic",
-  "voice": {
-    "enabled": true,
-    "promptTemplateId": ObjectId("6967bb844fbad54fe6d18f3f"),
-    "promptContext": { /* user's customized version */ },
-    "customPrompts": { /* user's customized version */ },
-    "ragConfig": { /* user's customized version */ }
-  },
-  "chat": { /* same structure */ }
-}
-```
-
-## 🎯 API Behavior
-
-### GET /api/assistant-channels
-```typescript
-// Pseudocode
-if (assistant_channels.exists(customerId)) {
-  return assistant_channels.findOne(customerId);
-} else {
-  template = prompt_templates.findOne({ customerId, isDefault: false })
-    || prompt_templates.findOne({ industry, isDefault: true })
-    || prompt_templates.findOne({ isDefault: true });
-  
-  return buildDefaultConfig(template);
-  // Note: Does NOT save to DB yet
-}
-```
-
-### PATCH /api/assistant-channels
-```typescript
-// Always saves to assistant_channels (upsert)
-assistant_channels.updateOne(
-  { customerId },
-  { $set: updates },
-  { upsert: true }
-);
-```
-
-## 🚀 Implementation Files
-
-### Updated Files:
-- ✅ [assistant-channels-routes.ts](src/routes/assistant-channels-routes.ts)
-  - Added `loadDefaultPromptTemplate()` helper function
-  - Updated GET endpoints to load from prompt_templates when no user config
-  - Returns defaults WITHOUT persisting until first PATCH
-
-### New Files:
-- ✅ [seed-templates.ts](src/scripts/seed-templates.ts)
-  - Creates system default healthcare template
-  - Creates customer-specific template for Acme Healthcare
-  - Updates existing assistant_channels if present
-
-- ✅ [test-prompt-loading.ts](src/scripts/test-prompt-loading.ts)
-  - Tests the loading logic
-  - Verifies correct template selection
-
-## 📋 Usage
-
-### Seed Templates
-```bash
-npm run seed:templates
-```
-
-This creates:
-1. Default healthcare template (isDefault: true)
-2. Customer template for test customer (isDefault: false)
-
-### Test Loading Logic
-```bash
-npx ts-node src/scripts/test-prompt-loading.ts
-```
-
-### API Endpoints
-
-**Load Configuration (reads template if no user config):**
-```bash
-GET /api/assistant-channels
-GET /api/assistant-channels/:productId
-```
-
-**Save Configuration (creates/updates assistant_channels):**
-```bash
-PATCH /api/assistant-channels
-PATCH /api/assistant-channels/voice
-PATCH /api/assistant-channels/chat
-```
-
-## 🎨 Frontend Integration
-
-### Initial Load
-```typescript
-useEffect(() => {
-  fetchConfiguration();
-}, []);
-
-const fetchConfiguration = async () => {
-  // Will load from prompt_templates if no user config exists
-  const response = await axios.get('/api/assistant-channels');
-  const config = response.data;
-  
-  // Populate form
-  setBusinessName(config.voice?.promptContext?.tenantName);
-  setServicesOffered(config.voice?.promptContext?.servicesOffered);
-  // ... all other fields
-};
-```
-
-### Save Changes
-```typescript
-const handleSave = async () => {
-  // This will CREATE the assistant_channels document on first save
-  await axios.patch('/api/assistant-channels', {
-    voice: {
-      promptContext: {
-        tenantName: businessName,
-        servicesOffered: servicesOffered,
-        // ... all fields
-      }
-    }
-  });
-  
-  // Subsequent loads will now come from assistant_channels
-};
-```
-
-## ✅ Benefits
-
-1. **Clean Separation**: Templates are read-only, user edits are isolated
-2. **No Premature Storage**: Don't create DB records until user actually saves
-3. **Easy Defaults**: System admins can update templates without affecting user configs
-4. **Industry Templates**: Support multiple industries with appropriate defaults
-5. **Customer Templates**: Pre-configure for specific customers before they log in
-6. **Flexible**: Users can completely override defaults
-
-## 🧪 Test Results
+## On Subscription: Auto-Provisioning
 
 ```
-✅ No assistant_channels → Loads from prompt_templates
-✅ Customer-specific template found (Acme Healthcare)
-✅ Contains 6 services, 4 FAQs, comprehensive config
-✅ First PATCH will create assistant_channels document
-✅ Subsequent GETs will load from assistant_channels
+User subscribes to product
+         ↓
+POST /api/product-signup/session/:sessionId/complete
+         ↓
+tenantPromptService.pullTemplates(tenantId, productId, actor)
+         ↓
+For each production template (isTemplate:true, state:'production'):
+  ├─ Skip if baseTemplateId already in pulledTemplateIds  ← idempotent
+  ├─ Skip if tenant already has prompt_version with that baseTemplateId
+  └─ promptService.createFromTemplate() → tenant draft (version 1)
+         ↓
+tenant_prompt_bindings created/updated:
+  { currentDraftId, pulledTemplateIds: [templateId, ...] }
+         ↓
+Tenant can now edit and promote their own copy
 ```
 
-## 📊 Current State
+---
 
-### Templates in Database:
-- **9 templates total**
-- **8 old templates** (from previous seed, missing promptContext)
-- **1 new system default** (Healthcare - Default Template)
-- **1 new customer template** (Acme Healthcare - Custom Configuration)
+## Delta Pull Flow
 
-### For Test Customer (ten-splendor-florida-33064):
-- **assistant_channels**: Deleted (testing fresh load)
-- **prompt_templates**: Has custom template with 6 services, 4 FAQs
-- **API behavior**: Will load from customer template on GET
+When a new system prompt is published by an admin:
 
-## 🔧 Next Steps
+```
+Admin creates draft (isTemplate:true) → promotes to production
+         ↓
+Tenant opens "Pull Prompts" on TenantPrompts page
+         ↓
+POST /api/pms/tenant-prompts/:productId/pull
+         ↓
+pullTemplates() checks:
+  1. pulledTemplateIds in tenant_prompt_bindings
+  2. existing prompt_versions with baseTemplateId (handles seeded data)
+         ↓
+Only NEW templates (not in either set) are provisioned
+         ↓
+tenant_prompt_bindings updated: new templateIds added to pulledTemplateIds
+```
 
-1. ✅ **Architecture implemented** - Two-tier system working
-2. ✅ **Seed script created** - Can create templates easily
-3. ⏭️ **Wire frontend** - Update React UI to use new API behavior
-4. ⏭️ **Test save flow** - Verify PATCH creates assistant_channels
-5. ⏭️ **Clean old templates** - Remove/update old templates without promptContext
-6. ⏭️ **Add template management** - Admin UI to create/edit templates
+---
 
-## 📝 Notes
+## Versioning Lifecycle
 
-- **prompt_templates** should be managed by admins, not end users
-- **assistant_channels** is user-editable through the UI
-- Templates can be versioned for upgrades/migrations
-- Consider adding `templateVersion` field for backward compatibility
+```
+createDraft()
+  promptId=NEW, version=1, state='draft', isActive=false
+       │
+       ├─ updateDraft()
+       │    → in-place edit
+       │    → optimistic lock: __v must match
+       │    → system prompts (isTemplate:true, state≠'draft') → 403 blocked
+       │
+       ├─ createNewVersion()
+       │    → new doc: promptId=SAME, version=N+1, basedOn=source._id
+       │
+       ├─ promotePrompt('testing')    [tenant only]
+       │    → state='testing', environment='testing'
+       │
+       └─ promotePrompt('production')
+            → prior production: state='archived', isActive=false
+            → this version: state='production', isActive=true, canRollback=true
+            → tenant_prompt_bindings.activeProductionId updated
+       │
+       └─ rollbackPrompt(targetVersionId)
+            → current production: state='archived', isActive=false
+            → target: state='production', isActive=true
+            → tenant_prompt_bindings.activeProductionId updated
+```
+
+---
+
+## Database Layer
+
+```
+prompt_versions               tenant_prompt_bindings
+┌─────────────────────┐      ┌───────────────────────────┐
+│ isTemplate: true    │      │ tenantId                  │
+│ tenantId: null      │      │ productId                 │
+│ state: production   │      │ channelType               │
+│ (system prompt)     │      │ currentDraftId  ──────────┼─→ prompt_versions._id
+└─────────────────────┘      │ activeProductionId ───────┼─→ prompt_versions._id
+                             │ pulledTemplateIds ─────────┼─→ [prompt_versions._id, ...]
+prompt_versions               └───────────────────────────┘
+┌─────────────────────┐
+│ isTemplate: false   │      prompt_audit_log
+│ tenantId: set       │      ┌───────────────────────────┐
+│ state: draft        │      │ promptVersionId ───────────┼─→ prompt_versions._id
+│ (tenant prompt)     │      │ action                    │
+└─────────────────────┘      │ actor                     │
+                             │ changes[]                 │
+                             │ context                   │
+assistant_channels           │ compliance (7yr TTL)      │
+┌─────────────────────┐      └───────────────────────────┘
+│ voice config        │
+│ chat config         │
+│ promptContext       │ ← Java VA PromptAssembler reads here
+│ businessHours       │
+└─────────────────────┘
+```
+
+---
+
+## API Endpoint Map
+
+### Admin — System Prompts (`/api/pms/prompts`)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/pms/prompts` | List (filter by `isTemplate=true&productId=X`) |
+| `POST` | `/api/pms/prompts/drafts` | Create system prompt draft (`isTemplate:true`) |
+| `GET` | `/api/pms/prompts/templates/product/:productId` | Templates for a product |
+| `GET` | `/api/pms/prompts/templates/:id` | Single template |
+| `PUT` | `/api/pms/prompts/:id` | Update (blocked if published system prompt) |
+| `POST` | `/api/pms/prompts/:id/versions` | New version / duplicate |
+| `POST` | `/api/pms/prompts/:id/promote` | `{ targetState: 'production' }` |
+| `GET` | `/api/pms/prompts/:id/versions` | Version history |
+| `POST` | `/api/pms/prompts/:id/rollback` | `{ targetVersionId }` |
+| `DELETE` | `/api/pms/prompts/:id` | Soft delete |
+| `POST` | `/api/pms/prompts/:id/restore` | Restore |
+
+### Tenant — Tenant Prompts (`/api/pms/tenant-prompts`)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/pms/tenant-prompts/:productId` | List tenant prompts + bindings |
+| `POST` | `/api/pms/tenant-prompts/:productId/pull` | Pull delta templates |
+| `POST` | `/api/pms/tenant-prompts/:productId/:channel/promote` | Promote draft to production |
+
+All `/api/pms/prompts` endpoints also accessible at `/api/prompts` (same router).
+
+---
+
+## Legacy Collections Removed
+
+| Collection | Status | Reason |
+|---|---|---|
+| `prompts` | Dropped | Superseded by `prompt_versions` |
+| `prompt_templates` | Dropped | Superseded by `prompt_versions` (isTemplate:true) |
+| `assistant_channels` | Retained | Java VA service reads at session start |

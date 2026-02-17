@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import promptService from '../services/prompt.service';
+import { promptService } from '../services/prompt.service';
 
 const router = Router();
 
@@ -162,6 +162,32 @@ router.post('/:id/promote', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Error promoting prompt:', error);
     res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/prompts/:id/rollback
+ * Rollback active production to a previous version
+ * Body: { targetVersionId }
+ */
+router.post('/:id/rollback', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { targetVersionId } = req.body;
+    const actor = getActor(req);
+
+    if (!targetVersionId) {
+      return res.status(400).json({ error: 'Missing required field: targetVersionId' });
+    }
+
+    const result = await promptService.rollbackPrompt(id, targetVersionId, actor);
+    res.json(result);
+  } catch (error: any) {
+    console.error('Error rolling back prompt:', error);
+    const status = error.name === 'PromptNotFoundError' ? 404
+      : error.name === 'PromptStateError' ? 400
+      : 500;
+    res.status(status).json({ error: error.message });
   }
 });
 
@@ -349,7 +375,6 @@ router.post('/from-template', async (req: Request, res: Response) => {
       templateId,
       tenantId,
       productId,
-      customizations,
       actor
     });
 

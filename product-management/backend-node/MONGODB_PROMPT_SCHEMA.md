@@ -1,344 +1,227 @@
 # MongoDB Prompt Configuration Schema
 
-📑 **Table of Contents**
-- [Collection: assistant_channels](#collection-assistant_channels)
-- [Document Structure](#document-structure)
-- [Channel Configurations](#channel-configurations)
-  - [Voice Channel Config](#voice-channel-config)
-  - [Chat Channel Config](#chat-channel-config)
-- [Core Interfaces](#core-interfaces)
-  - [PromptContext (Business Configuration)](#promptcontext-business-configuration)
-  - [CustomPrompts (Safety & Compliance)](#customprompts-safety--compliance)
-  - [RagConfiguration (Knowledge Sources)](#ragconfiguration-knowledge-sources)
-- [API Endpoints](#api-endpoints)
-  - [GET /api/assistant-channels](#get-apiassistant-channels)
-  - [GET /api/assistant-channels/:productId](#get-apiassistant-channelsproductid)
-  - [PATCH /api/assistant-channels](#patch-apiassistant-channels)
-  - [PATCH /api/assistant-channels/voice](#patch-apiassistant-channelsvoice)
-  - [PATCH /api/assistant-channels/chat](#patch-apiassistant-channelschat)
-- [Seeding Test Data](#seeding-test-data)
-- [Example Query](#example-query)
-- [Frontend Integration](#frontend-integration)
-- [Java Service Integration](#java-service-integration)
-- [Migration Notes](#migration-notes)
-  - [From Old Schema](#from-old-schema)
-  - [Adding New Fields](#adding-new-fields)
-- [Best Practices](#best-practices)
-- [Security Considerations](#security-considerations)
+## Collections
+
+| Collection | Purpose | Managed By |
+|---|---|---|
+| `prompt_versions` | All prompt records — system templates AND tenant-specific prompts | PMS service |
+| `tenant_prompt_bindings` | Tracks current draft + active production per tenant+product+channel | PMS service |
+| `prompt_audit_log` | Immutable audit trail for every prompt action | PMS service |
+| `assistant_channels` | Runtime voice/chat channel config for Java VA service | Java VA service (read-only) |
 
 ---
 
-## Collection: `assistant_channels`
+## 1. `prompt_versions`
 
-This collection stores comprehensive prompt configuration for virtual assistants, supporting voice, chat, SMS, and WhatsApp channels.
+Single collection holding both system prompts (templates) and tenant prompts.
 
-## Document Structure
+### Two Record Types
+
+| Field | System Prompt (template) | Tenant Prompt |
+|---|---|---|
+| `isTemplate` | `true` | `false` |
+| `tenantId` | `null` (platform-owned) | set to tenant ID string |
+| `productId` | set | set |
+| Edit rule | Immutable once `state='production'` | Editable while `state='draft'` |
+| Lifecycle | `draft → production` | `draft → testing → production` |
+| Created by | Platform admin | Auto-provisioned on signup; or created from template |
+
+### Field Reference
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `promptId` | ObjectId | Yes | Stable identifier shared across all versions of one logical prompt |
+| `version` | Number | Yes | Integer, starts at 1, increments with each `createNewVersion()` call |
+| `name` | String | Yes | |
+| `description` | String | No | |
+| `category` | String | No | |
+| `channelType` | String | Yes | `voice \| chat \| sms \| whatsapp \| email` |
+| `isTemplate` | Boolean | No | `true` = system prompt, default `false` |
+| `templateDescription` | String | No | Description shown to admins |
+| `baseTemplateId` | ObjectId | No | Points to the `_id` of the system prompt this was pulled from |
+| `icon` | String | No | Emoji/icon for display |
+| `tenantId` | String | No | Null for system prompts |
+| `productId` | ObjectId | No | |
+| `content` | Object | Yes | 6-layer prompt content (see below) |
+| `state` | String | Yes | `draft \| testing \| staging \| production \| archived` |
+| `environment` | String | Yes | `development \| testing \| staging \| production` |
+| `isActive` | Boolean | Yes | `true` only on the currently-serving production version |
+| `activatedAt` | Date | No | Set when promoted to production |
+| `canRollback` | Boolean | Yes | `true` on any version that has been production before |
+| `rollbackFrom` | ObjectId | No | `_id` of the version that was active when this rollback occurred |
+| `basedOn` | ObjectId | No | `_id` of the version this was branched from |
+| `changes` | Array | No | Field-level diff recorded on each update |
+| `createdBy` | Object | Yes | `{ userId, name, email, role }` |
+| `updatedBy` | Object | No | `{ userId, name, email, role }` |
+| `isDeleted` | Boolean | No | Soft delete flag |
+| `deletedAt` | Date | No | |
+| `deletedBy` | Object | No | `{ userId, name, email, role }` |
+| `metrics` | Object | No | Phase 7: usage stats |
+
+### 6-Layer Content Object
 
 ```typescript
-{
-  _id: ObjectId,
-  customerId: string,              // Unique customer identifier
-  productId: string | ObjectId,    // Link to subscribed product
-  tenantId: string,                // Tenant/customer reference
-  
-  voice: VoiceChannelConfig,
-  chat: ChatChannelConfig,
-  sms: SmsChannelConfig,
-  whatsapp: WhatsAppChannelConfig,
-  
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-## Channel Configurations
-
-### Voice Channel Config
-
-```typescript
-{
-  enabled: boolean,
-  phoneNumber: string,
-  fallbackNumber?: string,
-  
-  voiceSettings: {
-    language: string,              // e.g., "en-US"
-    voiceId: string,              // Voice provider ID
-    speechRate: number,           // 0.5 - 2.0
-    pitch: number                 // -20 to 20
+content: {
+  systemPrompt: string,            // Core instruction text
+  persona: {
+    tone: string,
+    personality: string,
+    allowedActions: string[],
+    disallowedActions: string[]
   },
-  
-  businessHours: {
-    timezone: string,
-    monday?: { open: string, close: string },
-    tuesday?: { open: string, close: string },
-    // ... other days
+  businessContext: {
+    servicesOffered: string[],
+    pricingInfo?: string,
+    locations?: [{ name, address, city, phone, hours }],
+    policies?: string,
+    faqs?: [{ question, answer }]
   },
-  
-  customPrompts: CustomPrompts,
-  ragConfig: RagConfiguration,
-  promptContext: PromptContext
+  ragConfig?: { enabled, vectorStore, sources, retrieval, ... },
+  conversationBehavior: {
+    greeting: string,
+    fallbackMessage: string,
+    intentPrompts?: Map<string, string>,
+    askForNameFirst?: boolean,
+    conversationMemoryTurns?: number
+  },
+  constraints: {
+    prohibitedTopics: string[],
+    complianceRules?: string[],
+    requireConsent?: boolean,
+    maxConversationTurns?: number
+  },
+  customVariables?: Map<string, string>
 }
 ```
 
-### Chat Channel Config
+### Key Indexes
 
-```typescript
-{
-  enabled: boolean,
-  greeting?: string,
-  typingIndicator?: boolean,
-  maxTurns?: number,
-  showIntent?: boolean,
-  allowFileUpload?: boolean,
-  
-  customPrompts: CustomPrompts,
-  ragConfig: RagConfiguration,
-  promptContext: PromptContext
-}
+| Index Name | Fields | Notes |
+|---|---|---|
+| `active_prompt_lookup` | `tenantId, productId, channelType, environment, isActive` | O(1) production lookup |
+| `version_history` | `promptId, version: -1` | History sorted newest first |
+| `template_lookup` | `isTemplate, productId, channelType` | Partial (isTemplate:true only) |
+| `draft_ttl` | `createdAt` | Auto-expire inactive drafts after 90 days |
+
+### Prompt Lifecycle
+
+```
+createDraft()            → promptId=NEW, version=1, state='draft', isActive=false
+  │
+  ├─ updateDraft()       → in-place edit (optimistic lock via __v)
+  ├─ createNewVersion()  → version=2, state='draft', basedOn=v1._id
+  │
+  ├─ promotePrompt('testing')    → state='testing'  [tenant only]
+  └─ promotePrompt('production') → state='production', isActive=true
+       └─ prior production versions → state='archived', isActive=false
+  │
+  └─ rollbackPrompt(targetVersionId) → reactivates prior version
 ```
 
-## Core Interfaces
+---
 
-### PromptContext (Business Configuration)
+## 2. `tenant_prompt_bindings`
 
-```typescript
-{
-  // Business Identity
-  tenantName?: string,
-  tenantIndustry?: string,
-  businessContext?: string,
-  
-  // Role/Persona
-  tone?: string,
-  personality?: string,
-  allowedActions?: string[],
-  disallowedActions?: string[],
-  
-  // Static Business Knowledge
-  servicesOffered?: string[],
-  pricingInfo?: string,
-  locations?: Array<{
-    address: string,
-    city: string,
-    state: string
-  }>,
-  businessHours?: string,
-  policies?: string,
-  faqs?: Array<{
-    question: string,
-    answer: string
-  }>,
-  productCatalog?: string,
-  
-  // Conversation Behavior
-  maxResponseLength?: number,
-  escalationTriggers?: string[],
-  askForNameFirst?: boolean,
-  confirmBeforeActions?: boolean,
-  defaultLanguage?: string,
-  conversationMemoryTurns?: number,
-  
-  // Custom Variables
-  customVariables?: { [key: string]: string }
-}
+One record per `(tenantId, productId, channelType)`. Tracks which version is the current draft and which is production.
+
+### Fields
+
+| Field | Type | Notes |
+|---|---|---|
+| `tenantId` | String | |
+| `productId` | ObjectId | |
+| `channelType` | String | `voice \| chat` |
+| `currentDraftId` | ObjectId | `_id` of the active draft PromptVersion (cleared on promote to production) |
+| `activeProductionId` | ObjectId | `_id` of the serving production PromptVersion |
+| `pulledTemplateIds` | ObjectId[] | Template `_id`s already provisioned — Pull is idempotent against this list |
+| `scoreThreshold` | Number | Phase 2: auto-promotion gate (default 90) |
+| `lastScore` | Number | Phase 2: last test score |
+
+### Unique index
+```
+{ tenantId: 1, productId: 1, channelType: 1 }  — unique
 ```
 
-### CustomPrompts (Safety & Compliance)
+### Delta Pull Logic
 
-```typescript
-{
-  systemPrompt?: string,
-  greeting?: string,
-  intentPrompts?: { [key: string]: string },
-  fallbackMessage?: string,
-  closingMessage?: string,
-  
-  // Safety & Compliance
-  prohibitedTopics?: string[],
-  complianceRules?: string[],
-  privacyPolicy?: string,
-  requireConsent?: boolean,
-  escalationPolicy?: string,
-  sensitiveDataHandling?: string,
-  maxConversationTurns?: number,
-  logConversations?: boolean
-}
-```
+On `POST /api/pms/tenant-prompts/:productId/pull`:
+1. Load all production templates for the product (`isTemplate:true, state:'production'`)
+2. Collect template `_id`s already in `pulledTemplateIds` across all bindings
+3. Also check existing tenant `prompt_versions` by `baseTemplateId` (handles seeded/legacy data)
+4. Only provision templates NOT in either set — idempotent pulls
 
-### RagConfiguration (Knowledge Sources)
+---
 
-```typescript
-{
-  enabled: boolean,
-  sources: Array<{
-    url: string,
-    type: 'website' | 'api' | 'documentation',
-    description?: string,
-    refreshInterval?: number
-  }>,
-  maxResults?: number,
-  confidenceThreshold?: number
-}
-```
+## 3. `prompt_audit_log`
+
+Immutable audit trail. One entry per action on any prompt version.
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `promptVersionId` | ObjectId | Yes | |
+| `action` | String | Yes | `created \| updated \| approved \| deployed \| rolled_back \| deleted \| accessed \| created_from_template` |
+| `actor.userId` | String | Yes | |
+| `actor.name` | String | Yes | |
+| `actor.email` | String | Yes | |
+| `actor.role` | String | Yes | |
+| `actor.ipAddress` | String | Yes | |
+| `actor.sessionId` | String | Yes | |
+| `timestamp` | Date | Yes | |
+| `changes` | Array | No | `[{ field, path, oldValue, newValue }]` |
+| `context.tenantId` | String | No | |
+| `context.productId` | ObjectId | No | |
+| `context.environment` | String | Yes | |
+| `context.requestId` | String | Yes | |
+| `compliance.dataClassification` | String | Yes | `PHI \| PII \| PUBLIC` |
+| `compliance.retentionPolicy` | String | Yes | `7_YEARS \| INDEFINITE` |
+
+TTL index: `timestamp` expires after 7 years (HIPAA/SOC2 requirement).
+
+---
+
+## 4. `assistant_channels`
+
+**Retained for the Java VA service.** The Java PromptAssembler reads this collection at session start to get runtime voice/chat channel configuration.
+
+This collection is **NOT part of the versioned PMS system**. It is not managed through `/api/pms/` routes. It stores voice/chat settings like phone numbers, business hours, and `promptContext` that the Java VA uses to assemble the final prompt at runtime.
+
+See `PROMPT_ARCHITECTURE.md` for how `assistant_channels` fits into the session flow.
+
+---
 
 ## API Endpoints
 
-### GET `/api/assistant-channels`
-Get configuration for current authenticated customer.
+### System Prompts (admin)
 
-**Response:**
-```json
-{
-  "_id": "...",
-  "customerId": "ten-splendor-florida-33064",
-  "productId": "prod-va-basic",
-  "voice": { ... },
-  "chat": { ... }
-}
-```
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/pms/prompts?isTemplate=true&productId=X` | List templates for a product |
+| `GET` | `/api/pms/prompts/templates/:id` | Get a single template |
+| `POST` | `/api/pms/prompts/drafts` | Create new draft (set `isTemplate:true` for system prompt) |
+| `PUT` | `/api/pms/prompts/:id` | Update draft (blocked if system prompt is published) |
+| `POST` | `/api/pms/prompts/:id/versions` | Create new version (duplicate) |
+| `POST` | `/api/pms/prompts/:id/promote` | Promote to production |
 
-### GET `/api/assistant-channels/:productId`
-Get configuration by product ID.
+### Tenant Prompts
 
-**Parameters:**
-- `productId`: Product identifier
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/pms/tenant-prompts/:productId` | Get tenant's prompts and bindings |
+| `POST` | `/api/pms/tenant-prompts/:productId/pull` | Pull delta templates for tenant |
+| `POST` | `/api/pms/tenant-prompts/:productId/:channel/promote` | Promote tenant draft to production |
+| `GET` | `/api/pms/prompts/:id/versions` | Get version history |
+| `POST` | `/api/pms/prompts/:id/rollback` | Rollback to a prior version |
+| `DELETE` | `/api/pms/prompts/:id` | Soft delete |
+| `POST` | `/api/pms/prompts/:id/restore` | Restore soft-deleted |
 
-**Response:** Same as above
+---
 
-### PATCH `/api/assistant-channels`
-Update full channel configuration.
+## On Subscription — Auto-Provisioning
 
-**Request Body:**
-```json
-{
-  "voice": { ... },
-  "chat": { ... }
-}
-```
+When a tenant subscribes to a product (`POST /api/product-signup/session/:sessionId/complete`):
+1. The signup handler calls `tenantPromptService.pullTemplates(tenantId, productId, actor)`
+2. All production templates for the product are copied as tenant drafts with `baseTemplateId` set
+3. `tenant_prompt_bindings` records are created/updated with `currentDraftId` and `pulledTemplateIds`
+4. The tenant can then edit and promote their copy — the system template is untouched
 
-### PATCH `/api/assistant-channels/voice`
-Update only voice channel.
-
-**Request Body:**
-```json
-{
-  "enabled": true,
-  "phoneNumber": "+1-555-123-4567",
-  "customPrompts": { ... },
-  "promptContext": { ... }
-}
-```
-
-### PATCH `/api/assistant-channels/chat`
-Update only chat channel.
-
-**Request Body:**
-```json
-{
-  "enabled": true,
-  "greeting": "Hi! How can I help?",
-  "promptContext": { ... }
-}
-```
-
-## Seeding Test Data
-
-Run the seed script to populate test data for tenant `ten-splendor-florida-33064`:
-
-```bash
-npm run seed:prompts
-```
-
-This creates a comprehensive configuration with:
-- ✅ Business identity (Acme Healthcare)
-- ✅ Full persona configuration
-- ✅ 6 services offered
-- ✅ 2 office locations
-- ✅ 4 FAQs
-- ✅ RAG sources configured
-- ✅ Safety & compliance rules
-- ✅ Conversation behavior settings
-
-## Example Query
-
-```javascript
-const db = getDB();
-const config = await db.collection('assistant_channels')
-  .findOne({ 
-    customerId: 'ten-splendor-florida-33064',
-    productId: 'prod-va-basic'
-  });
-
-console.log(config.voice.promptContext.servicesOffered);
-// ['Primary Care', 'Urgent Care', 'Telehealth', ...]
-```
-
-## Frontend Integration
-
-The React PromptConfiguration component maps directly to this schema:
-
-```typescript
-// Business Identity Section → promptContext
-businessName → promptContext.tenantName
-industry → promptContext.tenantIndustry
-tone → promptContext.tone
-personality → promptContext.personality
-
-// Static Knowledge Section → promptContext
-servicesOffered → promptContext.servicesOffered
-locations → promptContext.locations
-faqs → promptContext.faqs
-
-// Safety Section → customPrompts
-prohibitedTopics → customPrompts.prohibitedTopics
-complianceRules → customPrompts.complianceRules
-
-// RAG Section → ragConfig
-ragEnabled → ragConfig.enabled
-ragUrls → ragConfig.sources
-```
-
-## Java Service Integration
-
-The Java PromptBuilder uses this data:
-
-```java
-PromptAssembler assembler = new PromptAssembler();
-String prompt = assembler.assemblePrompt(config, sessionState, ragResults);
-
-// This extracts:
-// - config.promptContext.tenantName → withBusinessName()
-// - config.promptContext.servicesOffered → withStaticContext()
-// - config.customPrompts.prohibitedTopics → withConstraints()
-```
-
-## Migration Notes
-
-### From Old Schema
-If you have existing configurations without the new fields, they will automatically receive defaults when accessed through the API.
-
-### Adding New Fields
-To add new fields:
-1. Update TypeScript interfaces in `assistant-channels.types.ts`
-2. Update seed script if needed
-3. Frontend will automatically handle undefined fields as empty strings/arrays
-4. Java PromptBuilder uses `safe()` method to handle null values
-
-## Best Practices
-
-1. **Always use upsert** when updating configurations to handle new customers
-2. **Validate required fields** before saving (businessName, industry)
-3. **Sanitize user input** especially in customPrompts to prevent prompt injection
-4. **Log configuration changes** for audit trail
-5. **Version configurations** if you need to track changes over time
-6. **Cache frequently accessed configs** to reduce database load
-
-## Security Considerations
-
-- ✅ Sensitive data (API keys, tokens) should NOT be stored in promptContext
-- ✅ Use `sensitiveDataHandling` field to document data handling policies
-- ✅ Enable `requireConsent` for HIPAA/GDPR compliance
-- ✅ Set `logConversations` carefully based on privacy requirements
-- ✅ Validate `prohibitedTopics` to prevent abuse
-- ✅ Rate limit configuration updates to prevent spam
+When admins publish a new template version, tenants see a badge on their Pull button and can pull the delta.
