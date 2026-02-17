@@ -126,7 +126,9 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
   }, [bindings]);
 
   const handleChannelChange = (channel: 'voice' | 'chat') => {
-    setSearchParams({ channel });
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('channel', channel);
+    setSearchParams(newParams);
   };
 
   const handlePull = async () => {
