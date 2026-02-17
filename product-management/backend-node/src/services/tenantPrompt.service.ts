@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import TenantPromptBinding, { ITenantPromptBinding } from '../models/TenantPromptBinding';
+import PromptVersionModel from '../models/PromptVersion';
 import { PromptService, IActor } from './prompt.service';
 
 const promptService = new PromptService();
@@ -82,7 +83,19 @@ export class TenantPromptService {
       }
     }
 
-    // Filter to only new (not-yet-pulled) templates
+    // Also detect templates already used via baseTemplateId on existing tenant prompts.
+    // This makes pull idempotent even when pulledTemplateIds was not populated initially.
+    const templateObjectIds = templates.map(t => new Types.ObjectId(t._id.toString()));
+    const existingFromTemplate = await PromptVersionModel.find({
+      tenantId,
+      isTemplate: false,
+      baseTemplateId: { $in: templateObjectIds }
+    }).select('baseTemplateId');
+    for (const p of existingFromTemplate) {
+      if (p.baseTemplateId) allPulledIds.add(p.baseTemplateId.toString());
+    }
+
+    // Filter to only genuinely new templates not yet pulled for this tenant
     const newTemplates = templates.filter(t => !allPulledIds.has(t._id.toString()));
 
     const created: { channelType: string; promptId: string; name: string }[] = [];
