@@ -105,6 +105,8 @@ import tenantAuthRoutes from './routes/tenant-auth';
 console.log('[Startup] ✅ Tenant-auth routes imported');
 import tenantRoutes from './routes/tenant-routes';
 console.log('[Startup] ✅ Tenant routes imported');
+import subscriptionsRoutes from './routes/subscriptions-routes';
+console.log('[Startup] ✅ Subscriptions-info routes imported');
 
 console.log('[Startup] 🎉 ALL IMPORTS COMPLETED - Starting main execution...');
 
@@ -506,6 +508,7 @@ try {
   app.use('/api/user-products', userProductsRoutes);
   app.use('/api/product-configurations', productConfigurationRoutes);
   app.use('/api/subscriptions', subscriptionRoutes);
+  app.use('/api/subscriptions-info', subscriptionsRoutes);
   app.use('/api/tenants', tenantRoutes);
   app.use('/api/product-signup', productSignupRoutes);
   app.use('/api/payment-methods', paymentRoutes);
