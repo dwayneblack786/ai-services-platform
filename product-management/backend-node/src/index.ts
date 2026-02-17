@@ -101,9 +101,10 @@ console.log('[Startup] ✅ Security middleware imported');
 import mongoose from 'mongoose';
 console.log('[Startup] ✅ Mongoose imported');
 
-// Removed faulty routes: subscriptions-routes, tenant-routes (unused)
 import tenantAuthRoutes from './routes/tenant-auth';
 console.log('[Startup] ✅ Tenant-auth routes imported');
+import tenantRoutes from './routes/tenant-routes';
+console.log('[Startup] ✅ Tenant routes imported');
 
 console.log('[Startup] 🎉 ALL IMPORTS COMPLETED - Starting main execution...');
 
@@ -505,6 +506,7 @@ try {
   app.use('/api/user-products', userProductsRoutes);
   app.use('/api/product-configurations', productConfigurationRoutes);
   app.use('/api/subscriptions', subscriptionRoutes);
+  app.use('/api/tenants', tenantRoutes);
   app.use('/api/product-signup', productSignupRoutes);
   app.use('/api/payment-methods', paymentRoutes);
   app.use('/api/transactions', transactionsRoutes);
