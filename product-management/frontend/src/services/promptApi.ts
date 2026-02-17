@@ -61,6 +61,10 @@ export interface IPromptVersion {
     avgLatency: number;
     errorRate: number;
   };
+  isTemplate?: boolean;
+  canRollback?: boolean;
+  rollbackFrom?: string;
+  activatedAt?: string;
   isDeleted?: boolean;
   deletedAt?: string;
   deletedBy?: {
@@ -212,6 +216,14 @@ export const promptApi = {
    */
   async getVersionHistory(promptId: string): Promise<IPromptVersion[]> {
     const response = await pmsApiClient.get(`/api/pms/prompts/${promptId}/versions`);
+    return response.data;
+  },
+
+  /**
+   * Rollback to a previous production version
+   */
+  async rollbackPrompt(promptId: string, targetVersionId: string): Promise<IPromptVersion> {
+    const response = await pmsApiClient.post(`/api/pms/prompts/${promptId}/rollback`, { targetVersionId });
     return response.data;
   },
 

@@ -211,6 +211,40 @@ const Actions = styled.div`
   gap: 8px;
 `;
 
+const TemplateBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #e8eaf6;
+  color: #3949ab;
+`;
+
+const LockTooltip = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+  }
+`;
+
 const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 'danger' }>`
   padding: 6px 12px;
   border-radius: 4px;
@@ -353,6 +387,15 @@ const PromptManagement: React.FC = () => {
     navigate(`/prompts/edit/${id}?returnTo=/prompts`);
   };
 
+  const handleNewVersion = async (id: string) => {
+    try {
+      const newVersion = await promptApi.createNewVersion(id);
+      navigate(`/prompts/edit/${newVersion._id}?returnTo=/prompts`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to create new version');
+    }
+  };
+
   const handleViewVersions = (promptId: string) => {
     navigate(`/prompts/versions/${promptId}`);
   };
@@ -487,7 +530,14 @@ const PromptManagement: React.FC = () => {
                 metrics={prompt.metrics}
                 lastScore={undefined} // TODO: Add scoring data when available
                 scoreThreshold={70}
-                onClick={() => !prompt.isDeleted && handleEdit(prompt._id)}
+                onClick={() => {
+                  if (prompt.isDeleted) return;
+                  if (prompt.isTemplate && prompt.state !== 'draft') {
+                    handleNewVersion(prompt._id);
+                  } else {
+                    handleEdit(prompt._id);
+                  }
+                }}
               />
             ))
           )}
@@ -617,6 +667,9 @@ const PromptManagement: React.FC = () => {
                 <PromptInfo>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <PromptName>{prompt.name}</PromptName>
+                    {prompt.isTemplate && (
+                      <TemplateBadge>⚙️ Template</TemplateBadge>
+                    )}
                     {prompt.isDeleted && (
                       <span style={{ fontSize: '11px', padding: '2px 8px', background: '#ffebee', color: '#c62828', borderRadius: '4px', fontWeight: '600' }}>
                         DELETED
@@ -662,6 +715,25 @@ const PromptManagement: React.FC = () => {
                     <>
                       <ActionButton variant="primary" onClick={() => handleRestore(prompt._id, prompt.name)}>
                         Restore
+                      </ActionButton>
+                      <ActionButton variant="secondary" onClick={() => handleViewVersions(prompt.promptId)}>
+                        Versions
+                      </ActionButton>
+                    </>
+                  ) : prompt.isTemplate && prompt.state !== 'draft' ? (
+                    // System prompt is published — immutable, can only create new version
+                    <>
+                      <LockTooltip data-tooltip="Published — create a new version to edit">
+                        <ActionButton
+                          variant="secondary"
+                          disabled
+                          style={{ opacity: 0.5, cursor: 'not-allowed' }}
+                        >
+                          🔒 Locked
+                        </ActionButton>
+                      </LockTooltip>
+                      <ActionButton variant="primary" onClick={() => handleNewVersion(prompt._id)}>
+                        New Version
                       </ActionButton>
                       <ActionButton variant="secondary" onClick={() => handleViewVersions(prompt.promptId)}>
                         Versions

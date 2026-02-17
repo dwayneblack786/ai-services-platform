@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '../services/apiClient';
+import promptApi, { IPromptVersion } from '../services/promptApi';
 import VersionStatus from '../components/VersionStatus';
 import PromptDashboardCard from '../components/PromptDashboardCard';
 import { useAuth } from '../context/AuthContext';
@@ -71,6 +72,14 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
   const [pullResult, setPullResult] = useState<{ newCount: number; templates: { channelType: string; name: string }[] } | null>(null);
   const [promptDetails, setPromptDetails] = useState<Record<string, PromptDetails>>({});
   const [menuOpen, setMenuOpen] = useState<string | null>(null); // Track which menu is open
+
+  // Version history drawer
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyChannel, setHistoryChannel] = useState<'voice' | 'chat'>('voice');
+  const [historyVersions, setHistoryVersions] = useState<IPromptVersion[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [rollingBack, setRollingBack] = useState<string | null>(null);
 
   const fetchBindings = useCallback(async () => {
     if (!productId) return;
@@ -158,6 +167,46 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
       navigate(`/prompts/edit/${newPrompt._id}?productId=${productId}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to duplicate prompt');
+    }
+  };
+
+  const handleOpenHistory = async (channel: 'voice' | 'chat') => {
+    const binding = channel === 'voice' ? bindings.voice : bindings.chat;
+    const sourceId = binding?.currentDraftId || binding?.activeProductionId;
+    if (!sourceId) return;
+
+    setHistoryChannel(channel);
+    setShowHistory(true);
+    setHistoryLoading(true);
+    setHistoryError(null);
+    setMenuOpen(null);
+
+    try {
+      const versions = await promptApi.getVersionHistory(sourceId);
+      setHistoryVersions(versions);
+    } catch (err: any) {
+      setHistoryError(err.response?.data?.error || 'Failed to load version history');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleRollback = async (targetVersionId: string) => {
+    const binding = historyChannel === 'voice' ? bindings.voice : bindings.chat;
+    const sourceId = binding?.currentDraftId || binding?.activeProductionId;
+    if (!sourceId) return;
+
+    if (!confirm('Rollback to this version? The current production version will be archived.')) return;
+
+    setRollingBack(targetVersionId);
+    try {
+      await promptApi.rollbackPrompt(sourceId, targetVersionId);
+      setShowHistory(false);
+      await fetchBindings();
+    } catch (err: any) {
+      setHistoryError(err.response?.data?.error || 'Rollback failed');
+    } finally {
+      setRollingBack(null);
     }
   };
 
@@ -550,6 +599,29 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
                           <span>Duplicate</span>
                         </button>
                         <button
+                          onClick={() => handleOpenHistory(activeChannel)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 16px',
+                            border: 'none',
+                            background: 'white',
+                            color: '#333',
+                            fontSize: '12px',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            borderTop: '1px solid #f0f0f0'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                        >
+                          <span>🕐</span>
+                          <span>Version History</span>
+                        </button>
+                        <button
                           onClick={() => {
                             handleDeletePrompt(activeChannel);
                           }}
@@ -714,6 +786,139 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
             </div>
           )}
       </div>
+      )}
+      {/* Version History Drawer */}
+      {showHistory && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setShowHistory(false)}
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0,0,0,0.3)', zIndex: 1100
+            }}
+          />
+          {/* Drawer panel */}
+          <div style={{
+            position: 'fixed', top: 0, right: 0, bottom: 0, width: '420px',
+            background: 'white', boxShadow: '-4px 0 20px rgba(0,0,0,0.15)',
+            zIndex: 1101, display: 'flex', flexDirection: 'column', overflow: 'hidden'
+          }}>
+            {/* Drawer header */}
+            <div style={{
+              padding: '16px 20px', borderBottom: '1px solid #e0e0e0',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: '#f8f9fa'
+            }}>
+              <div>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: '#222' }}>
+                  🕐 Version History
+                </div>
+                <div style={{ fontSize: '11px', color: '#888', marginTop: '2px' }}>
+                  {historyChannel === 'voice' ? '📞 Voice' : '💬 Chat'} prompt
+                </div>
+              </div>
+              <button
+                onClick={() => setShowHistory(false)}
+                style={{
+                  padding: '6px 10px', border: '1px solid #ddd', borderRadius: '4px',
+                  background: 'white', color: '#666', fontSize: '14px', cursor: 'pointer'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Drawer body */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+              {historyLoading && (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#999', fontSize: '13px' }}>
+                  Loading versions...
+                </div>
+              )}
+              {historyError && (
+                <div style={{ padding: '12px', background: '#ffebee', borderRadius: '6px', color: '#c62828', fontSize: '13px' }}>
+                  {historyError}
+                </div>
+              )}
+              {!historyLoading && !historyError && historyVersions.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#999', fontSize: '13px' }}>
+                  No version history found.
+                </div>
+              )}
+              {!historyLoading && historyVersions.map((v, idx) => {
+                const isActive = v.state === 'production' && v.isActive;
+                const canRollback = v.canRollback && !isActive;
+                return (
+                  <div
+                    key={v._id}
+                    style={{
+                      padding: '14px', marginBottom: '10px', borderRadius: '8px',
+                      border: isActive ? '2px solid #4caf50' : '1px solid #e0e0e0',
+                      background: isActive ? '#f1f8f1' : '#fafafa',
+                      position: 'relative'
+                    }}
+                  >
+                    {/* Version header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '700', color: '#222' }}>
+                          v{v.version}
+                        </span>
+                        {isActive && (
+                          <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: '#4caf50', color: 'white', fontWeight: '600' }}>
+                            ACTIVE
+                          </span>
+                        )}
+                        <span style={{
+                          fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: '600',
+                          background: v.state === 'production' ? '#e8f5e9' : v.state === 'draft' ? '#fff3e0' : '#e3f2fd',
+                          color: v.state === 'production' ? '#2e7d32' : v.state === 'draft' ? '#e65100' : '#0277bd'
+                        }}>
+                          {v.state.toUpperCase()}
+                        </span>
+                      </div>
+                      {idx === 0 && !isActive && (
+                        <span style={{ fontSize: '10px', color: '#999' }}>Latest</span>
+                      )}
+                    </div>
+
+                    {/* Meta */}
+                    <div style={{ fontSize: '11px', color: '#666', marginBottom: '4px' }}>
+                      By {v.createdBy?.name || 'Unknown'}
+                    </div>
+                    {v.activatedAt && (
+                      <div style={{ fontSize: '11px', color: '#888' }}>
+                        Activated: {new Date(v.activatedAt).toLocaleString()}
+                      </div>
+                    )}
+                    {v.updatedAt && !v.activatedAt && (
+                      <div style={{ fontSize: '11px', color: '#888' }}>
+                        Updated: {new Date(v.updatedAt).toLocaleString()}
+                      </div>
+                    )}
+
+                    {/* Rollback button */}
+                    {canRollback && (
+                      <button
+                        onClick={() => handleRollback(v._id)}
+                        disabled={rollingBack === v._id}
+                        style={{
+                          marginTop: '10px', padding: '6px 14px', borderRadius: '4px',
+                          border: '1px solid #1976d2', background: rollingBack === v._id ? '#e3f2fd' : 'white',
+                          color: '#1976d2', fontSize: '12px', fontWeight: '600',
+                          cursor: rollingBack === v._id ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        {rollingBack === v._id ? 'Rolling back...' : '↩ Restore this version'}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
