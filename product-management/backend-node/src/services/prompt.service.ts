@@ -43,15 +43,20 @@ export interface MenuConfig {
 // ─── Shared audit log helper ──────────────────────────────────────────────────
 
 async function logAudit(
-  promptVersionId: Types.ObjectId,
+  promptVersionId: Types.ObjectId | any,
   action: string,
   actor: IActor,
   context: { tenantId?: string; productId?: any; environment: string; requestId: string },
   changes?: Array<{ field: string; path: string; oldValue: any; newValue: any }>
 ): Promise<void> {
   try {
+    // Ensure promptVersionId is a proper Types.ObjectId regardless of how _id comes back from Mongoose
+    const resolvedId = promptVersionId instanceof Types.ObjectId
+      ? promptVersionId
+      : new Types.ObjectId(promptVersionId.toString());
+
     await PromptAuditLogModel.create({
-      promptVersionId,
+      promptVersionId: resolvedId,
       action,
       actor: {
         userId: actor.userId,
