@@ -15,6 +15,8 @@ export interface IActor {
   name: string;
   email: string;
   role: string;
+  ipAddress?: string;
+  sessionId?: string;
 }
 
 export interface MenuOption {
@@ -255,17 +257,19 @@ export class PromptService {
 
       // Log audit trail
       await PromptAuditLogModel.create({
-        promptId: savedPrompt._id,
-        promptVersion: savedPrompt.version,
+        promptVersionId: savedPrompt._id,
         action: 'created_from_template',
         actor: {
           userId: actor.userId,
           name: actor.name,
           email: actor.email,
-          role: actor.role
+          role: actor.role,
+          ipAddress: actor.ipAddress || '0.0.0.0',
+          sessionId: actor.sessionId || 'system'
         },
         changes: [{
           field: 'template',
+          path: 'template',
           oldValue: null,
           newValue: {
             templateId: template._id.toString(),
@@ -276,8 +280,9 @@ export class PromptService {
         }],
         context: {
           tenantId,
-          productId: productId.toString(),
-          environment: 'development'
+          productId: Types.ObjectId.isValid(productId as string) ? new Types.ObjectId(productId as string) : undefined,
+          environment: 'development',
+          requestId: `pull-${Date.now()}`
         }
       });
 
