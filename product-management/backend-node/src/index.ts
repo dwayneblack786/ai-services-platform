@@ -101,7 +101,9 @@ console.log('[Startup] ✅ Security middleware imported');
 import mongoose from 'mongoose';
 console.log('[Startup] ✅ Mongoose imported');
 
-// Removed faulty routes: subscriptions-routes, tenant-routes, tenant-auth
+// Removed faulty routes: subscriptions-routes, tenant-routes (unused)
+import tenantAuthRoutes from './routes/tenant-auth';
+console.log('[Startup] ✅ Tenant-auth routes imported');
 
 console.log('[Startup] 🎉 ALL IMPORTS COMPLETED - Starting main execution...');
 
@@ -494,6 +496,7 @@ try {
   console.log('\n[8/10] 🛣️  Registering routes...');
   
   app.use('/api/auth', authRoutes);
+  app.use('/api/auth', tenantAuthRoutes); // Keycloak tenant-aware authentication
   app.use('/api/auth', registrationRoutes); // Registration endpoints
   app.use('/api/registration', registrationRoutes); // Also mount at /api/registration
   app.use('/api/admin', adminRoutes); // Admin dashboard endpoints
