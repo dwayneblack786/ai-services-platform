@@ -15,17 +15,30 @@
  *   - Does NOT touch 'assistant_channels' (retained for Java VA service)
  */
 
-import { connectDB, closeDB, getDB } from '../config/database';
+import mongoose from 'mongoose';
+import * as dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 async function main() {
-  await connectDB();
-  const db = getDB();
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.error('❌ ABORT: MONGODB_URI environment variable is not set.');
+    process.exit(1);
+  }
+
+  await mongoose.connect(uri);
+  console.log('✅ Connected to MongoDB.');
+
+  const db = mongoose.connection.db!;
 
   // Safety check: ensure prompt_versions has templates before dropping
   const templateCount = await db.collection('prompt_versions').countDocuments({ isTemplate: true });
   if (templateCount === 0) {
     console.error('❌ ABORT: No templates found in prompt_versions (isTemplate: true count = 0).');
     console.error('   Run seedProductTemplates.ts first to seed templates into prompt_versions.');
+    await mongoose.connection.close();
     process.exit(1);
   }
   console.log(`✅ prompt_versions has ${templateCount} template(s) — safe to proceed.`);
@@ -47,11 +60,11 @@ async function main() {
   }
 
   console.log('\n✅ Migration complete. assistant_channels retained for Java VA service.');
-  await closeDB();
+  await mongoose.connection.close();
 }
 
 main().catch(async (err) => {
   console.error('❌ Migration failed:', err);
-  await closeDB();
+  await mongoose.connection.close();
   process.exit(1);
 });
