@@ -1,19 +1,21 @@
 /**
- * RAG Routes — Phase 2.5
+ * RAG Routes — Phase 2.5 / Phase 1 File Upload
  *
  * All routes are scoped under /api/pms/rag (mounted in index.ts).
  *
- * POST   /:promptVersionId/sources              – add a knowledge-base source
- * GET    /:promptVersionId/sources              – list sources + ragConfig
- * DELETE /:promptVersionId/sources/:sourceId    – remove a source (+ its documents)
- * PUT    /:promptVersionId/sources/:sourceId/toggle – enable / disable a source
- * POST   /:promptVersionId/sources/:sourceId/sync  – scrape & index a website source
- * GET    /:promptVersionId/documents            – list indexed documents (summary)
- * POST   /:promptVersionId/retrieve             – keyword retrieval against chunks
+ * POST   /:promptVersionId/sources                        – add a knowledge-base source
+ * GET    /:promptVersionId/sources                        – list sources + ragConfig
+ * DELETE /:promptVersionId/sources/:sourceId              – remove a source (+ its documents)
+ * PUT    /:promptVersionId/sources/:sourceId/toggle       – enable / disable a source
+ * POST   /:promptVersionId/sources/:sourceId/sync         – scrape & index a website source
+ * POST   /:promptVersionId/sources/:sourceId/upload       – upload a file (PDF, DOCX, TXT, MD)
+ * GET    /:promptVersionId/documents                      – list indexed documents (summary)
+ * POST   /:promptVersionId/retrieve                       – keyword retrieval against chunks
  */
 
 import { Router, Request, Response } from 'express';
 import ragService from '../services/rag.service';
+import { uploadMiddleware } from '../middleware/upload';
 
 const router = Router();
 
@@ -169,6 +171,63 @@ router.post('/:promptVersionId/sources/:sourceId/sync', async (req: Request, res
     console.error('[RAG] syncSource error:', err);
     res.status(422).json({ error: err.message });
   }
+});
+
+// ---------------------------------------------------------------------------
+// POST /:promptVersionId/sources/:sourceId/upload
+// ---------------------------------------------------------------------------
+router.post('/:promptVersionId/sources/:sourceId/upload', (req: Request, res: Response) => {
+  const { promptVersionId, sourceId } = req.params;
+
+  if (!OID_RE.test(promptVersionId)) {
+    res.status(400).json({ error: 'Invalid prompt version ID' });
+    return;
+  }
+  if (!OID_RE.test(sourceId)) {
+    res.status(400).json({ error: 'Invalid source ID' });
+    return;
+  }
+
+  // Run multer first — it validates file type and size before we touch the service
+  uploadMiddleware(req, res, async (multerErr) => {
+    if (multerErr) {
+      // multer throws its own error for size limits and file filter rejections
+      const status = (multerErr as any).code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+      res.status(status).json({ error: multerErr.message });
+      return;
+    }
+
+    if (!req.file) {
+      res.status(400).json({ error: 'No file attached. Send a multipart/form-data request with field name "file".' });
+      return;
+    }
+
+    try {
+      const doc = await ragService.uploadDocument(promptVersionId, sourceId, req.file);
+      res.status(201).json({
+        document: {
+          _id: doc._id,
+          filename: doc.filename,
+          fileType: doc.fileType,
+          fileSize: doc.fileSize,
+          status: doc.status,
+          chunkCount: doc.chunks?.length || 0,
+          lastSynced: doc.vectorStore?.syncedAt
+        }
+      });
+    } catch (err: any) {
+      if (err.message === 'Prompt version not found' || err.message === 'Source not found') {
+        res.status(404).json({ error: err.message });
+        return;
+      }
+      if (err.statusCode === 413) {
+        res.status(413).json({ error: err.message });
+        return;
+      }
+      console.error('[RAG] uploadDocument error:', err);
+      res.status(422).json({ error: err.message });
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { tenantPromptService } from '../services/tenantPrompt.service';
+import TenantPromptVersionModel from '../models/TenantPromptVersion';
+import PromptVersionModel from '../models/PromptVersion';
 
 const router = Router();
 
@@ -14,8 +17,8 @@ const getActor = (req: any) => ({
 
 /**
  * GET /api/pms/tenant-prompts/:productId
- * Get voice and chat bindings for the authenticated tenant + product.
- * Returns { voice: binding|null, chat: binding|null }
+ * Get voice and chat bindings + all prompts per channel for the authenticated tenant + product.
+ * Returns { voice: { binding, prompts[] }, chat: { binding, prompts[] } }
  */
 router.get('/:productId', async (req: Request, res: Response) => {
   try {
@@ -27,7 +30,33 @@ router.get('/:productId', async (req: Request, res: Response) => {
     }
 
     const bindings = await tenantPromptService.getBindingsForProduct(tenantId, productId);
-    res.json(bindings);
+
+    // Resolve productId to ObjectId for Mongoose queries
+    const productObjectId = Types.ObjectId.isValid(productId) ? new Types.ObjectId(productId) : null;
+    if (!productObjectId) {
+      return res.status(400).json({ error: 'Invalid productId' });
+    }
+
+    const baseQuery = { tenantId, productId: productObjectId, isDeleted: { $ne: true } };
+
+    // Fetch all prompts per channel — new collection first, fallback to legacy
+    const [voiceNew, chatNew, voiceLegacy, chatLegacy] = await Promise.all([
+      TenantPromptVersionModel.find({ ...baseQuery, channelType: 'voice' }).sort({ state: 1, version: -1 }),
+      TenantPromptVersionModel.find({ ...baseQuery, channelType: 'chat' }).sort({ state: 1, version: -1 }),
+      PromptVersionModel.find({ ...baseQuery, channelType: 'voice', isTemplate: false }).sort({ state: 1, version: -1 }),
+      PromptVersionModel.find({ ...baseQuery, channelType: 'chat', isTemplate: false }).sort({ state: 1, version: -1 }),
+    ]);
+
+    // Deduplicate: prefer new collection docs
+    const dedup = (newDocs: any[], legacyDocs: any[]) => {
+      const ids = new Set(newDocs.map((d: any) => d._id.toString()));
+      return [...newDocs, ...legacyDocs.filter((d: any) => !ids.has(d._id.toString()))];
+    };
+
+    res.json({
+      voice: { binding: bindings.voice, prompts: dedup(voiceNew, voiceLegacy) },
+      chat: { binding: bindings.chat, prompts: dedup(chatNew, chatLegacy) },
+    });
   } catch (error: any) {
     console.error('Error fetching tenant prompt bindings:', error);
     res.status(500).json({ error: error.message });

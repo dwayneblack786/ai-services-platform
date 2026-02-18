@@ -11,8 +11,14 @@
 
 import axios from 'axios';
 import PromptVersion, { IPromptVersion } from '../models/PromptVersion';
+import TenantPromptVersionModel from '../models/TenantPromptVersion';
 import PromptTestResult, { IPromptTestResult } from '../models/PromptTestResult';
 import TenantPromptBinding from '../models/TenantPromptBinding';
+
+/** Find a prompt by ID across both collections (tenant first, then legacy). */
+async function findPromptById(id: string): Promise<IPromptVersion | null> {
+  return (await TenantPromptVersionModel.findById(id)) ?? (await PromptVersion.findById(id));
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -128,7 +134,7 @@ export class PromptTestingService {
   async runFullTestSuite(promptVersionId: string): Promise<IPromptTestResult> {
     const startAt = Date.now();
 
-    const prompt = await PromptVersion.findById(promptVersionId);
+    const prompt = await findPromptById(promptVersionId);
     if (!prompt) {
       throw new Error('Prompt version not found');
     }
@@ -271,7 +277,7 @@ export class PromptTestingService {
     await result.save();
 
     // Attempt to apply the suggestion text to the prompt's systemPrompt
-    const prompt = await PromptVersion.findById(result.promptVersionId);
+    const prompt = await findPromptById(result.promptVersionId.toString());
     let applied = false;
     if (prompt && suggestion.current && prompt.content.systemPrompt?.includes(suggestion.current)) {
       prompt.content.systemPrompt = prompt.content.systemPrompt.replace(suggestion.current, suggestion.suggested);

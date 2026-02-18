@@ -16,6 +16,7 @@ import styled from '@emotion/styled';
 import VersionStatus from '../components/VersionStatus';
 import AnalyticsCard from '../components/AnalyticsCard';
 import PromptDashboardCard from '../components/PromptDashboardCard';
+import PMSHeader from '../components/PMSHeader';
 
 // Styled Components
 const Container = styled.div`
@@ -448,11 +449,16 @@ const PromptManagement: React.FC = () => {
 
   return (
     <Container>
+      <PMSHeader
+        subtitle="Create, version, and deploy prompts across all channels"
+        actions={
+          <CreateButton onClick={() => navigate('/prompts/new')}>
+            + Create New Prompt
+          </CreateButton>
+        }
+      />
       <Header>
         <Title>Prompt Management</Title>
-        <CreateButton onClick={() => navigate('/prompts/new')}>
-          + Create New Prompt
-        </CreateButton>
       </Header>
 
       {error && <ErrorMessage>{error}</ErrorMessage>}

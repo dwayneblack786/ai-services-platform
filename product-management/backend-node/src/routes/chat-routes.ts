@@ -87,6 +87,9 @@ router.post('/session', authenticateSession, async (req: Request, res: Response)
     // Use the productId from the found channel (actual ObjectId from MongoDB)
     const actualProductId = channels.productId || productId;
 
+    // Load menu options from DB (tenant_prompt_versions) — always authoritative
+    const menuConfig = await promptService.getSessionPrompts(customerId, actualProductId.toString(), 'chat');
+
     // Check if customer has an active session (unless forcing new)
     if (!forceNew) {
       try {
@@ -94,18 +97,18 @@ router.post('/session', authenticateSession, async (req: Request, res: Response)
           `/chat/active-session/${customerId}`,
           { timeout: 3000 }
         );
-        
+
         if (activeSessionCheck.data.hasActiveSession === 'true') {
           const existingSessionId = activeSessionCheck.data.sessionId;
           console.log('[Chat Session] Customer has active session:', existingSessionId);
-          
+
           // Get history for existing session
           try {
             const historyResponse = await javaVAClient.get<{ messages?: any[] }>(
               `/chat/history/${existingSessionId}`,
               { timeout: 5000 }
             );
-            
+
             return res.json({
               sessionId: existingSessionId,
               customerId,
@@ -113,6 +116,8 @@ router.post('/session', authenticateSession, async (req: Request, res: Response)
               status: 'resumed',
               message: 'Resumed existing chat session',
               messages: historyResponse.data.messages || [],
+              // Inject DB-sourced menu options so prompts always show on resume
+              ...(menuConfig ? { options: menuConfig.options, promptText: menuConfig.promptText } : {}),
               chatConfig: {
                 greeting: channels.chat.greeting || 'Welcome back! How can I help you?',
                 typingIndicator: channels.chat.typingIndicator !== false,
@@ -183,13 +188,12 @@ router.post('/session', authenticateSession, async (req: Request, res: Response)
     
     console.log('[Chat Session] Extracted greeting:', actualGreeting);
 
-    // Java service now returns menu options directly in javaResponse.data
-    // No need to query menu service here
-
-    // Include chat configuration in response
-    // Use greeting from Java (LLM response) if available, otherwise fallback to DB config
+    // Override Java's menu options with DB-sourced ones (tenant_prompt_versions)
+    // This ensures the frontend always shows current prompts, not Java's stale config
     const response = {
-      ...javaResponse.data,  // This now includes options[] and promptText from Java
+      ...javaResponse.data,
+      // DB options take precedence over whatever Java returned
+      ...(menuConfig ? { options: menuConfig.options, promptText: menuConfig.promptText } : {}),
       chatConfig: {
         greeting: actualGreeting,
         typingIndicator: channels.chat.typingIndicator !== false,

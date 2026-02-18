@@ -4,6 +4,7 @@ import apiClient from '../services/apiClient';
 import promptApi, { IPromptVersion } from '../services/promptApi';
 import VersionStatus from '../components/VersionStatus';
 import PromptDashboardCard from '../components/PromptDashboardCard';
+import PMSHeader from '../components/PMSHeader';
 import { useAuth } from '../context/AuthContext';
 
 
@@ -19,22 +20,6 @@ interface PromptBinding {
   lastScore?: number;
 }
 
-interface PromptDetails {
-  name: string;
-  description?: string;
-  category?: string;
-  version?: number;
-  content?: {
-    systemPrompt?: string;
-    conversationBehavior?: {
-      greeting?: string;
-    };
-    persona?: {
-      tone?: string;
-    };
-  };
-  updatedAt?: string;
-}
 
 interface TenantPromptsProps {
   productId?: string;
@@ -62,15 +47,20 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
     (searchParams.get('view') as 'detail' | 'dashboard') || 'detail'
   );
 
-  const [bindings, setBindings] = useState<{ voice: PromptBinding | null; chat: PromptBinding | null }>({
-    voice: null,
-    chat: null
+  interface ChannelData {
+    binding: PromptBinding | null;
+    prompts: any[];
+  }
+  const [channels, setChannels] = useState<{ voice: ChannelData; chat: ChannelData }>({
+    voice: { binding: null, prompts: [] },
+    chat: { binding: null, prompts: [] }
   });
+  // Keep bindings alias for version history / rollback handlers that reference it
+  const bindings = { voice: channels.voice.binding, chat: channels.chat.binding };
   const [loading, setLoading] = useState(true);
   const [pulling, setPulling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pullResult, setPullResult] = useState<{ newCount: number; templates: { channelType: string; name: string }[] } | null>(null);
-  const [promptDetails, setPromptDetails] = useState<Record<string, PromptDetails>>({});
   const [menuOpen, setMenuOpen] = useState<string | null>(null); // Track which menu is open
 
   // Version history drawer
@@ -86,12 +76,16 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
     try {
       setLoading(true);
       setError(null);
+      // API now returns { voice: { binding, prompts[] }, chat: { binding, prompts[] } }
       const response = await apiClient.get(`/api/pms/tenant-prompts/${productId}`);
-      setBindings(response.data);
+      const data = response.data;
+      setChannels({
+        voice: { binding: data.voice?.binding ?? null, prompts: data.voice?.prompts ?? [] },
+        chat: { binding: data.chat?.binding ?? null, prompts: data.chat?.prompts ?? [] },
+      });
     } catch (err: any) {
-      // If no bindings exist yet, that's fine — show empty state
       if (err.response?.status === 404) {
-        setBindings({ voice: null, chat: null });
+        setChannels({ voice: { binding: null, prompts: [] }, chat: { binding: null, prompts: [] } });
       } else {
         setError(err.response?.data?.error || 'Failed to load prompts');
       }
@@ -103,27 +97,6 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
   useEffect(() => {
     fetchBindings();
   }, [fetchBindings]);
-
-  // Fetch prompt details for any binding that has a currentDraftId
-  useEffect(() => {
-    const ids = [bindings.voice?.currentDraftId, bindings.chat?.currentDraftId].filter(Boolean) as string[];
-    if (ids.length === 0) return;
-
-    const fetchDetails = async () => {
-      const results: Record<string, PromptDetails> = {};
-      for (const draftId of ids) {
-        try {
-          const res = await apiClient.get(`/api/pms/prompts/${draftId}`);
-          results[draftId] = res.data;
-        } catch {
-          // Non-fatal — card will just show less info
-        }
-      }
-      setPromptDetails(results);
-    };
-
-    fetchDetails();
-  }, [bindings]);
 
   const handleChannelChange = (channel: 'voice' | 'chat') => {
     const newParams = new URLSearchParams(searchParams);
@@ -156,43 +129,6 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
     navigate(`/prompts/templates?productId=${productId}&channelType=${channelType}`);
   };
 
-  const handleDuplicatePrompt = async (channelType: 'voice' | 'chat') => {
-    const binding = channelType === 'voice' ? bindings.voice : bindings.chat;
-    if (!binding?.currentDraftId) return;
-
-    try {
-      // Create a new version/duplicate of the prompt
-      const response = await apiClient.post(`/api/pms/prompts/${binding.currentDraftId}/versions`);
-      const newPrompt = response.data;
-
-      // Navigate to edit the new duplicate
-      navigate(`/prompts/edit/${newPrompt._id}?productId=${productId}`);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to duplicate prompt');
-    }
-  };
-
-  const handleOpenHistory = async (channel: 'voice' | 'chat') => {
-    const binding = channel === 'voice' ? bindings.voice : bindings.chat;
-    const sourceId = binding?.currentDraftId || binding?.activeProductionId;
-    if (!sourceId) return;
-
-    setHistoryChannel(channel);
-    setShowHistory(true);
-    setHistoryLoading(true);
-    setHistoryError(null);
-    setMenuOpen(null);
-
-    try {
-      const versions = await promptApi.getVersionHistory(sourceId);
-      setHistoryVersions(versions);
-    } catch (err: any) {
-      setHistoryError(err.response?.data?.error || 'Failed to load version history');
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
-
   const handleRollback = async (targetVersionId: string) => {
     const binding = historyChannel === 'voice' ? bindings.voice : bindings.chat;
     const sourceId = binding?.currentDraftId || binding?.activeProductionId;
@@ -211,26 +147,6 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
       setRollingBack(null);
     }
   };
-
-  const handleDeletePrompt = async (channelType: 'voice' | 'chat') => {
-    const binding = channelType === 'voice' ? bindings.voice : bindings.chat;
-    if (!binding?.currentDraftId) return;
-
-    if (!confirm('Are you sure you want to delete this prompt? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      await apiClient.delete(`/api/pms/prompts/${binding.currentDraftId}`);
-      // Refresh bindings after deletion
-      await fetchBindings();
-      setMenuOpen(null);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete prompt');
-    }
-  };
-
-  const currentBinding = activeChannel === 'voice' ? bindings.voice : bindings.chat;
 
   if (!productId) {
     if (isLoadingSubscriptions) {
@@ -259,6 +175,7 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
 
   return (
     <div style={{ padding: '0' }}>
+      <PMSHeader subtitle="Manage and configure tenant prompt versions by channel" />
       {/* Header with tabs and view toggle */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         {/* Voice / Chat tab bar */}
@@ -349,446 +266,239 @@ const TenantPrompts: React.FC<TenantPromptsProps> = ({ productId: propProductId 
         )}
       </div>
 
-      {/* Dashboard View */}
+      {/* Dashboard View — one card per prompt */}
       {view === 'dashboard' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px', marginBottom: '24px' }}>
           {(['voice', 'chat'] as const).map((ch) => {
-            const binding = bindings[ch];
-            const details = binding?.currentDraftId ? promptDetails[binding.currentDraftId] : null;
-
-            return (
+            const { binding, prompts } = channels[ch];
+            if (prompts.length === 0) {
+              return (
+                <PromptDashboardCard
+                  key={ch}
+                  name={`${ch === 'voice' ? 'Voice' : 'Chat'} Prompt`}
+                  channelType={ch}
+                  state="draft"
+                  metrics={{ totalUses: 0, avgLatency: undefined, errorRate: undefined }}
+                  lastScore={binding?.lastScore}
+                  scoreThreshold={binding?.scoreThreshold || 70}
+                  onClick={() => handleCreateFromTemplate(ch)}
+                />
+              );
+            }
+            return prompts.map((p: any) => (
               <PromptDashboardCard
-                key={ch}
-                name={details?.name || `${ch === 'voice' ? 'Voice' : 'Chat'} Prompt`}
-                description={details?.description}
+                key={p._id}
+                name={p.name}
+                description={p.description}
                 channelType={ch}
-                state={binding?.activeProductionId ? 'production' : 'draft'}
-                version={details?.version}
-                category={details?.category}
-                updatedAt={details?.updatedAt}
-                metrics={{
-                  totalUses: 0, // TODO: Get from binding or details
-                  avgLatency: undefined,
-                  errorRate: undefined
-                }}
+                state={p.state}
+                version={p.version}
+                category={p.category}
+                updatedAt={p.updatedAt}
+                metrics={{ totalUses: p.metrics?.totalUses || 0, avgLatency: p.metrics?.avgLatency, errorRate: p.metrics?.errorRate }}
                 lastScore={binding?.lastScore}
                 scoreThreshold={binding?.scoreThreshold || 70}
-                onClick={() => {
-                  if (binding?.currentDraftId) {
-                    handleEditPrompt(binding.currentDraftId);
-                  } else {
-                    handleCreateFromTemplate(ch);
-                  }
-                }}
+                onClick={() => handleEditPrompt(p._id)}
               />
-            );
+            ));
           })}
         </div>
       )}
 
-      {/* Detail View - Full-width grid layout */}
-      {view === 'detail' && (
-      <div style={{
-        background: '#fff',
-        borderRadius: '8px',
-        border: '1px solid #e0e0e0',
-        overflow: 'hidden',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-        marginBottom: '16px'
-      }}>
-        {currentBinding && currentBinding.currentDraftId ? (() => {
-          const details = promptDetails[currentBinding.currentDraftId];
+      {/* Detail View — list of all prompts for the active channel */}
+      {view === 'detail' && (() => {
+        const { binding, prompts } = channels[activeChannel];
 
+        if (prompts.length === 0) {
           return (
-            <>
-              {/* Header Row - Spans full width */}
-              <div style={{
-                padding: '10px 16px',
-                background: '#f8f9fa',
-                borderBottom: '1px solid #e0e0e0',
-                display: 'grid',
-                gridTemplateColumns: 'auto 1fr auto auto',
-                gap: '12px',
-                alignItems: 'center'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '16px' }}>{activeChannel === 'voice' ? '📞' : '💬'}</span>
-                  <span style={{ fontSize: '13px', fontWeight: '700', color: '#222' }}>
-                    {details?.name || `${activeChannel === 'voice' ? 'Voice' : 'Chat'} Prompt`}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <VersionStatus
-                    state="draft"
-                    version={details?.version}
-                    showVersion={true}
-                    showUpdated={false}
-                  />
-                  {currentBinding.activeProductionId && (
-                    <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '9px', fontWeight: '600', background: '#e8f5e9', color: '#2e7d32' }}>
-                      ✓ PROD
-                    </span>
-                  )}
-                  {details?.category && (
-                    <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '9px', fontWeight: '500', background: '#f3e5f5', color: '#6a1b9a' }}>
-                      {details.category}
-                    </span>
-                  )}
-                </div>
-                {details?.updatedAt && (
-                  <div style={{ fontSize: '9px', color: '#999', whiteSpace: 'nowrap' }}>
-                    {new Date(details.updatedAt).toLocaleDateString()}
-                  </div>
-                )}
-                {/* Hamburger Menu */}
-                <div style={{ position: 'relative' }}>
-                  <button
-                    onClick={() => setMenuOpen(menuOpen === activeChannel ? null : activeChannel)}
-                    style={{
-                      padding: '6px 8px',
-                      borderRadius: '4px',
-                      border: '1px solid #ddd',
-                      background: menuOpen === activeChannel ? '#f0f0f0' : 'white',
-                      color: '#666',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (menuOpen !== activeChannel) e.currentTarget.style.background = '#f5f5f5';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (menuOpen !== activeChannel) e.currentTarget.style.background = 'white';
-                    }}
-                  >
-                    ⋮
-                  </button>
-                  {/* Dropdown Menu */}
-                  {menuOpen === activeChannel && (
-                    <>
-                      {/* Backdrop to close menu */}
-                      <div
-                        onClick={() => setMenuOpen(null)}
-                        style={{
-                          position: 'fixed',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          zIndex: 999
-                        }}
-                      />
-                      {/* Menu Items */}
-                      <div style={{
-                        position: 'absolute',
-                        top: '100%',
-                        right: 0,
-                        marginTop: '4px',
-                        background: 'white',
-                        border: '1px solid #e0e0e0',
-                        borderRadius: '6px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        minWidth: '180px',
-                        zIndex: 1000,
-                        overflow: 'hidden'
-                      }}>
-                        <button
-                          onClick={() => {
-                            handleEditPrompt(currentBinding.currentDraftId!);
-                            setMenuOpen(null);
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 16px',
-                            border: 'none',
-                            background: 'white',
-                            color: '#333',
-                            fontSize: '12px',
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                        >
-                          <span>✏️</span>
-                          <span>Edit Draft</span>
-                        </button>
-                        {currentBinding.activeProductionId && (
-                          <button
-                            onClick={() => {
-                              handleEditPrompt(currentBinding.activeProductionId!);
-                              setMenuOpen(null);
-                            }}
-                            style={{
-                              width: '100%',
-                              padding: '10px 16px',
-                              border: 'none',
-                              background: 'white',
-                              color: '#333',
-                              fontSize: '12px',
-                              textAlign: 'left',
-                              cursor: 'pointer',
-                              transition: 'background 0.2s',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '10px',
-                              borderTop: '1px solid #f0f0f0'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                          >
-                            <span>👁️</span>
-                            <span>View Production</span>
-                          </button>
-                        )}
-                        <button
-                          onClick={() => {
-                            handleCreateFromTemplate(activeChannel);
-                            setMenuOpen(null);
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 16px',
-                            border: 'none',
-                            background: 'white',
-                            color: '#333',
-                            fontSize: '12px',
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            borderTop: '1px solid #f0f0f0'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                        >
-                          <span>➕</span>
-                          <span>Create New</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleDuplicatePrompt(activeChannel);
-                            setMenuOpen(null);
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 16px',
-                            border: 'none',
-                            background: 'white',
-                            color: '#333',
-                            fontSize: '12px',
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            borderTop: '1px solid #f0f0f0'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                        >
-                          <span>📋</span>
-                          <span>Duplicate</span>
-                        </button>
-                        <button
-                          onClick={() => handleOpenHistory(activeChannel)}
-                          style={{
-                            width: '100%',
-                            padding: '10px 16px',
-                            border: 'none',
-                            background: 'white',
-                            color: '#333',
-                            fontSize: '12px',
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            borderTop: '1px solid #f0f0f0'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                        >
-                          <span>🕐</span>
-                          <span>Version History</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleDeletePrompt(activeChannel);
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 16px',
-                            border: 'none',
-                            background: 'white',
-                            color: '#d32f2f',
-                            fontSize: '12px',
-                            textAlign: 'left',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            borderTop: '1px solid #f0f0f0'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#ffebee'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                        >
-                          <span>🗑️</span>
-                          <span>Delete</span>
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Metrics Grid - Multi-column layout */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                gap: '1px',
-                background: '#e0e0e0'
-              }}>
-                {/* Analysis Score */}
-                <div style={{ padding: '12px', background: '#fff' }}>
-                  <div style={{ fontSize: '9px', fontWeight: '600', color: '#999', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Analysis Score
-                  </div>
-                  {currentBinding.lastScore !== undefined && currentBinding.lastScore !== null ? (
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '18px', fontWeight: '700', color: currentBinding.lastScore >= (currentBinding.scoreThreshold || 70) ? '#4caf50' : '#f44336' }}>
-                          {currentBinding.lastScore.toFixed(1)}
-                        </span>
-                        <span style={{ fontSize: '12px', fontWeight: '600', color: '#999' }}>%</span>
-                      </div>
-                      <div style={{ height: '3px', background: '#f0f0f0', borderRadius: '2px', overflow: 'hidden', marginBottom: '2px' }}>
-                        <div style={{
-                          height: '100%',
-                          width: `${currentBinding.lastScore}%`,
-                          background: currentBinding.lastScore >= (currentBinding.scoreThreshold || 70) ? '#4caf50' : '#f44336',
-                          transition: 'width 0.3s'
-                        }} />
-                      </div>
-                      <div style={{ fontSize: '8px', color: '#bbb' }}>
-                        Target: {currentBinding.scoreThreshold || 70}%
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#ddd' }}>—</div>
-                  )}
-                </div>
-
-                {/* Total Uses */}
-                <div style={{ padding: '12px', background: '#fff' }}>
-                  <div style={{ fontSize: '9px', fontWeight: '600', color: '#999', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Total Uses
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#2196f3' }}>
-                    —
-                  </div>
-                  <div style={{ fontSize: '8px', color: '#bbb' }}>
-                    Not available
-                  </div>
-                </div>
-
-                {/* Average Latency */}
-                <div style={{ padding: '12px', background: '#fff' }}>
-                  <div style={{ fontSize: '9px', fontWeight: '600', color: '#999', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Avg Latency
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#4caf50' }}>
-                    —
-                  </div>
-                  <div style={{ fontSize: '8px', color: '#bbb' }}>
-                    Not available
-                  </div>
-                </div>
-
-                {/* Error Rate */}
-                <div style={{ padding: '12px', background: '#fff' }}>
-                  <div style={{ fontSize: '9px', fontWeight: '600', color: '#999', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Error Rate
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#ff9800' }}>
-                    —
-                  </div>
-                  <div style={{ fontSize: '8px', color: '#bbb' }}>
-                    Not available
-                  </div>
-                </div>
-
-                {/* Success Rate */}
-                <div style={{ padding: '12px', background: '#fff' }}>
-                  <div style={{ fontSize: '9px', fontWeight: '600', color: '#999', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Success Rate
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#4caf50' }}>
-                    —
-                  </div>
-                  <div style={{ fontSize: '8px', color: '#bbb' }}>
-                    Not available
-                  </div>
-                </div>
-
-                {/* Avg Response Time */}
-                <div style={{ padding: '12px', background: '#fff' }}>
-                  <div style={{ fontSize: '9px', fontWeight: '600', color: '#999', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Response Time
-                  </div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#9c27b0' }}>
-                    —
-                  </div>
-                  <div style={{ fontSize: '8px', color: '#bbb' }}>
-                    Not available
-                  </div>
-                </div>
-              </div>
-            </>
-          );
-        })() : (
-            // No draft — show compact create prompt
-            <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>
+            <div style={{
+              background: '#fff', borderRadius: '8px', border: '1px solid #e0e0e0',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)', marginBottom: '16px',
+              textAlign: 'center', padding: '32px 16px'
+            }}>
+              <div style={{ fontSize: '36px', marginBottom: '10px' }}>
                 {activeChannel === 'voice' ? '📞' : '💬'}
               </div>
               <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#666' }}>
-                No {activeChannel} prompt configured
+                No {activeChannel} prompts configured yet
               </p>
               <button
                 onClick={() => handleCreateFromTemplate(activeChannel)}
                 style={{
-                  padding: '8px 20px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: '#4caf50',
-                  color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s'
+                  padding: '8px 20px', borderRadius: '6px', border: 'none',
+                  background: '#4caf50', color: 'white', fontSize: '12px',
+                  fontWeight: '600', cursor: 'pointer'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#43a047'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#4caf50'}
               >
                 ➕ Create from Template
               </button>
             </div>
-          )}
-      </div>
-      )}
+          );
+        }
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+            {prompts.map((p: any) => {
+              const menuKey = `detail-${p._id}`;
+              const isActiveProduction = binding?.activeProductionId === p._id || binding?.activeProductionId?.toString() === p._id?.toString();
+              return (
+                <div
+                  key={p._id}
+                  style={{
+                    background: '#fff', borderRadius: '8px',
+                    border: isActiveProduction ? '1px solid #4caf50' : '1px solid #e0e0e0',
+                    overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                  }}
+                >
+                  {/* Row header */}
+                  <div style={{
+                    padding: '12px 16px', background: '#f8f9fa',
+                    borderBottom: '1px solid #e0e0e0',
+                    display: 'grid', gridTemplateColumns: 'auto 1fr auto auto auto',
+                    gap: '12px', alignItems: 'center'
+                  }}>
+                    {/* Icon + Name */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>{activeChannel === 'voice' ? '📞' : '💬'}</span>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: '#222' }}>{p.name}</span>
+                    </div>
+
+                    {/* Badges */}
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <VersionStatus state={p.state} version={p.version} showVersion={true} showUpdated={false} />
+                      {isActiveProduction && (
+                        <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '9px', fontWeight: '600', background: '#e8f5e9', color: '#2e7d32' }}>
+                          ✓ ACTIVE PROD
+                        </span>
+                      )}
+                      {p.category && (
+                        <span style={{ padding: '2px 6px', borderRadius: '8px', fontSize: '9px', fontWeight: '500', background: '#f3e5f5', color: '#6a1b9a' }}>
+                          {p.category}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Date */}
+                    {p.updatedAt && (
+                      <div style={{ fontSize: '9px', color: '#999', whiteSpace: 'nowrap' }}>
+                        {new Date(p.updatedAt).toLocaleDateString()}
+                      </div>
+                    )}
+
+                    {/* Edit button */}
+                    <button
+                      onClick={() => handleEditPrompt(p._id)}
+                      style={{
+                        padding: '5px 12px', borderRadius: '4px', border: '1px solid #1976d2',
+                        background: 'white', color: '#1976d2', fontSize: '11px',
+                        fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap'
+                      }}
+                    >
+                      ✏️ Edit
+                    </button>
+
+                    {/* Hamburger menu */}
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => setMenuOpen(menuOpen === menuKey ? null : menuKey)}
+                        style={{
+                          padding: '6px 8px', borderRadius: '4px', border: '1px solid #ddd',
+                          background: menuOpen === menuKey ? '#f0f0f0' : 'white',
+                          color: '#666', fontSize: '14px', cursor: 'pointer'
+                        }}
+                      >
+                        ⋮
+                      </button>
+                      {menuOpen === menuKey && (
+                        <>
+                          <div
+                            onClick={() => setMenuOpen(null)}
+                            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }}
+                          />
+                          <div style={{
+                            position: 'absolute', top: '100%', right: 0, marginTop: '4px',
+                            background: 'white', border: '1px solid #e0e0e0', borderRadius: '6px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)', minWidth: '180px', zIndex: 1000, overflow: 'hidden'
+                          }}>
+                            {[
+                              { icon: '📋', label: 'Duplicate', action: () => { navigate(`/prompts/edit/${p._id}?productId=${productId}&duplicate=true`); setMenuOpen(null); } },
+                              { icon: '🕐', label: 'Version History', action: async () => {
+                                setHistoryChannel(activeChannel);
+                                setShowHistory(true);
+                                setHistoryLoading(true);
+                                setHistoryError(null);
+                                setMenuOpen(null);
+                                try {
+                                  const versions = await promptApi.getVersionHistory(p._id);
+                                  setHistoryVersions(versions);
+                                } catch (err: any) {
+                                  setHistoryError(err.response?.data?.error || 'Failed to load version history');
+                                } finally {
+                                  setHistoryLoading(false);
+                                }
+                              }},
+                              { icon: '🗑️', label: 'Delete', danger: true, action: async () => {
+                                setMenuOpen(null);
+                                if (!confirm('Delete this prompt? This cannot be undone.')) return;
+                                try {
+                                  await apiClient.delete(`/api/pms/prompts/${p._id}`);
+                                  await fetchBindings();
+                                } catch (err: any) {
+                                  setError(err.response?.data?.error || 'Failed to delete prompt');
+                                }
+                              }},
+                            ].map(({ icon, label, action, danger }) => (
+                              <button
+                                key={label}
+                                onClick={action}
+                                style={{
+                                  width: '100%', padding: '10px 16px', border: 'none',
+                                  background: 'white', color: danger ? '#d32f2f' : '#333',
+                                  fontSize: '12px', textAlign: 'left', cursor: 'pointer',
+                                  display: 'flex', alignItems: 'center', gap: '10px',
+                                  borderTop: '1px solid #f0f0f0'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = danger ? '#ffebee' : '#f5f5f5'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                              >
+                                <span>{icon}</span><span>{label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Score row */}
+                  {binding && (
+                    <div style={{ padding: '10px 16px', display: 'flex', gap: '24px', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: '9px', fontWeight: '600', color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>
+                          Analysis Score
+                        </div>
+                        {binding.lastScore !== undefined && binding.lastScore !== null ? (
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
+                            <span style={{ fontSize: '16px', fontWeight: '700', color: binding.lastScore >= (binding.scoreThreshold || 70) ? '#4caf50' : '#f44336' }}>
+                              {binding.lastScore.toFixed(1)}
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#999' }}>%</span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '14px', color: '#ddd', fontWeight: '700' }}>—</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '9px', color: '#bbb' }}>
+                        Target: {binding.scoreThreshold || 70}%
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
       {/* Version History Drawer */}
       {showHistory && (
         <>

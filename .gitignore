@@ -20,3 +20,4 @@ bin/
 *.iml
 .idea/
 nul
+.aider*

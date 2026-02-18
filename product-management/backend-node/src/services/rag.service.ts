@@ -1,24 +1,17 @@
 /**
- * RAG Service — Phase 2.5
+ * RAG Service — Phase 2.5 / Phase 1 File Upload
  *
  * Responsibilities:
  *   - Manage knowledge-base sources attached to a PromptVersion (add / remove / enable / disable)
  *   - Scrape a URL with cheerio, extract clean text, persist as RagDocument
+ *   - Accept uploaded files (PDF, DOCX, TXT, MD), extract text, chunk, and persist as RagDocument
  *   - Chunk extracted text into configurable segments
  *   - Keyword-based retrieval against stored chunks (no external vector store required)
  *
  * Design notes:
- *   - Sources live inside PromptVersion.content.ragConfig.sources (embedded array).
- *     This keeps source metadata co-located with the prompt and avoids a separate collection
- *     for what is essentially config.
- *   - Scraped content is persisted in the `rag_documents` collection (RagDocument model).
- *     Each scrape creates or replaces the document for that source.
- *   - Chunking is a simple sliding-window over the extracted text.  Token count is
- *     approximated at 4 chars / token (good enough for retrieval scoring; accurate counts
- *     are only needed when billing).
- *   - Retrieval uses TF-IDF–style term overlap scoring.  External vector stores
- *     (Pinecone, etc.) are a Phase 5 addition; the RagDocument.chunks[].embedding
- *     field is already in the schema for when that arrives.
+ *   - Sources live inside PromptVersion/TenantPromptVersion.content.ragConfig.sources
+ *   - All RagDocument queries are tenant-scoped (tenantId is mandatory)
+ *   - File uploads: text is extracted from the buffer, then the buffer is discarded (no disk storage)
  */
 
 import axios from 'axios';
@@ -26,7 +19,17 @@ import { load as cheerioLoad } from 'cheerio';
 import crypto from 'crypto';
 import { Types } from 'mongoose';
 import PromptVersion, { IPromptVersion } from '../models/PromptVersion';
+import TenantPromptVersion from '../models/TenantPromptVersion';
 import RagDocument, { IRagDocument } from '../models/RagDocument';
+
+// ---------------------------------------------------------------------------
+// Lazy-loaded parsers (pdf-parse and mammoth are only required when used)
+// ---------------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pdfParse: (buffer: Buffer) => Promise<{ text: string; numpages: number }> = require('pdf-parse');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const mammoth: { extractRawText: (opts: { buffer: Buffer }) => Promise<{ value: string }> } = require('mammoth');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -175,6 +178,51 @@ function chunkText({ text, chunkSize, chunkOverlap, sourceId }: ChunkParams): Ra
 }
 
 // ---------------------------------------------------------------------------
+// Two-collection prompt lookup (TenantPromptVersion takes priority)
+// ---------------------------------------------------------------------------
+
+async function findPromptById(id: string): Promise<IPromptVersion | null> {
+  const tenant = await TenantPromptVersion.findById(id);
+  if (tenant) return tenant as unknown as IPromptVersion;
+  return PromptVersion.findById(id);
+}
+
+// ---------------------------------------------------------------------------
+// File text extraction
+// ---------------------------------------------------------------------------
+
+type SupportedFileType = 'pdf' | 'docx' | 'txt' | 'md';
+
+function detectFileType(originalname: string, mimetype: string): SupportedFileType {
+  const lower = originalname.toLowerCase();
+  if (lower.endsWith('.pdf') || mimetype === 'application/pdf') return 'pdf';
+  if (lower.endsWith('.docx') || mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'docx';
+  if (lower.endsWith('.md') || mimetype === 'text/markdown') return 'md';
+  return 'txt';
+}
+
+async function extractTextFromBuffer(
+  buffer: Buffer,
+  fileType: SupportedFileType
+): Promise<{ text: string; pageCount?: number; title?: string }> {
+  switch (fileType) {
+    case 'pdf': {
+      const result = await pdfParse(buffer);
+      return { text: normalise(result.text), pageCount: result.numpages };
+    }
+    case 'docx': {
+      const result = await mammoth.extractRawText({ buffer });
+      return { text: normalise(result.value) };
+    }
+    case 'txt':
+    case 'md':
+    default: {
+      return { text: normalise(buffer.toString('utf8')) };
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Core service
 // ---------------------------------------------------------------------------
 
@@ -195,7 +243,7 @@ export class RagService {
     chunkSize?: number;
     chunkOverlap?: number;
   }): Promise<IPromptVersion> {
-    const prompt = await PromptVersion.findById(promptVersionId);
+    const prompt = await findPromptById(promptVersionId);
     if (!prompt) throw new Error('Prompt version not found');
 
     if (!prompt.content.ragConfig) {
@@ -228,7 +276,7 @@ export class RagService {
    * Also deletes associated RagDocuments.
    */
   async removeSource(promptVersionId: string, sourceId: string): Promise<IPromptVersion> {
-    const prompt = await PromptVersion.findById(promptVersionId);
+    const prompt = await findPromptById(promptVersionId);
     if (!prompt) throw new Error('Prompt version not found');
 
     const sources = prompt.content.ragConfig?.sources || [];
@@ -249,7 +297,7 @@ export class RagService {
    * Toggle a source's enabled flag.
    */
   async toggleSource(promptVersionId: string, sourceId: string, enabled: boolean): Promise<IPromptVersion> {
-    const prompt = await PromptVersion.findById(promptVersionId);
+    const prompt = await findPromptById(promptVersionId);
     if (!prompt) throw new Error('Prompt version not found');
 
     const source = (prompt.content.ragConfig?.sources || []).find(s => s._id.toString() === sourceId);
@@ -265,7 +313,7 @@ export class RagService {
    * List all sources for a prompt version (thin wrapper for clarity in routes).
    */
   async getSources(promptVersionId: string): Promise<IPromptVersion['content']['ragConfig']> {
-    const prompt = await PromptVersion.findById(promptVersionId);
+    const prompt = await findPromptById(promptVersionId);
     if (!prompt) throw new Error('Prompt version not found');
     return prompt.content.ragConfig || { enabled: false };
   }
@@ -281,7 +329,7 @@ export class RagService {
    * Returns the persisted RagDocument.
    */
   async syncSource(promptVersionId: string, sourceId: string): Promise<IRagDocument> {
-    const prompt = await PromptVersion.findById(promptVersionId);
+    const prompt = await findPromptById(promptVersionId);
     if (!prompt) throw new Error('Prompt version not found');
 
     const source = (prompt.content.ragConfig?.sources || []).find(s => s._id.toString() === sourceId);
@@ -394,6 +442,132 @@ export class RagService {
   }
 
   // -----------------------------------------------------------------------
+  // File upload → text extraction → chunking
+  // -----------------------------------------------------------------------
+
+  /**
+   * Accept an uploaded file buffer, extract text, chunk it, and persist as a RagDocument.
+   * The original buffer is never written to disk — text is extracted in-memory and discarded.
+   *
+   * Multi-tenancy: tenantId is taken from the prompt record (never from the client).
+   * Storage quota is enforced before extraction.
+   */
+  async uploadDocument(
+    promptVersionId: string,
+    sourceId: string,
+    file: { buffer: Buffer; originalname: string; mimetype: string; size: number }
+  ): Promise<IRagDocument> {
+    const prompt = await findPromptById(promptVersionId);
+    if (!prompt) throw new Error('Prompt version not found');
+
+    const source = (prompt.content.ragConfig?.sources || []).find(s => s._id.toString() === sourceId);
+    if (!source) throw new Error('Source not found');
+
+    const tenantId = (prompt as any).tenantId || 'platform';
+
+    // --- Per-tenant storage quota check ---
+    const maxStorageBytes = parseInt(process.env.RAG_MAX_STORAGE_PER_TENANT_BYTES || '5368709120', 10);
+    const usageAgg = await RagDocument.aggregate([
+      { $match: { tenantId } },
+      { $group: { _id: null, total: { $sum: '$fileSize' } } }
+    ]);
+    const currentUsage: number = usageAgg[0]?.total ?? 0;
+    if (currentUsage + file.size > maxStorageBytes) {
+      const usedMB = Math.round(currentUsage / 1024 / 1024);
+      const limitGB = Math.round(maxStorageBytes / 1024 / 1024 / 1024);
+      throw Object.assign(
+        new Error(`Storage quota exceeded. Used: ${usedMB} MB, limit: ${limitGB} GB`),
+        { statusCode: 413 }
+      );
+    }
+
+    // --- Detect file type and extract text ---
+    const fileType = detectFileType(file.originalname, file.mimetype);
+    const startTime = Date.now();
+
+    let extractedText: string;
+    let pageCount: number | undefined;
+    try {
+      const extracted = await extractTextFromBuffer(file.buffer, fileType);
+      extractedText = extracted.text;
+      pageCount = extracted.pageCount;
+    } catch (err: any) {
+      throw new Error(`Text extraction failed for "${file.originalname}": ${err.message}`);
+    }
+
+    if (!extractedText || extractedText.length === 0) {
+      throw new Error(`No text could be extracted from "${file.originalname}"`);
+    }
+
+    // --- Chunk ---
+    const rawChunks = chunkText({
+      text: extractedText,
+      chunkSize: source.chunkSize || 1500,
+      chunkOverlap: source.chunkOverlap || 200,
+      sourceId
+    });
+
+    const checksum = md5(extractedText);
+
+    // --- Upsert RagDocument (replace if same source already has a doc) ---
+    const existing = await RagDocument.findOne({
+      tenantId,
+      promptVersionId: new Types.ObjectId(promptVersionId),
+      sourceId: new Types.ObjectId(sourceId)
+    });
+
+    const docData = {
+      tenantId,
+      promptVersionId: new Types.ObjectId(promptVersionId),
+      sourceId: new Types.ObjectId(sourceId),
+      filename: file.originalname,
+      fileType,
+      fileSize: file.size,
+      storageLocation: 'extracted_inline',
+      checksum,
+      status: 'indexed' as const,
+      processingStartedAt: new Date(startTime),
+      processingCompletedAt: new Date(),
+      extractedText,
+      extractedMetadata: {
+        title: file.originalname,
+        language: 'en',
+        ...(pageCount !== undefined ? { pageCount } : {})
+      },
+      chunks: rawChunks,
+      vectorStore: {
+        provider: 'local',
+        indexName: `local_${promptVersionId}_${sourceId}`,
+        syncedAt: new Date(),
+        chunkCount: rawChunks.length,
+        syncStatus: 'synced' as const
+      },
+      usage: { retrievalCount: 0 }
+    };
+
+    let doc: IRagDocument;
+    if (existing) {
+      Object.assign(existing, docData);
+      await existing.save();
+      doc = existing;
+    } else {
+      doc = await RagDocument.create(docData);
+    }
+
+    // --- Update source stats ---
+    source.lastRefreshedAt = new Date();
+    source.status = 'active';
+    if (!source.stats) source.stats = { totalChunks: 0, lastSyncDuration: 0, errorCount: 0 };
+    source.stats.totalChunks = rawChunks.length;
+    source.stats.lastSyncDuration = Date.now() - startTime;
+    prompt.markModified('content.ragConfig');
+    await prompt.save();
+
+    console.log(`[RAG] Uploaded "${file.originalname}" → ${rawChunks.length} chunks for tenant ${tenantId}`);
+    return doc;
+  }
+
+  // -----------------------------------------------------------------------
   // Retrieval
   // -----------------------------------------------------------------------
 
@@ -417,7 +591,7 @@ export class RagService {
     });
 
     // Also load prompt to get source names
-    const prompt = await PromptVersion.findById(promptVersionId);
+    const prompt = await findPromptById(promptVersionId);
     const sourceMap = new Map<string, string>(); // sourceId → name
     if (prompt?.content.ragConfig?.sources) {
       for (const s of prompt.content.ragConfig.sources) {

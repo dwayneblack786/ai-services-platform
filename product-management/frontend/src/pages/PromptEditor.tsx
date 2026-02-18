@@ -19,6 +19,7 @@ import PromptPreview from '../components/PromptPreview';
 import TestResultsViewer from '../components/TestResultsViewer';
 import RAGSourceManager from '../components/RAGSourceManager';
 import { useAuth } from '../context/AuthContext';
+import PMSHeader from '../components/PMSHeader';
 
 // Styled Components
 const EditorContainer = styled.div`
@@ -1072,6 +1073,7 @@ const PromptEditor: React.FC<PromptEditorProps> = () => {
 
   return (
     <EditorContainer>
+      <PMSHeader subtitle={id ? `Editing: ${prompt.name || 'prompt'}` : 'Create a new prompt version'} />
       <Header>
         <div>
           <Title>{id ? `Edit: ${prompt.name}` : 'Create New Prompt'}</Title>
