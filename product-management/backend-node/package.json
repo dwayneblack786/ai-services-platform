@@ -30,6 +30,7 @@
     "seed:prompts": "ts-node src/scripts/seed-prompt-config.ts",
     "seed:prompts:v2": "ts-node src/scripts/seed-prompt-config-v2.ts",
     "seed:templates": "ts-node src/scripts/seed-templates.ts",
+    "seed:medical:prompts": "ts-node src/scripts/seed-medical-prompts.ts",
     "seed:rag:medical": "ts-node src/scripts/seed-rag-medical.ts",
     "seed:all": "npm run seed:products && npm run seed:prompts:v2 && npm run seed:templates",
     "cleanup:templates": "ts-node src/scripts/cleanup-old-templates.ts",
