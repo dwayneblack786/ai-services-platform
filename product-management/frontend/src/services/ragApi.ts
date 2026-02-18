@@ -113,6 +113,48 @@ const ragApi = {
   async retrieve(promptVersionId: string, query: string, topK?: number, minScore?: number): Promise<RetrievalResult[]> {
     const res = await ragApiClient.post(`/api/pms/rag/${promptVersionId}/retrieve`, { query, topK, minScore });
     return res.data.results as RetrievalResult[];
+  },
+
+  /**
+   * Upload a file (PDF, DOCX, TXT, MD) to an existing document source.
+   * Uses fetch directly so we can send FormData without the ApiClient JSON wrapper.
+   */
+  async uploadDocument(
+    promptVersionId: string,
+    sourceId: string,
+    file: File,
+    onProgress?: (pct: number) => void
+  ): Promise<RagDocumentSummary> {
+    const url = `${API_BASE_URL}/api/pms/rag/${promptVersionId}/sources/${sourceId}/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+      // Include cookies so authenticateSession middleware passes
+      xhr.withCredentials = true;
+
+      if (onProgress) {
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status === 201) {
+          const body = JSON.parse(xhr.responseText);
+          resolve(body.document as RagDocumentSummary);
+        } else {
+          let msg = `Upload failed (${xhr.status})`;
+          try { msg = JSON.parse(xhr.responseText).error || msg; } catch { /* raw */ }
+          reject(new Error(msg));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.send(formData);
+    });
   }
 };
 

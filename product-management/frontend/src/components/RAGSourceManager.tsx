@@ -52,8 +52,11 @@ const SourceCard: React.FC<{
           <span style={{ fontSize: '18px' }}>{source.type === 'website' ? '🌐' : '📄'}</span>
           <div>
             <div style={{ fontWeight: '600', fontSize: '14px', color: '#222' }}>{source.name}</div>
-            {(source.config?.url as string | undefined) && (
+            {source.type === 'website' && (source.config?.url as string | undefined) && (
               <div style={{ fontSize: '12px', color: '#888', wordBreak: 'break-all' }}>{source.config.url as string}</div>
+            )}
+            {source.type === 'document' && (source.config?.filename as string | undefined) && (
+              <div style={{ fontSize: '12px', color: '#888' }}>{source.config.filename as string}</div>
             )}
           </div>
         </div>
@@ -252,11 +255,17 @@ const RAGSourceManager: React.FC<RAGSourceManagerProps> = ({ promptVersionId }) 
 
   // "Add source" form state
   const [showAddForm, setShowAddForm] = useState(false);
+  const [addTab, setAddTab] = useState<'website' | 'file'>('website');
   const [newSourceName, setNewSourceName] = useState('');
   const [newSourceUrl, setNewSourceUrl] = useState('');
   const [newSourceChunkSize, setNewSourceChunkSize] = useState(1500);
   const [newSourceChunkOverlap, setNewSourceChunkOverlap] = useState(200);
   const [addingSource, setAddingSource] = useState(false);
+
+  // File upload state
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadName, setUploadName] = useState('');
 
   // ---------------------------------------------------------------------------
   // Fetch
@@ -348,6 +357,45 @@ const RAGSourceManager: React.FC<RAGSourceManagerProps> = ({ promptVersionId }) 
     }
   };
 
+  const handleUploadFile = async () => {
+    if (!uploadFile || !uploadName.trim()) return;
+    setAddingSource(true);
+    setError(null);
+    setUploadProgress(0);
+    try {
+      // Step 1: create a document source entry (no URL needed)
+      const config = await ragApi.addSource(promptVersionId, {
+        type: 'document',
+        name: uploadName.trim(),
+        config: { filename: uploadFile.name },
+        chunkSize: newSourceChunkSize,
+        chunkOverlap: newSourceChunkOverlap
+      });
+      setRagConfig(config);
+
+      // Step 2: find the newly created source id (last in the list)
+      const sources = config.sources || [];
+      const newSource = sources[sources.length - 1];
+      if (!newSource) throw new Error('Source was not created');
+
+      // Step 3: upload the file
+      await ragApi.uploadDocument(promptVersionId, newSource._id, uploadFile, setUploadProgress);
+
+      // Refresh everything
+      await fetchAll();
+
+      // Reset form
+      setUploadFile(null);
+      setUploadName('');
+      setUploadProgress(0);
+      setShowAddForm(false);
+    } catch (err: any) {
+      setError(err.message || 'Upload failed');
+    } finally {
+      setAddingSource(false);
+    }
+  };
+
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
@@ -373,7 +421,7 @@ const RAGSourceManager: React.FC<RAGSourceManagerProps> = ({ promptVersionId }) 
           <div style={{ fontSize: '24px', marginBottom: '8px' }}>📚</div>
           No knowledge sources configured yet.
           <br />
-          Add a website URL below to give your assistant access to external knowledge.
+          Add a website URL or upload a document (PDF, DOCX, TXT, MD) to give your assistant access to external knowledge.
         </div>
       )}
 
@@ -423,91 +471,166 @@ const RAGSourceManager: React.FC<RAGSourceManagerProps> = ({ promptVersionId }) 
           borderRadius: '8px',
           background: '#e3f2fd'
         }}>
-          <div style={{ fontSize: '15px', fontWeight: '600', color: '#1565c0', marginBottom: '12px' }}>New Website Source</div>
-
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#555', marginBottom: '4px' }}>Source Name *</label>
-            <input
-              type="text"
-              value={newSourceName}
-              onChange={e => setNewSourceName(e.target.value)}
-              placeholder="e.g. Company Help Center"
-              style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
-            />
+          {/* Tab bar */}
+          <div style={{ display: 'flex', gap: '0', marginBottom: '16px', borderBottom: '2px solid #bbdefb' }}>
+            {(['website', 'file'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setAddTab(tab)}
+                style={{
+                  padding: '8px 20px',
+                  border: 'none',
+                  background: 'none',
+                  fontSize: '14px',
+                  fontWeight: addTab === tab ? '700' : '500',
+                  color: addTab === tab ? '#1565c0' : '#888',
+                  borderBottom: addTab === tab ? '2px solid #1565c0' : '2px solid transparent',
+                  marginBottom: '-2px',
+                  cursor: 'pointer'
+                }}
+              >
+                {tab === 'website' ? '🌐 Website URL' : '📄 Upload File'}
+              </button>
+            ))}
           </div>
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#555', marginBottom: '4px' }}>URL *</label>
-            <input
-              type="url"
-              value={newSourceUrl}
-              onChange={e => setNewSourceUrl(e.target.value)}
-              placeholder="https://example.com/docs"
-              style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+          {/* Shared: chunk settings */}
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '12px' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#555', marginBottom: '4px' }}>
-                Chunk Size (chars) <span style={{ color: '#888', fontWeight: '400' }}>[200–5000]</span>
+                Chunk Size (chars)
               </label>
               <input
                 type="number"
                 value={newSourceChunkSize}
                 onChange={e => setNewSourceChunkSize(Math.max(200, Math.min(5000, parseInt(e.target.value) || 1500)))}
-                min={200}
-                max={5000}
+                min={200} max={5000}
                 style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#555', marginBottom: '4px' }}>
-                Chunk Overlap (chars) <span style={{ color: '#888', fontWeight: '400' }}>[0–500]</span>
+                Chunk Overlap (chars)
               </label>
               <input
                 type="number"
                 value={newSourceChunkOverlap}
                 onChange={e => setNewSourceChunkOverlap(Math.max(0, Math.min(500, parseInt(e.target.value) || 200)))}
-                min={0}
-                max={500}
+                min={0} max={500}
                 style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
               />
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={handleAddSource}
-              disabled={addingSource || !newSourceName.trim() || !newSourceUrl.trim()}
-              style={{
-                padding: '8px 20px',
-                borderRadius: '6px',
-                border: 'none',
-                background: addingSource ? '#ccc' : '#1976d2',
-                color: 'white',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: addingSource ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {addingSource ? 'Adding…' : 'Add Source'}
-            </button>
-            <button
-              onClick={() => { setShowAddForm(false); setNewSourceName(''); setNewSourceUrl(''); }}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '6px',
-                border: '1px solid #ddd',
-                background: 'white',
-                color: '#555',
-                fontSize: '14px',
-                cursor: 'pointer'
-              }}
-            >
-              Cancel
-            </button>
-          </div>
+          {/* Website tab */}
+          {addTab === 'website' && (
+            <>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#555', marginBottom: '4px' }}>Source Name *</label>
+                <input
+                  type="text"
+                  value={newSourceName}
+                  onChange={e => setNewSourceName(e.target.value)}
+                  placeholder="e.g. Company Help Center"
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#555', marginBottom: '4px' }}>URL *</label>
+                <input
+                  type="url"
+                  value={newSourceUrl}
+                  onChange={e => setNewSourceUrl(e.target.value)}
+                  placeholder="https://example.com/docs"
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={handleAddSource}
+                  disabled={addingSource || !newSourceName.trim() || !newSourceUrl.trim()}
+                  style={{
+                    padding: '8px 20px', borderRadius: '6px', border: 'none',
+                    background: addingSource ? '#ccc' : '#1976d2',
+                    color: 'white', fontSize: '14px', fontWeight: '600',
+                    cursor: addingSource ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {addingSource ? 'Adding…' : 'Add Source'}
+                </button>
+                <button
+                  onClick={() => { setShowAddForm(false); setNewSourceName(''); setNewSourceUrl(''); }}
+                  style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #ddd', background: 'white', color: '#555', fontSize: '14px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* File upload tab */}
+          {addTab === 'file' && (
+            <>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#555', marginBottom: '4px' }}>
+                  File * <span style={{ color: '#888', fontWeight: '400' }}>(PDF, DOCX, TXT, MD — max 1 GB)</span>
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
+                  onChange={e => {
+                    const f = e.target.files?.[0] || null;
+                    setUploadFile(f);
+                    if (f && !uploadName) setUploadName(f.name.replace(/\.[^.]+$/, ''));
+                  }}
+                  style={{ width: '100%', padding: '8px 0', fontSize: '14px' }}
+                />
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#555', marginBottom: '4px' }}>Source Name *</label>
+                <input
+                  type="text"
+                  value={uploadName}
+                  onChange={e => setUploadName(e.target.value)}
+                  placeholder="e.g. Appointment Scheduling Policy"
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              {/* Progress bar */}
+              {addingSource && uploadProgress > 0 && (
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#555', marginBottom: '4px' }}>
+                    {uploadProgress < 100 ? `Uploading… ${uploadProgress}%` : 'Processing…'}
+                  </div>
+                  <div style={{ height: '6px', background: '#ddd', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${uploadProgress}%`, background: '#1976d2', borderRadius: '3px', transition: 'width 0.2s' }} />
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={handleUploadFile}
+                  disabled={addingSource || !uploadFile || !uploadName.trim()}
+                  style={{
+                    padding: '8px 20px', borderRadius: '6px', border: 'none',
+                    background: addingSource ? '#ccc' : '#1976d2',
+                    color: 'white', fontSize: '14px', fontWeight: '600',
+                    cursor: addingSource ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {addingSource ? (uploadProgress < 100 ? `Uploading ${uploadProgress}%…` : 'Processing…') : '⬆ Upload'}
+                </button>
+                <button
+                  onClick={() => { setShowAddForm(false); setUploadFile(null); setUploadName(''); setUploadProgress(0); }}
+                  style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #ddd', background: 'white', color: '#555', fontSize: '14px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
