@@ -4,6 +4,7 @@ import { streamRateLimiter, trackTokenUsage } from '../middleware/rateLimiter';
 import { getDB } from '../config/database';
 import { javaVAClient } from '../services/apiClient';
 import { promptService } from '../services/prompt.service';
+import ragService from '../services/rag.service';
 // Using native fetch (Node.js 18+)
 
 const router = express.Router();
@@ -283,10 +284,25 @@ router.post('/message', authenticateSession, async (req: Request, res: Response)
       });
     }
 
+    // RAG context injection — prepend retrieved knowledge to the message when promptId is set
+    let enrichedMessage = message;
+    if (promptId) {
+      try {
+        const ragContext = await ragService.retrieveForPrompt(promptId, message);
+        if (ragContext) {
+          enrichedMessage = `RELEVANT CONTEXT:\n${ragContext}\n\nUSER MESSAGE:\n${message}`;
+          console.log(`[Chat Message] RAG context injected (${ragContext.length} chars) for promptId ${promptId}`);
+        }
+      } catch (ragErr: any) {
+        // Non-fatal — continue without context
+        console.warn('[Chat Message] RAG retrieval failed, continuing without context:', ragErr.message);
+      }
+    }
+
     // Forward to Java VA service — include promptId so history is keyed correctly
     const javaResponse = await javaVAClient.post<ChatResponse>(
       '/chat/message',
-      { sessionId, message, promptId },
+      { sessionId, message: enrichedMessage, promptId },
       { timeout: 30000 },
       () => ({
         sessionId,
@@ -319,18 +335,32 @@ router.post('/message', authenticateSession, async (req: Request, res: Response)
 // Stream chat messages with SSE (Server-Sent Events)
 router.get('/message/stream', authenticateSession, streamRateLimiter, async (req: Request, res: Response) => {
   try {
-    const { sessionId, message } = req.query;
+    const { sessionId, message, promptId } = req.query;
 
-    console.log('[Chat Stream]', { sessionId, messageLength: (message as string)?.length });
+    console.log('[Chat Stream]', { sessionId, messageLength: (message as string)?.length, promptId });
 
     if (!sessionId || !message) {
-      return res.status(400).json({ 
-        error: 'Missing required query params: sessionId and message' 
+      return res.status(400).json({
+        error: 'Missing required query params: sessionId and message'
       });
     }
 
     const userId = (req as any).user?.id || (req as any).user?.email || 'anonymous';
     let tokenCount = 0;
+
+    // RAG context injection for streaming — same logic as POST /chat/message
+    let enrichedMessage = message as string;
+    if (promptId) {
+      try {
+        const ragContext = await ragService.retrieveForPrompt(promptId as string, message as string);
+        if (ragContext) {
+          enrichedMessage = `RELEVANT CONTEXT:\n${ragContext}\n\nUSER MESSAGE:\n${message}`;
+          console.log(`[Chat Stream] RAG context injected (${ragContext.length} chars) for promptId ${promptId}`);
+        }
+      } catch (ragErr: any) {
+        console.warn('[Chat Stream] RAG retrieval failed, continuing without context:', ragErr.message);
+      }
+    }
 
     // Set SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
@@ -339,7 +369,7 @@ router.get('/message/stream', authenticateSession, streamRateLimiter, async (req
     res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
 
     // Forward to Java VA service SSE endpoint
-    const javaUrl = `${process.env.JAVA_VA_SERVICE_URL || 'http://localhost:8136'}/chat/message/stream?sessionId=${sessionId}&message=${encodeURIComponent(message as string)}`;
+    const javaUrl = `${process.env.JAVA_VA_SERVICE_URL || 'http://localhost:8136'}/chat/message/stream?sessionId=${sessionId}&message=${encodeURIComponent(enrichedMessage)}`;
     
     console.log('[Chat Stream] Connecting to Java SSE:', javaUrl);
 
