@@ -21,6 +21,7 @@ import { Types } from 'mongoose';
 import PromptVersion, { IPromptVersion } from '../models/PromptVersion';
 import TenantPromptVersion from '../models/TenantPromptVersion';
 import RagDocument, { IRagDocument } from '../models/RagDocument';
+import { OpenAIEmbeddings } from '@langchain/openai';
 
 // ---------------------------------------------------------------------------
 // Lazy-loaded parsers (pdf-parse and mammoth are only required when used)
@@ -223,6 +224,75 @@ async function extractTextFromBuffer(
 }
 
 // ---------------------------------------------------------------------------
+// Embedding generation (Tier 1: LM Studio → Tier 2: OpenAI → Tier 3: skip)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate embeddings for an array of text strings.
+ *
+ * Tier 1 — LM Studio local server (LM_STUDIO_URL env var).
+ *   Calls the OpenAI-compatible /v1/embeddings endpoint.
+ *   Model: LM_STUDIO_EMBEDDING_MODEL (defaults to whatever is loaded in LM Studio).
+ *
+ * Tier 2 — OpenAI API (OPENAI_API_KEY env var).
+ *   Uses @langchain/openai OpenAIEmbeddings with EMBEDDING_MODEL env var
+ *   (defaults to text-embedding-3-small).
+ *
+ * Tier 3 — No embedding service available.
+ *   Returns null. Callers leave chunk.embedding undefined and keyword
+ *   retrieval continues to work without any vector index.
+ *
+ * Never throws. Returns null on any provider failure so the upload/sync
+ * pipeline can still complete and mark documents as 'indexed'.
+ */
+async function generateEmbeddings(texts: string[]): Promise<number[][] | null> {
+  if (texts.length === 0) return [];
+
+  // --- Tier 1: LM Studio ---
+  const lmUrl = process.env.LM_STUDIO_URL;
+  if (lmUrl) {
+    try {
+      const model = process.env.LM_STUDIO_EMBEDDING_MODEL; // undefined is fine — LM Studio uses loaded model
+      const payload: Record<string, unknown> = { input: texts };
+      if (model) payload.model = model;
+
+      const resp = await axios.post(`${lmUrl}/v1/embeddings`, payload, {
+        timeout: 30000,
+        headers: { 'content-type': 'application/json' }
+      });
+
+      const data: Array<{ embedding: number[] }> = resp.data?.data;
+      if (Array.isArray(data) && data.length === texts.length) {
+        console.log(`[RAG] Embeddings via LM Studio (${data[0].embedding.length}d) for ${texts.length} chunks`);
+        return data.map(d => d.embedding);
+      }
+    } catch (err: any) {
+      console.warn('[RAG] LM Studio embedding failed, trying next tier:', err.message);
+    }
+  }
+
+  // --- Tier 2: OpenAI ---
+  const openAiKey = process.env.OPENAI_API_KEY;
+  if (openAiKey) {
+    try {
+      const model = process.env.EMBEDDING_MODEL || 'text-embedding-3-small';
+      const embedder = new OpenAIEmbeddings({ openAIApiKey: openAiKey, modelName: model });
+      const vectors = await embedder.embedDocuments(texts);
+      console.log(`[RAG] Embeddings via OpenAI ${model} (${vectors[0]?.length}d) for ${texts.length} chunks`);
+      return vectors;
+    } catch (err: any) {
+      console.warn('[RAG] OpenAI embedding failed, skipping embeddings:', err.message);
+    }
+  }
+
+  // --- Tier 3: no provider available ---
+  if (!lmUrl && !openAiKey) {
+    console.info('[RAG] No embedding provider configured (LM_STUDIO_URL / OPENAI_API_KEY). Using keyword retrieval only.');
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Core service
 // ---------------------------------------------------------------------------
 
@@ -361,6 +431,14 @@ export class RagService {
         sourceId
       });
 
+      // --- embed (async, best-effort — keyword retrieval still works if skipped) ---
+      const embeddings = await generateEmbeddings(rawChunks.map(c => c.text));
+      if (embeddings) {
+        rawChunks.forEach((c, i) => { (c as any).embedding = embeddings[i]; });
+      }
+      const vectorProvider = embeddings ? 'local' : 'none';
+      const vectorSyncStatus = embeddings ? 'synced' as const : 'pending' as const;
+
       const checksum = md5(text);
 
       // --- upsert RagDocument ---
@@ -370,8 +448,8 @@ export class RagService {
         sourceId: new Types.ObjectId(sourceId)
       });
 
-      if (existing && existing.checksum === checksum) {
-        // Content unchanged — just update lastRefreshedAt on source
+      if (existing && existing.checksum === checksum && vectorSyncStatus === 'synced') {
+        // Content unchanged and already embedded — just update lastRefreshedAt on source
         source.lastRefreshedAt = new Date();
         prompt.markModified('content.ragConfig');
         await prompt.save();
@@ -379,7 +457,7 @@ export class RagService {
       }
 
       const docData = {
-        tenantId: prompt.tenantId || 'platform',
+        tenantId: (prompt as any).tenantId || 'platform',
         promptVersionId: new Types.ObjectId(promptVersionId),
         sourceId: new Types.ObjectId(sourceId),
         filename: `scraped_${new URL(url).hostname.replace(/\./g, '_')}.txt`,
@@ -394,11 +472,11 @@ export class RagService {
         extractedMetadata: { title, url, language: 'en' },
         chunks: rawChunks,
         vectorStore: {
-          provider: 'local',
+          provider: vectorProvider,
           indexName: `local_${promptVersionId}_${sourceId}`,
           syncedAt: new Date(),
           chunkCount: rawChunks.length,
-          syncStatus: 'synced' as const
+          syncStatus: vectorSyncStatus
         },
         usage: { retrievalCount: 0 }
       };
@@ -507,6 +585,14 @@ export class RagService {
       sourceId
     });
 
+    // --- Embed (async, best-effort — keyword retrieval still works if skipped) ---
+    const embeddings = await generateEmbeddings(rawChunks.map(c => c.text));
+    if (embeddings) {
+      rawChunks.forEach((c, i) => { (c as any).embedding = embeddings[i]; });
+    }
+    const vectorProvider = embeddings ? 'local' : 'none';
+    const vectorSyncStatus = embeddings ? 'synced' as const : 'pending' as const;
+
     const checksum = md5(extractedText);
 
     // --- Upsert RagDocument (replace if same source already has a doc) ---
@@ -536,11 +622,11 @@ export class RagService {
       },
       chunks: rawChunks,
       vectorStore: {
-        provider: 'local',
+        provider: vectorProvider,
         indexName: `local_${promptVersionId}_${sourceId}`,
         syncedAt: new Date(),
         chunkCount: rawChunks.length,
-        syncStatus: 'synced' as const
+        syncStatus: vectorSyncStatus
       },
       usage: { retrievalCount: 0 }
     };
