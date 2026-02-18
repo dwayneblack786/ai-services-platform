@@ -33,6 +33,7 @@
     "seed:all": "npm run seed:products && npm run seed:prompts:v2 && npm run seed:templates",
     "cleanup:templates": "ts-node src/scripts/cleanup-old-templates.ts",
     "fix:tenant-ids": "ts-node src/scripts/fix-tenant-ids.ts",
+    "rag:create-index": "ts-node src/scripts/create-vector-index.ts",
     "test:cache": "ts-node src/scripts/test-cache.ts",
     "lint": "eslint src tests --ext .ts",
     "lint:fix": "eslint src tests --ext .ts --fix",

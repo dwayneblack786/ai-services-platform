@@ -658,8 +658,14 @@ export class RagService {
   // -----------------------------------------------------------------------
 
   /**
-   * Keyword-based retrieval against all indexed chunks for a prompt version.
-   * Returns top-K chunks sorted by term-overlap score.
+   * Retrieve top-K relevant chunks for a prompt version and query.
+   *
+   * Strategy:
+   *   1. If embeddings are available AND a vector index exists → $vectorSearch
+   *      (tenant-isolated via pre-filter on tenantId + promptVersionId)
+   *   2. Otherwise → keyword TF-overlap scoring (always works, no index required)
+   *
+   * Returns chunks sorted by relevance score descending.
    */
   async retrieve(promptVersionId: string, query: string, topK = 5, minScore = 0.1): Promise<Array<{
     chunkId: string;
@@ -670,22 +676,99 @@ export class RagService {
   }>> {
     if (!query.trim()) return [];
 
-    // Load all RagDocuments for this prompt
-    const docs = await RagDocument.find({
-      promptVersionId: new Types.ObjectId(promptVersionId),
-      status: 'indexed'
-    });
-
-    // Also load prompt to get source names
+    // Load prompt to get tenantId and source name map
     const prompt = await findPromptById(promptVersionId);
-    const sourceMap = new Map<string, string>(); // sourceId → name
+    const tenantId = (prompt as any)?.tenantId || 'platform';
+    const sourceMap = new Map<string, string>();
     if (prompt?.content.ragConfig?.sources) {
       for (const s of prompt.content.ragConfig.sources) {
         sourceMap.set(s._id.toString(), s.name);
       }
     }
 
-    // Score every chunk
+    // --- Try vector search first ---
+    const queryEmbedding = await generateEmbeddings([query]);
+    if (queryEmbedding && queryEmbedding.length > 0) {
+      try {
+        const indexName = process.env.RAG_INDEX_NAME || 'rag_chunks_vector_index';
+        const numCandidates = Math.max(topK * 10, 50); // ANN candidate pool
+
+        const pipeline: any[] = [
+          {
+            $vectorSearch: {
+              index: indexName,
+              path: 'chunks.embedding',
+              queryVector: queryEmbedding[0],
+              numCandidates,
+              limit: topK * 3, // fetch extra to allow post-filter by enabled sources
+              filter: {
+                tenantId,
+                promptVersionId: new Types.ObjectId(promptVersionId),
+                status: 'indexed'
+              }
+            }
+          },
+          {
+            $project: {
+              sourceId: 1,
+              chunks: 1,
+              vectorSearchScore: { $meta: 'vectorSearchScore' }
+            }
+          }
+        ];
+
+        const results = await RagDocument.aggregate(pipeline);
+
+        if (results.length > 0) {
+          // $vectorSearch returns the whole document — find the matching chunk
+          // by comparing scores (Atlas returns the best-matching chunk's doc)
+          const scored: Array<{ chunkId: string; text: string; score: number; sourceName: string; sourceId: string }> = [];
+
+          for (const doc of results) {
+            const sId = doc.sourceId?.toString() || '';
+            const sName = sourceMap.get(sId) || 'Unknown';
+            const vsScore: number = doc.vectorSearchScore ?? 0;
+
+            // Find the chunk whose embedding best matches the query
+            // (when chunks are nested, Atlas scores at the document level;
+            //  we pick the chunk with the highest keyword overlap as a tie-break)
+            let bestChunk = doc.chunks?.[0];
+            let bestKw = 0;
+            for (const c of doc.chunks || []) {
+              const kw = scoreTfOverlap(query, c.text);
+              if (kw > bestKw) { bestKw = kw; bestChunk = c; }
+            }
+
+            if (bestChunk && vsScore >= minScore) {
+              scored.push({
+                chunkId: bestChunk.chunkId,
+                text: bestChunk.text,
+                score: Math.round(vsScore * 100) / 100,
+                sourceName: sName,
+                sourceId: sId
+              });
+            }
+          }
+
+          if (scored.length > 0) {
+            console.log(`[RAG] Vector search returned ${scored.length} results for promptVersion ${promptVersionId}`);
+            scored.sort((a, b) => b.score - a.score);
+            return scored.slice(0, topK);
+          }
+        }
+      } catch (err: any) {
+        // Index may not exist yet (e.g. before create-vector-index.ts is run)
+        console.warn('[RAG] $vectorSearch failed, falling back to keyword retrieval:', err.message);
+      }
+    }
+
+    // --- Keyword fallback ---
+    const docs = await RagDocument.find({
+      tenantId,
+      promptVersionId: new Types.ObjectId(promptVersionId),
+      status: 'indexed'
+    });
+
     const scored: Array<{ chunkId: string; text: string; score: number; sourceName: string; sourceId: string }> = [];
     for (const doc of docs) {
       const sId = doc.sourceId.toString();
@@ -704,9 +787,48 @@ export class RagService {
       }
     }
 
-    // Sort descending and take topK
     scored.sort((a, b) => b.score - a.score);
     return scored.slice(0, topK);
+  }
+
+  // -----------------------------------------------------------------------
+  // retrieveForPrompt — chat-time context injection helper (Phase 4)
+  // -----------------------------------------------------------------------
+
+  /**
+   * Retrieve relevant chunks for chat-time context injection.
+   * Returns a plain text block ready to prepend to the user message,
+   * capped at maxTokens (approximate).
+   *
+   * Used by chat-routes.ts POST /chat/message when ragConfig.enabled = true.
+   */
+  async retrieveForPrompt(
+    promptVersionId: string,
+    query: string,
+    maxTokens = 2000,
+    topK = 5
+  ): Promise<string | null> {
+    const prompt = await findPromptById(promptVersionId);
+    if (!prompt?.content?.ragConfig?.enabled) return null;
+
+    const maxResults = prompt.content.ragConfig?.retrieval?.maxResults ?? topK;
+    const chunks = await this.retrieve(promptVersionId, query, maxResults);
+    if (chunks.length === 0) return null;
+
+    // Build a context block capped by approximate token count (4 chars ≈ 1 token)
+    const lines: string[] = [];
+    let tokenCount = 0;
+    for (const chunk of chunks) {
+      const chunkTokens = Math.ceil(chunk.text.length / 4);
+      if (tokenCount + chunkTokens > maxTokens) break;
+      lines.push(`[Source: ${chunk.sourceName}]\n${chunk.text}`);
+      tokenCount += chunkTokens;
+    }
+
+    if (lines.length === 0) return null;
+
+    console.log(`[RAG] Retrieved ${lines.length} chunks (≈${tokenCount} tokens) for promptVersion ${promptVersionId}`);
+    return lines.join('\n\n---\n\n');
   }
 
   // -----------------------------------------------------------------------

@@ -184,6 +184,11 @@ RagDocumentSchema.index({
 }, { name: 'tenant_prompt_docs' });
 
 RagDocumentSchema.index({
+  tenantId: 1,
+  sourceId: 1
+}, { name: 'tenant_source_docs' });
+
+RagDocumentSchema.index({
   sourceId: 1,
   status: 1
 }, { name: 'source_status' });
