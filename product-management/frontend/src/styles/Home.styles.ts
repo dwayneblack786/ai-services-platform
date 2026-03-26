@@ -1,10 +1,14 @@
+// Home page styles with Real Estate Theme
 import { CSSProperties } from 'react';
+import { realEstateTheme } from '../theme/realEstateTheme';
+
+const theme = realEstateTheme;
 
 export const styles: { [key: string]: CSSProperties } = {
   container: {
     width: '100%',
     minHeight: '100vh',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: theme.colors.background.default,
   },
 
   loadingContainer: {
@@ -13,28 +17,28 @@ export const styles: { [key: string]: CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: '60vh',
-    gap: '20px',
+    gap: theme.spacing.lg,
   },
 
   spinner: {
     width: '50px',
     height: '50px',
     border: '5px solid #f3f3f3',
-    borderTop: '5px solid #4CAF50',
+    borderTop: `5px solid ${theme.colors.primary.main}`,
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   },
 
-  // Hero Section
+  // Hero Section - Real Estate Professional
   hero: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '80px 60px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    padding: '100px 80px',
+    background: theme.colors.background.hero,
     color: 'white',
-    minHeight: '500px',
-    gap: '40px',
+    minHeight: '600px',
+    gap: '60px',
   },
 
   heroMobile: {
@@ -42,76 +46,85 @@ export const styles: { [key: string]: CSSProperties } = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '40px 20px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    padding: '60px 20px',
+    background: theme.colors.background.hero,
     color: 'white',
-    minHeight: '400px',
+    minHeight: '500px',
     textAlign: 'center',
   },
 
   heroContent: {
     flex: 1,
-    maxWidth: '600px',
+    maxWidth: '650px',
   },
 
   heroTitle: {
-    fontSize: '3.5rem',
-    fontWeight: 'bold',
-    marginBottom: '20px',
-    lineHeight: '1.2',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+    fontSize: theme.typography.fontSize['5xl'],
+    fontWeight: theme.typography.fontWeight.extrabold,
+    marginBottom: theme.spacing.lg,
+    lineHeight: theme.typography.lineHeight.tight,
+    textShadow: '2px 4px 8px rgba(0,0,0,0.3)',
+    letterSpacing: '-0.02em',
   },
 
   heroTitleMobile: {
-    fontSize: '2rem',
-    fontWeight: 'bold',
-    marginBottom: '16px',
-    lineHeight: '1.3',
-    textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+    fontSize: theme.typography.fontSize['3xl'],
+    fontWeight: theme.typography.fontWeight.bold,
+    marginBottom: theme.spacing.md,
+    lineHeight: theme.typography.lineHeight.tight,
+    textShadow: '2px 4px 8px rgba(0,0,0,0.3)',
   },
 
   heroSubtitle: {
-    fontSize: '1.3rem',
-    marginBottom: '40px',
+    fontSize: theme.typography.fontSize.xl,
+    marginBottom: theme.spacing['3xl'],
     opacity: 0.95,
-    lineHeight: '1.6',
+    lineHeight: theme.typography.lineHeight.relaxed,
+    fontWeight: theme.typography.fontWeight.normal,
   },
 
   heroSubtitleMobile: {
-    fontSize: '1rem',
-    marginBottom: '30px',
+    fontSize: theme.typography.fontSize.base,
+    marginBottom: theme.spacing.xl,
     opacity: 0.95,
-    lineHeight: '1.5',
+    lineHeight: theme.typography.lineHeight.normal,
   },
 
   ctaButton: {
-    padding: '16px 40px',
-    fontSize: '1.2rem',
-    fontWeight: '600',
-    backgroundColor: '#4CAF50',
+    padding: '18px 48px',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.semibold,
+    backgroundColor: theme.colors.secondary.main,
     color: 'white',
     border: 'none',
-    borderRadius: '50px',
+    borderRadius: theme.borderRadius.full,
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-    minHeight: '50px',
+    transition: theme.transitions.normal,
+    boxShadow: theme.shadows.xl,
+    minHeight: '56px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
   },
 
   ctaButtonMobile: {
-    padding: '14px 32px',
-    fontSize: '1rem',
-    fontWeight: '600',
-    backgroundColor: '#4CAF50',
+    padding: '16px 36px',
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
+    backgroundColor: theme.colors.secondary.main,
     color: 'white',
     border: 'none',
-    borderRadius: '50px',
+    borderRadius: theme.borderRadius.full,
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-    minHeight: '48px',
+    transition: theme.transitions.normal,
+    boxShadow: theme.shadows.lg,
+    minHeight: '52px',
     width: '100%',
-    maxWidth: '300px',
+    maxWidth: '320px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
   },
 
   heroImage: {
@@ -119,139 +132,124 @@ export const styles: { [key: string]: CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-
-  heroImagePlaceholder: {
-    width: '400px',
-    height: '400px',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backdropFilter: 'blur(10px)',
-    border: '2px solid rgba(255,255,255,0.2)',
-  },
-
-  heroImageIcon: {
-    fontSize: '150px',
+    padding: theme.spacing.md,
   },
 
   // Features Section
   featuresSection: {
-    padding: '80px 60px',
-    backgroundColor: 'white',
+    padding: '100px 80px',
+    backgroundColor: theme.colors.neutral.white,
   },
 
   sectionTitle: {
-    fontSize: '2.5rem',
-    fontWeight: 'bold',
+    fontSize: theme.typography.fontSize['4xl'],
+    fontWeight: theme.typography.fontWeight.bold,
     textAlign: 'center',
-    marginBottom: '20px',
-    color: '#333',
+    marginBottom: theme.spacing.lg,
+    color: theme.colors.neutral.darkest,
+    letterSpacing: '-0.01em',
   },
 
   sectionTitleMobile: {
-    fontSize: '1.8rem',
-    fontWeight: 'bold',
+    fontSize: theme.typography.fontSize['2xl'],
+    fontWeight: theme.typography.fontWeight.bold,
     textAlign: 'center',
-    marginBottom: '16px',
-    color: '#333',
+    marginBottom: theme.spacing.md,
+    color: theme.colors.neutral.darkest,
     padding: '0 20px',
   },
 
   sectionSubtitle: {
-    fontSize: '1.2rem',
+    fontSize: theme.typography.fontSize.xl,
     textAlign: 'center',
-    marginBottom: '50px',
-    color: '#666',
-    maxWidth: '700px',
+    marginBottom: theme.spacing['4xl'],
+    color: theme.colors.neutral.dark,
+    maxWidth: '750px',
     marginLeft: 'auto',
     marginRight: 'auto',
+    lineHeight: theme.typography.lineHeight.relaxed,
   },
 
   featuresGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '30px',
-    maxWidth: '1200px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: theme.spacing['2xl'],
+    maxWidth: '1300px',
     margin: '0 auto',
   },
 
   featuresGridMobile: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: theme.spacing.xl,
     padding: '0 20px',
   },
 
   featureCard: {
-    padding: '30px',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '12px',
+    padding: theme.spacing['2xl'],
+    backgroundColor: theme.colors.background.card,
+    borderRadius: theme.borderRadius.xl,
     textAlign: 'center',
-    transition: 'all 0.3s ease',
-    border: '1px solid #e0e0e0',
+    transition: theme.transitions.normal,
+    border: `1px solid ${theme.colors.neutral.light}`,
     cursor: 'pointer',
-  },
-
-  featureIcon: {
-    fontSize: '3rem',
-    marginBottom: '20px',
+    boxShadow: theme.shadows.sm,
   },
 
   featureTitle: {
-    fontSize: '1.3rem',
-    fontWeight: '600',
-    marginBottom: '10px',
-    color: '#333',
+    fontSize: theme.typography.fontSize.xl,
+    fontWeight: theme.typography.fontWeight.semibold,
+    marginBottom: theme.spacing.sm,
+    color: theme.colors.neutral.darkest,
   },
 
   featureDescription: {
-    fontSize: '1rem',
-    color: '#666',
-    lineHeight: '1.6',
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.neutral.dark,
+    lineHeight: theme.typography.lineHeight.relaxed,
   },
 
   // Products Section
   productsSection: {
-    padding: '80px 60px',
-    backgroundColor: '#f8f9fa',
+    padding: '100px 80px',
+    backgroundColor: theme.colors.background.default,
   },
 
   productsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-    gap: '30px',
-    maxWidth: '1400px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+    gap: theme.spacing['2xl'],
+    maxWidth: '1500px',
     margin: '0 auto',
   },
 
   productsGridMobile: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '24px',
+    gap: theme.spacing.xl,
     padding: '0 20px',
   },
 
   productCard: {
-    backgroundColor: 'white',
-    borderRadius: '16px',
+    backgroundColor: theme.colors.background.card,
+    borderRadius: theme.borderRadius.xl,
     overflow: 'hidden',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-    transition: 'all 0.3s ease',
+    boxShadow: theme.shadows.card,
+    transition: theme.transitions.normal,
     display: 'flex',
     flexDirection: 'column',
-    border: '1px solid #e0e0e0',
+    border: `1px solid ${theme.colors.neutral.light}`,
     cursor: 'pointer',
   },
 
   productImageContainer: {
     position: 'relative',
-    height: '200px',
+    height: '220px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+    borderRadius: `${theme.borderRadius.xl} ${theme.borderRadius.xl} 0 0`,
   },
 
   productImage: {
@@ -262,140 +260,174 @@ export const styles: { [key: string]: CSSProperties } = {
     justifyContent: 'center',
   },
 
-  productImageIcon: {
-    fontSize: '80px',
-    filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))',
-  },
-
   productCategoryBadge: {
     position: 'absolute',
-    top: '15px',
-    right: '15px',
-    fontSize: '2.5rem',
-    filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6))',
-    lineHeight: '1',
+    top: theme.spacing.md,
+    right: theme.spacing.md,
+    padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: theme.borderRadius.full,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    boxShadow: theme.shadows.md,
+    backdropFilter: 'blur(8px)',
   },
 
   productContent: {
-    padding: '24px',
+    padding: theme.spacing['2xl'],
     display: 'flex',
     flexDirection: 'column',
     flex: 1,
   },
 
   productTitle: {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    marginBottom: '12px',
-    color: '#333',
+    fontSize: theme.typography.fontSize['2xl'],
+    fontWeight: theme.typography.fontWeight.bold,
+    marginBottom: theme.spacing.md,
+    color: theme.colors.neutral.darkest,
+    letterSpacing: '-0.01em',
   },
 
   productDescription: {
-    fontSize: '0.95rem',
-    color: '#666',
-    lineHeight: '1.6',
-    marginBottom: '20px',
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.neutral.dark,
+    lineHeight: theme.typography.lineHeight.relaxed,
+    marginBottom: theme.spacing.xl,
     flex: 1,
   },
 
   productFeatures: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
-    marginBottom: '20px',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.xl,
   },
 
   productFeatureItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    fontSize: '0.9rem',
-    color: '#555',
+    gap: theme.spacing.sm,
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.neutral.darker,
   },
 
   checkIcon: {
-    color: '#4CAF50',
-    fontWeight: 'bold',
-    fontSize: '1rem',
+    color: theme.colors.accent.main,
+    fontWeight: theme.typography.fontWeight.bold,
+    fontSize: theme.typography.fontSize.base,
   },
 
   productFooter: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: '20px',
-    borderTop: '1px solid #e0e0e0',
-    gap: '15px',
+    paddingTop: theme.spacing.lg,
+    borderTop: `1px solid ${theme.colors.neutral.light}`,
+    gap: theme.spacing.md,
   },
 
   productPricing: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px',
+    gap: '2px',
   },
 
   priceLabel: {
-    fontSize: '0.8rem',
-    color: '#888',
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.neutral.main,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
   },
 
   priceValue: {
-    fontSize: '1.3rem',
-    fontWeight: '700',
-    color: '#4CAF50',
+    fontSize: theme.typography.fontSize['2xl'],
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.primary.main,
   },
 
   pricingModel: {
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#666',
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.neutral.dark,
   },
 
-  exploreButton: {
-    padding: '10px 24px',
-    backgroundColor: '#4CAF50',
+   exploreButton: {
+    padding: `${theme.spacing.sm} ${theme.spacing.xl}`,
+    backgroundColor: theme.colors.primary.main,
     color: 'white',
     border: 'none',
-    borderRadius: '8px',
-    fontSize: '0.95rem',
-    fontWeight: '600',
+    borderRadius: theme.borderRadius.md,
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
+    transition: theme.transitions.normal,
     minHeight: '44px',
     whiteSpace: 'nowrap',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    boxShadow: theme.shadows.sm,
   },
 
   viewAllContainer: {
     display: 'flex',
     justifyContent: 'center',
-    marginTop: '50px',
+    marginTop: theme.spacing['4xl'],
   },
 
   viewAllButton: {
-    padding: '14px 40px',
-    backgroundColor: '#2196F3',
+    padding: `${theme.spacing.md} ${theme.spacing['3xl']}`,
+    backgroundColor: theme.colors.primary.main,
     color: 'white',
     border: 'none',
-    borderRadius: '50px',
-    fontSize: '1.1rem',
-    fontWeight: '600',
+    borderRadius: theme.borderRadius.full,
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.semibold,
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 4px 12px rgba(33, 150, 243, 0.3)',
-    minHeight: '50px',
+    transition: theme.transitions.normal,
+    boxShadow: theme.shadows.lg,
+    minHeight: '56px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
   },
 
   // CTA Section
   ctaSection: {
-    padding: '80px 60px',
-    background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+    padding: '100px 80px',
+    background: theme.colors.primary.gradient,
     color: 'white',
     textAlign: 'center',
   },
 
   ctaContent: {
-    maxWidth: '800px',
+    maxWidth: '900px',
     margin: '0 auto',
+  },
+
+  // Tab Styles
+  tabButton: {
+    padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+    backgroundColor: 'transparent',
+    color: theme.colors.neutral.darker,
+    border: `2px solid ${theme.colors.neutral.light}`,
+    borderRadius: theme.borderRadius.full,
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.medium,
+    cursor: 'pointer',
+    transition: theme.transitions.fast,
+  },
+
+  tabButtonActive: {
+    padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+    backgroundColor: theme.colors.primary.main,
+    color: 'white',
+    border: `2px solid ${theme.colors.primary.main}`,
+    borderRadius: theme.borderRadius.full,
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
+    cursor: 'pointer',
+    transition: theme.transitions.fast,
   },
 
   ctaTitle: {
@@ -458,5 +490,5 @@ export const styles: { [key: string]: CSSProperties } = {
     transition: 'all 0.3s ease',
     minHeight: '50px',
     minWidth: '180px',
-  },
+  }
 };

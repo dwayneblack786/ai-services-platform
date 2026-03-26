@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  ArrowRight, 
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react';
 import apiClient from '../services/apiClient';
 import { getApiUrl } from '../config/api';
-import { logger } from '../utils/logger';
 import { styles } from '../styles/Home.styles';
 import { Product } from '../types';
+import { realEstateTheme, getCategoryStyle } from '../theme/realEstateTheme';
+import { realEstateImages, getProductImage, getFeatureImage } from '../theme/images';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -12,15 +18,6 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [activeTab, setActiveTab] = useState<string>('All');
-
-  // Generate stable ID from text
-  const generateStableId = (text: string): string => {
-    return text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .substring(0, 50);
-  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -40,7 +37,6 @@ const Home = () => {
       setLoading(true);
       const response = await apiClient.get(getApiUrl('api/products'));
       if (response.data.success) {
-        // Show all products including inactive ones
         setProducts(response.data.products);
       }
     } catch (err) {
@@ -50,109 +46,10 @@ const Home = () => {
     }
   };
 
-  // Get unique categories from products
-  const categories = ['All', ...new Set(products.map(p => p.category))];
-
-  // Filter products by active tab
+  const categories = ['All', ...new Set(products.map(p => p.category || 'Real Estate'))];
   const filteredProducts = activeTab === 'All' 
     ? products 
-    : products.filter(p => p.category === activeTab);
-
-  const getProductVisuals = (product: Product) => {
-    const name = product.name.toLowerCase();
-    const description = product.description.toLowerCase();
-    
-    // Healthcare
-    if (name.includes('healthcare') || name.includes('medical') || description.includes('healthcare')) {
-      return {
-        primary: '🏥',
-        secondary: '⚕️',
-        gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' // Medical blue
-      };
-    }
-    
-    // Real Estate
-    if (name.includes('real estate') || name.includes('property') || description.includes('real estate')) {
-      return {
-        primary: '🏡',
-        secondary: '🔑',
-        gradient: 'linear-gradient(135deg, #f2994a 0%, #f2c94c 100%)' // Warm orange-yellow
-      };
-    }
-    
-    // Financial Services
-    if (name.includes('financial') || name.includes('banking') || description.includes('financial')) {
-      return {
-        primary: '💰',
-        secondary: '📊',
-        gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' // Money green
-      };
-    }
-    
-    // E-commerce
-    if (name.includes('ecommerce') || name.includes('e-commerce') || name.includes('retail') || description.includes('ecommerce')) {
-      return {
-        primary: '🛍️',
-        secondary: '💳',
-        gradient: 'linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)' // Vibrant red-orange
-      };
-    }
-    
-    // Education
-    if (name.includes('education') || name.includes('learning') || description.includes('education')) {
-      return {
-        primary: '🎓',
-        secondary: '📚',
-        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' // Academic purple
-      };
-    }
-    
-    // Legal Services
-    if (name.includes('legal') || name.includes('law') || description.includes('legal')) {
-      return {
-        primary: '⚖️',
-        secondary: '📜',
-        gradient: 'linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%)' // Professional dark blue
-      };
-    }
-    
-    // Customer Support
-    if (name.includes('support') || name.includes('customer') || description.includes('customer support')) {
-      return {
-        primary: '🎧',
-        secondary: '💬',
-        gradient: 'linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%)' // Support purple
-      };
-    }
-    
-    // Default fallback based on category
-    const category = product.category;
-    if (category === 'Virtual Assistant') {
-      return {
-        primary: '💬',
-        secondary: '🎤',
-        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      };
-    } else if (category === 'IDP') {
-      return {
-        primary: '📑',
-        secondary: '🔍',
-        gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-      };
-    } else if (category === 'Computer Vision') {
-      return {
-        primary: '📸',
-        secondary: '🖼️',
-        gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-      };
-    }
-    
-    return {
-      primary: '⚡',
-      secondary: '✨',
-      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    };
-  };
+    : products.filter(p => (p.category || 'Real Estate') === activeTab);
 
   const handleExploreProduct = (productId?: string) => {
     if (productId) {
@@ -166,342 +63,336 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div id="home-container-loading" style={styles.container}>
-        <div id="loading-container" style={styles.loadingContainer}>
-          <div id="loading-spinner" style={styles.spinner}></div>
-          <p>Loading amazing AI services...</p>
+      <div style={styles.container}>
+        <div style={styles.loadingContainer}>
+          <div style={styles.spinner}></div>
+          <p>Loading Real Estate AI Platform...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div id="home-container" style={styles.container}>
-      <section id="hero-section" style={isMobile ? styles.heroMobile : styles.hero}>
-        <div id="hero-content" style={styles.heroContent}>
+    <div style={styles.container}>
+      {/* Hero Section */}
+      <section style={isMobile ? styles.heroMobile : styles.hero}>
+        <div style={styles.heroContent}>
           <h1 style={isMobile ? styles.heroTitleMobile : styles.heroTitle}>
-            Transform Your Business with AI
+            Transform Real Estate with AI
           </h1>
           <p style={isMobile ? styles.heroSubtitleMobile : styles.heroSubtitle}>
-            Powerful AI-driven solutions to automate, analyze, and accelerate your workflows
+            Professional AI solutions built specifically for real estate professionals, brokers, and property managers
           </p>
           <button
             onClick={handleViewAllProducts}
             style={isMobile ? styles.ctaButtonMobile : styles.ctaButton}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.backgroundColor = realEstateTheme.colors.secondary.light;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.backgroundColor = realEstateTheme.colors.secondary.main;
+            }}
           >
-            Explore All Products
+            Explore Products <ArrowRight size={20} />
           </button>
         </div>
-        <div id="hero-image" style={styles.heroImage}>
-          <div id="hero-image-placeholder" style={styles.heroImagePlaceholder}>
-            <span style={styles.heroImageIcon}>🚀</span>
-          </div>
+        <div style={styles.heroImage}>
+          <img 
+            src={realEstateImages.hero.main}
+            alt="Modern real estate cityscape"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: realEstateTheme.borderRadius['2xl'],
+              boxShadow: realEstateTheme.shadows['2xl'],
+            }}
+          />
         </div>
       </section>
 
-      <section id="features-section" style={styles.featuresSection}>
+      {/* Features Section */}
+      <section style={styles.featuresSection}>
         <h2 style={isMobile ? styles.sectionTitleMobile : styles.sectionTitle}>
-          Why Choose Infero Agents?
+          Why Real Estate Professionals Choose Us
         </h2>
-        <div id="features-grid" style={isMobile ? styles.featuresGridMobile : styles.featuresGrid}>
-          <div
-            id="feature-card-fast"
-            style={styles.featureCard}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-5px)';
-              e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <div id="feature-icon-fast" style={styles.featureIcon}>⚡</div>
-            <h3 style={styles.featureTitle}>Lightning Fast</h3>
-            <p style={styles.featureDescription}>
-              Deploy AI solutions in minutes, not months
-            </p>
-          </div>
-          <div
-            id="feature-card-security"
-            style={styles.featureCard}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-5px)';
-              e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <div id="feature-icon-security" style={styles.featureIcon}>🔒</div>
-            <h3 style={styles.featureTitle}>Enterprise Security</h3>
-            <p style={styles.featureDescription}>
-              Bank-grade security with multi-tenant isolation
-            </p>
-          </div>
-          <div
-            id="feature-card-customizable"
-            style={styles.featureCard}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-5px)';
-              e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <div id="feature-icon-customizable" style={styles.featureIcon}>🎯</div>
-            <h3 style={styles.featureTitle}>Customizable</h3>
-            <p style={styles.featureDescription}>
-              Tailor every aspect to fit your business needs
-            </p>
-          </div>
-          <div
-            id="feature-card-analytics"
-            style={styles.featureCard}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-5px)';
-              e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <div id="feature-icon-analytics" style={styles.featureIcon}>📊</div>
-            <h3 style={styles.featureTitle}>Analytics Built-in</h3>
-            <p style={styles.featureDescription}>
-              Real-time insights and comprehensive reporting
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section id="products-section" style={styles.productsSection}>
-        <h2 style={isMobile ? styles.sectionTitleMobile : styles.sectionTitle}>
-          Our AI Solutions
-        </h2>
-        <p style={styles.sectionSubtitle}>
-          Discover cutting-edge AI products designed to solve real business challenges
-        </p>
-        
-        {/* Tabs Navigation */}
-        <div id="product-tabs" style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '10px',
-          marginBottom: '40px',
-          flexWrap: 'wrap',
-          padding: isMobile ? '0 20px' : '0'
-        }}>
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setActiveTab(category)}
-              style={{
-                padding: '12px 24px',
-                fontSize: '1rem',
-                fontWeight: '600',
-                backgroundColor: activeTab === category ? '#4CAF50' : 'white',
-                color: activeTab === category ? 'white' : '#333',
-                border: `2px solid ${activeTab === category ? '#4CAF50' : '#e0e0e0'}`,
-                borderRadius: '50px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                minHeight: '44px',
-                boxShadow: activeTab === category ? '0 4px 12px rgba(76, 175, 80, 0.3)' : 'none'
-              }}
+        <div style={isMobile ? styles.featuresGridMobile : styles.featuresGrid}>
+          {[
+            {
+              image: getFeatureImage('Lightning Fast'),
+              title: 'Lightning Fast',
+              description: 'Deploy listing content, reports, and compliance tools in minutes, not hours',
+            },
+            {
+              image: getFeatureImage('Fair Housing Compliant'),
+              title: 'Fair Housing Compliant',
+              description: 'Built-in compliance monitoring to protect you from violations',
+            },
+            {
+              image: getFeatureImage('Real Estate Focused'),
+              title: 'Real Estate Focused',
+              description: 'Every feature designed specifically for real estate workflows',
+            },
+            {
+              image: getFeatureImage('Professional Results'),
+              title: 'Professional Results',
+              description: 'Enterprise-quality output that rivals large brokerages',
+            },
+          ].map((feature, index) => (
+            <div
+              key={index}
+              style={styles.featureCard}
               onMouseEnter={(e) => {
-                if (activeTab !== category) {
-                  e.currentTarget.style.borderColor = '#4CAF50';
-                  e.currentTarget.style.color = '#4CAF50';
-                }
+                e.currentTarget.style.transform = 'translateY(-8px)';
+                e.currentTarget.style.boxShadow = realEstateTheme.shadows.cardHover;
               }}
               onMouseLeave={(e) => {
-                if (activeTab !== category) {
-                  e.currentTarget.style.borderColor = '#e0e0e0';
-                  e.currentTarget.style.color = '#333';
-                }
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = realEstateTheme.shadows.card;
               }}
             >
-              {category}
-            </button>
+              <div style={{
+                width: '100%',
+                height: '180px',
+                borderRadius: realEstateTheme.borderRadius.lg,
+                overflow: 'hidden',
+                marginBottom: realEstateTheme.spacing.md,
+              }}>
+                <img 
+                  src={feature.image}
+                  alt={feature.title}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                />
+              </div>
+              <h3 style={styles.featureTitle}>{feature.title}</h3>
+              <p style={styles.featureDescription}>{feature.description}</p>
+            </div>
           ))}
         </div>
+      </section>
 
-        <div id="products-grid" style={isMobile ? styles.productsGridMobile : styles.productsGrid}>
-          {filteredProducts.map((product) => {
-            const visuals = getProductVisuals(product);
-            const isComingSoon = product.status !== 'active';
-            
+      {/* Products Section */}
+      <section style={styles.productsSection}>
+        <h2 style={isMobile ? styles.sectionTitleMobile : styles.sectionTitle}>
+          Real Estate AI Solutions
+        </h2>
+        <p style={styles.sectionSubtitle}>
+          Purpose-built tools to automate listing production, ensure compliance, and scale your real estate business
+        </p>
+        
+        {/* Category Tabs */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: realEstateTheme.spacing.sm,
+          marginBottom: realEstateTheme.spacing['3xl'],
+          flexWrap: 'wrap',
+          padding: isMobile ? `0 ${realEstateTheme.spacing.lg}` : '0'
+        }}>
+          {categories.map((category) => {
+            const isActive = activeTab === category;
             return (
-            <div
-              key={product._id}
-              id={`product-card-${product._id}`}
-              style={{
-                ...styles.productCard,
-                opacity: isComingSoon ? 0.85 : 1,
-                position: 'relative' as const
-              }}
-              onMouseEnter={(e) => {
-                if (!isComingSoon) {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.15)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isComingSoon) {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-                }
-              }}
-            >
-              {isComingSoon && (
-                <div id={`coming-soon-badge-${product._id}`} style={{
-                  position: 'absolute',
-                  top: '15px',
-                  left: '15px',
-                  padding: '8px 16px',
-                  backgroundColor: '#ff9800',
-                  color: 'white',
-                  borderRadius: '20px',
-                  fontSize: '0.85rem',
-                  fontWeight: '700',
-                  boxShadow: '0 2px 8px rgba(255, 152, 0, 0.4)',
-                  zIndex: 10,
-                  textTransform: 'uppercase' as const,
-                  letterSpacing: '0.5px'
-                }}>
-                  🚀 Coming Soon
-                </div>
-              )}
-              <div id={`product-image-container-${product._id}`} style={{
-                ...styles.productImageContainer,
-                background: visuals.gradient,
-                filter: isComingSoon ? 'grayscale(30%)' : 'none'
-              }}>
-                <div id={`product-image-${product._id}`} style={styles.productImage}>
-                  <div id={`product-icons-${product._id}`} style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '10px'
-                  }}>
-                    <span style={styles.productImageIcon}>
-                      {visuals.primary}
-                    </span>
-                    <span style={{
-                      fontSize: '40px',
-                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))',
-                      opacity: 0.9
-                    }}>
-                      {visuals.secondary}
-                    </span>
-                  </div>
-                </div>
-                <div id={`category-badge-${product._id}`} style={styles.productCategoryBadge}>
-                  {product.category === 'Virtual Assistant' && '💬'}
-                  {product.category === 'IDP' && '📄'}
-                  {product.category === 'Computer Vision' && '👁️'}
-                </div>
-              </div>
-              
-              <div id={`product-content-${product._id}`} style={styles.productContent}>
-                <h3 style={styles.productTitle}>{product.name}</h3>
-                <p style={styles.productDescription}>
-                  {product.description.substring(0, 120)}...
-                </p>
-                
-                <div id={`product-features-${product._id}`} style={styles.productFeatures}>
-                  {product.features.slice(0, 3).map((feature) => {
-                    const featureId = generateStableId(feature);
-                    return (
-                      <div key={featureId} id={`product-feature-${product._id}-${featureId}`} style={styles.productFeatureItem}>
-                        <span style={styles.checkIcon}>✓</span>
-                        <span>{feature.substring(0, 40)}{feature.length > 40 ? '...' : ''}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div id={`product-footer-${product._id}`} style={styles.productFooter}>
-                  <div style={styles.productPricing}>
-                    {product.pricing.tiers && product.pricing.tiers.length > 0 ? (
-                      <>
-                        <span style={styles.priceLabel}>Starting at</span>
-                        <span style={styles.priceValue}>
-                          ${Math.min(...product.pricing.tiers.map(t => t.price))}/mo
-                        </span>
-                      </>
-                    ) : (
-                      <span style={styles.pricingModel}>{product.pricing.model}</span>
-                    )}
-                  </div>
-                  
-                  <button
-                    onClick={() => handleExploreProduct(product._id)}
-                    style={{
-                      ...styles.exploreButton,
-                      backgroundColor: isComingSoon ? '#FF9800' : '#4CAF50',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (isComingSoon) {
-                        e.currentTarget.style.backgroundColor = '#F57C00';
-                      } else {
-                        e.currentTarget.style.backgroundColor = '#45a049';
-                      }
-                      e.currentTarget.style.transform = 'translateX(5px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (isComingSoon) {
-                        e.currentTarget.style.backgroundColor = '#FF9800';
-                      } else {
-                        e.currentTarget.style.backgroundColor = '#4CAF50';
-                      }
-                      e.currentTarget.style.transform = 'translateX(0)';
-                    }}
-                  >
-                    {isComingSoon ? 'Learn More →' : 'Explore More →'}
-                  </button>
-                </div>
-              </div>
-            </div>
+              <button
+                key={category}
+                onClick={() => setActiveTab(category)}
+                style={isActive ? styles.tabButtonActive : styles.tabButton}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.borderColor = realEstateTheme.colors.primary.main;
+                    e.currentTarget.style.color = realEstateTheme.colors.primary.main;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.borderColor = realEstateTheme.colors.neutral.light;
+                    e.currentTarget.style.color = realEstateTheme.colors.neutral.darker;
+                  }
+                }}
+              >
+                {category}
+              </button>
             );
           })}
         </div>
-      </section>
 
-      <section id="cta-section" style={styles.ctaSection}>
-        <div id="cta-content" style={styles.ctaContent}>
-          <h2 style={isMobile ? styles.ctaTitleMobile : styles.ctaTitle}>
-            Ready to Get Started?
-          </h2>
-          <p style={isMobile ? styles.ctaSubtitleMobile : styles.ctaSubtitle}>
-            Join thousands of businesses already using our AI solutions
-          </p>
-          <div id="cta-buttons" style={styles.ctaButtons}>
-            <button
-              onClick={() => navigate('/signup')}
-              style={styles.ctaPrimaryButton}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#45a049')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#4CAF50')}
-            >
-              Sign Up Free
-            </button>
+        {/* Products Grid */}
+        <div style={isMobile ? styles.productsGridMobile : styles.productsGrid}>
+          {filteredProducts.map((product) => {
+            const isComingSoon = product.status !== 'active';
+            const productImage = getProductImage(product.subCategory || '', product.category || '');
+            const categoryStyle = getCategoryStyle(product.subCategory || product.category || 'Real Estate');
+            
+            return (
+              <div
+                key={product._id}
+                style={{
+                  ...styles.productCard,
+                  opacity: isComingSoon ? 0.9 : 1,
+                  position: 'relative',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isComingSoon) {
+                    e.currentTarget.style.transform = 'translateY(-8px)';
+                    e.currentTarget.style.boxShadow = realEstateTheme.shadows.cardHover;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isComingSoon) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = realEstateTheme.shadows.card;
+                  }
+                }}
+              >
+                {isComingSoon && (
+                  <div style={{
+                    position: 'absolute',
+                    top: realEstateTheme.spacing.md,
+                    left: realEstateTheme.spacing.md,
+                    padding: `${realEstateTheme.spacing.xs} ${realEstateTheme.spacing.md}`,
+                    backgroundColor: realEstateTheme.colors.secondary.main,
+                    color: 'white',
+                    borderRadius: realEstateTheme.borderRadius.full,
+                    fontSize: realEstateTheme.typography.fontSize.xs,
+                    fontWeight: realEstateTheme.typography.fontWeight.bold,
+                    boxShadow: realEstateTheme.shadows.md,
+                    zIndex: 10,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: realEstateTheme.spacing.xs,
+                  }}>
+                    <Sparkles size={14} /> COMING SOON
+                  </div>
+                )}
+                
+                <div style={{
+                  ...styles.productImageContainer,
+                  background: 'transparent',
+                  overflow: 'hidden',
+                }}>
+                  <img 
+                    src={productImage}
+                    alt={product.name}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: '50%',
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                  }} />
+                </div>
+
+                <div style={{
+                  ...styles.productCategoryBadge,
+                  color: categoryStyle.color,
+                  backgroundColor: categoryStyle.bg,
+                }}>
+                  {product.subCategory || product.category || 'Real Estate'}
+                </div>
+                
+                <div style={styles.productContent}>
+                  <h3 style={styles.productTitle}>{product.name}</h3>
+                  <p style={styles.productDescription}>
+                    {product.description}
+                  </p>
+                  
+                  <div style={styles.productFeatures}>
+                    {product.features && product.features.slice(0, 3).map((feature, idx) => (
+                      <div key={idx} style={styles.productFeatureItem}>
+                        <CheckCircle2 
+                          size={16} 
+                          color={realEstateTheme.colors.accent.main}
+                          style={{ flexShrink: 0 }}
+                        />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={styles.productFooter}>
+                    <div style={styles.productPricing}>
+                      {product.pricing?.tiers && product.pricing.tiers.length > 0 ? (
+                        <>
+                          <span style={styles.priceLabel}>Starting at</span>
+                          <span style={styles.priceValue}>
+                            ${Math.min(...product.pricing.tiers.map(t => t.price))}/mo
+                          </span>
+                        </>
+                      ) : product.pricing?.perUseRate ? (
+                        <>
+                          <span style={styles.priceLabel}>Pay as you go</span>
+                          <span style={styles.priceValue}>
+                            ${product.pricing.perUseRate}/{product.pricing.perUseUnit || 'unit'}
+                          </span>
+                        </>
+                      ) : product.pricing?.enterprisePrice ? (
+                        <>
+                          <span style={styles.priceLabel}>Enterprise</span>
+                          <span style={styles.priceValue}>
+                            ${product.pricing.enterprisePrice}/mo
+                          </span>
+                        </>
+                      ) : (
+                        <span style={styles.pricingModel}>
+                          {product.pricing?.model || 'Contact Us'}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <button
+                      onClick={() => handleExploreProduct(product._id)}
+                      style={styles.exploreButton}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.backgroundColor = realEstateTheme.colors.primary.dark;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.backgroundColor = realEstateTheme.colors.primary.main;
+                      }}
+                    >
+                      {isComingSoon ? 'Learn More' : 'Explore'}
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {filteredProducts.length > 6 && (
+          <div style={styles.viewAllContainer}>
             <button
               onClick={handleViewAllProducts}
-              style={styles.ctaSecondaryButton}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              style={styles.viewAllButton}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.backgroundColor = realEstateTheme.colors.primary.dark;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.backgroundColor = realEstateTheme.colors.primary.main;
+              }}
             >
-              Browse Products
+              View All Products <ArrowRight size={20} />
             </button>
           </div>
-        </div>
+        )}
       </section>
     </div>
   );

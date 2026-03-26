@@ -77,9 +77,11 @@ export const styles = {
   } as React.CSSProperties,
   card: {
     backgroundColor: 'white',
-    padding: '1.5rem',
-    borderRadius: '8px',
+    padding: '0',
+    borderRadius: '12px',
     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+    overflow: 'hidden',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   } as React.CSSProperties,
   cardHeader: {
     display: 'flex',

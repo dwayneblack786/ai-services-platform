@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { getApiUrl } from '../config/api';
 import ProductForm from '../components/ProductForm';
 import { Product, UserProduct } from '../types';
+import { getProductImage } from '../theme/images';
+import { realEstateTheme } from '../theme/realEstateTheme';
 
 const Products = () => {
   const navigate = useNavigate();
@@ -246,22 +248,73 @@ const Products = () => {
         </div>
       ) : (
         <div style={isMobile ? styles.productsGridMobile : styles.productsGrid}>
-        {filteredProducts.map(product => (
-          <div key={product._id} style={styles.card}>
-            <div style={styles.cardHeader}>
-              <div>
-                <h2 style={isMobile ? styles.cardTitleMobile : styles.cardTitle}>{product.name}</h2>
-                <p style={styles.cardSubtitle}>
-                  {product.category}{product.subCategory && ` - ${product.subCategory}`}
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {filteredProducts.map(product => {
+          const productImage = getProductImage(product.subCategory || '', product.category || '');
+          return (
+          <div 
+            key={product._id} 
+            style={{
+              ...styles.card,
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            }}
+          >
+            {/* Product Image */}
+            <div style={{
+              width: '100%',
+              height: '200px',
+              overflow: 'hidden',
+              position: 'relative',
+            }}>
+              <img 
+                src={productImage}
+                alt={product.name}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '50%',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
+              }} />
+              
+              {/* Status Badge Overlay */}
+              <div style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+              }}>
                 <span style={{
                   ...styles.statusBadge,
                   background: product.status === 'active' ? '#4CAF50' : product.status === 'beta' ? '#FFA726' : '#9E9E9E',
                 }}>
                   {product.status}
                 </span>
+              </div>
+            </div>
+
+            {/* Card Content */}
+            <div style={{ padding: '1.5rem' }}>
+              <div style={styles.cardHeader}>
+                <div>
+                  <h2 style={isMobile ? styles.cardTitleMobile : styles.cardTitle}>{product.name}</h2>
+                  <p style={styles.cardSubtitle}>
+                    {product.category}{product.subCategory && ` - ${product.subCategory}`}
+                  </p>
+                </div>
                 {isAdmin() && (
                   <div style={{ position: 'relative' }}>
                     <button
@@ -363,7 +416,6 @@ const Products = () => {
                   </div>
                 )}
               </div>
-            </div>
             
             <p style={styles.description}>
               {product.description}
@@ -425,8 +477,9 @@ const Products = () => {
                 Explore
               </button>
             )}
+            </div>
           </div>
-        ))}
+        );})}
         </div>
       )}
 
