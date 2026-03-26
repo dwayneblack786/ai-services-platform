@@ -5,6 +5,10 @@ dist
 .DS_Store
 *.log
 
+# Claude/AI settings (local only)
+.claude/settings.local.json
+settings.local.json
+
 # Java/Maven
 target/
 bin/
