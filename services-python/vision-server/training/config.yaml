@@ -1,0 +1,76 @@
+# DINOv2 Real Estate Classifier Training Configuration
+
+model:
+  backbone: dinov2_vitb14        # DINOv2 ViT-B/14 (86M params, 768-dim embeddings)
+  freeze_backbone: true           # Initially freeze backbone, train heads only
+  unfreeze_last_n_blocks: 0       # Set to 3 for fine-tuning step 2
+  
+training:
+  batch_size: 64                  # RTX 3090 Ti can handle batch 64 with ViT-B/14
+  learning_rate: 0.001            # Initial LR for classification heads
+  learning_rate_backbone: 0.0001  # 10x lower LR when fine-tuning backbone
+  weight_decay: 0.01
+  epochs: 30
+  scheduler: cosine_annealing
+  warmup_epochs: 3
+  early_stopping_patience: 5
+  gradient_clip_norm: 1.0
+  
+  # Loss weights for multi-head training
+  loss_weights:
+    room_type: 1.0
+    flooring: 0.8
+    countertop: 0.6
+    design_style: 0.8
+    fixtures: 0.7
+    materials: 0.7
+    condition: 1.0
+
+data:
+  image_size: 518                 # DINOv2 native resolution
+  num_workers: 4
+  pin_memory: true
+  
+  # Train/val/test split ratios
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  
+  # Data augmentations (training only)
+  augmentations:
+    random_horizontal_flip: 0.5
+    random_rotation_degrees: 10
+    color_jitter_brightness: 0.2
+    color_jitter_contrast: 0.2
+    color_jitter_saturation: 0.1
+    color_jitter_hue: 0.05
+    random_resized_crop_min: 0.8
+    random_resized_crop_max: 1.0
+  
+  # Normalization (ImageNet stats for DINOv2)
+  normalize_mean: [0.485, 0.456, 0.406]
+  normalize_std: [0.229, 0.224, 0.225]
+
+inference:
+  confidence_threshold: 0.5       # Minimum confidence for predictions
+  top_k: 3                        # Return top-k predictions per head
+  batch_size: 32                  # Inference batch size
+
+paths:
+  data_root: ./data
+  raw_data: ./data/raw
+  labeled_data: ./data/labeled
+  splits: ./data/splits
+  models: ./models
+  logs: ./logs
+  
+logging:
+  log_interval: 10                # Log every N batches
+  save_checkpoint_every: 5        # Save checkpoint every N epochs
+  tensorboard: true
+  wandb: false                    # Set to true to enable Weights & Biases logging
+  
+device:
+  use_cuda: true
+  cuda_device: 0
+  mixed_precision: true           # Use automatic mixed precision (AMP) for faster training
