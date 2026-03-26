@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Skip auth check on public pages (login, signup, etc.)
-    const publicPaths = ['/login', '/signup', '/verify-email'];
+    const publicPaths = ['/login', '/signup', '/verify-email', '/home', '/products', '/register'];
     const isPublicPage = publicPaths.some(path => window.location.pathname.startsWith(path));
 
     if (!isPublicPage) {
