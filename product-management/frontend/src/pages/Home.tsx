@@ -46,10 +46,10 @@ const Home = () => {
     }
   };
 
-  const categories = ['All', ...new Set(products.map(p => p.category || 'Real Estate'))];
+  const categories = ['All', ...new Set(products.map(p => p.subCategory).filter(Boolean) as string[])];
   const filteredProducts = activeTab === 'All' 
     ? products 
-    : products.filter(p => (p.category || 'Real Estate') === activeTab);
+    : products.filter(p => p.subCategory === activeTab);
 
   const handleExploreProduct = (productId?: string) => {
     if (productId) {

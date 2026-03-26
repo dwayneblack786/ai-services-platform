@@ -26,8 +26,6 @@ const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  const categories = ['All', 'Virtual Assistant', 'IDP', 'Computer Vision'];
-
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -56,12 +54,15 @@ const Products = () => {
     }
   }, [user]);
 
+  // Dynamically build categories from product subCategories
+  const categories = ['All', ...new Set(products.map(p => p.subCategory).filter(Boolean) as string[])];
+
   useEffect(() => {
     let filtered = products;
     
-    // Filter by category
+    // Filter by subcategory
     if (selectedCategory !== 'All') {
-      filtered = filtered.filter(p => p.category === selectedCategory);
+      filtered = filtered.filter(p => p.subCategory === selectedCategory);
     }
     
     // Filter by search term
