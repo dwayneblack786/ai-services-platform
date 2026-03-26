@@ -15,7 +15,7 @@ const Layout = ({ children }: LayoutProps) => {
   const { logout, user, hasRole, refreshAuth } = useAuth();
   const isAuthenticated = !!user;
   const isProjectAdmin = hasRole(UserRole.PROJECT_ADMIN);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [maintenanceInfo, setMaintenanceInfo] = useState<{
@@ -100,47 +100,88 @@ const Layout = ({ children }: LayoutProps) => {
         />
       )}
       
-      {/* Home Button - Always first at left: 20px */}
-      <button 
-        onClick={() => navigate('/home')} 
-        style={{
-          position: 'fixed',
-          left: '20px',
-          top: '8px',
-          zIndex: 1001,
-          padding: '0.5rem 0.75rem',
-          fontSize: '1.8rem',
-          color: '#ecf0f1',
-          backgroundColor: '#1a252f',
-          border: '1px solid #34495e',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          transition: 'all 0.3s',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-          minHeight: '44px',
-          minWidth: '44px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        title="Home"
-      >
-        ⌂
-      </button>
-      
       <header style={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Real Estate Background SVG Pattern */}
+        <div style={styles.headerBackground}>
+          <svg 
+            width="100%" 
+            height="100%" 
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          >
+            <defs>
+              <linearGradient id="fadeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style={{ stopColor: '#000', stopOpacity: 0.4 }} />
+                <stop offset="60%" style={{ stopColor: '#000', stopOpacity: 0.8 }} />
+                <stop offset="100%" style={{ stopColor: '#000', stopOpacity: 0.95 }} />
+              </linearGradient>
+            </defs>
+            <image 
+              href="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&q=80" 
+              width="100%" 
+              height="100%" 
+              preserveAspectRatio="xMaxYMid slice"
+              opacity="0.3"
+            />
+            <rect width="100%" height="100%" fill="url(#fadeGradient)" />
+          </svg>
+        </div>
+        
+        {/* Sidebar Toggle Button - Only show when authenticated */}
+        {isAuthenticated && (
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 1002,
+              padding: '0.3rem 0.5rem',
+              fontSize: '1rem',
+              lineHeight: 1,
+              color: '#e2e8f0',
+              backgroundColor: 'rgba(251, 191, 36, 0.15)',
+              border: '1px solid rgba(251, 191, 36, 0.5)',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              boxShadow: '0 1px 6px rgba(0, 0, 0, 0.4)',
+              height: '32px',
+              width: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.3)';
+              e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.8)';
+              e.currentTarget.style.boxShadow = '0 0 8px rgba(251, 191, 36, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.15)';
+              e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.5)';
+              e.currentTarget.style.boxShadow = '0 1px 6px rgba(0, 0, 0, 0.4)';
+            }}
+          >
+            {isSidebarOpen ? '✕' : '☰'}
+          </button>
+        )}
+        
+        {/* Company Name */}
+        <div style={styles.headerContent}>
           <h1 
             style={{
               ...styles.companyName, 
-              ...(isMobile ? styles.companyNameMobile : {}),
-              cursor: 'pointer',
-              margin: 0
+              ...(isMobile ? styles.companyNameMobile : {})
             }}
             onClick={() => navigate('/home')}
           >
             Infero Agents
           </h1>
+          {!isMobile && (
+            <p style={styles.companyTagline}>Real Estate AI Platform</p>
+          )}
         </div>
         {!isAuthenticated && (
           <button
@@ -206,35 +247,42 @@ const Layout = ({ children }: LayoutProps) => {
       </div>
       )}
       
-      {/* Overlay for mobile when sidebar is open */}
-      {isAuthenticated && isMobile && isSidebarOpen && (
+      {/* Dim overlay when sidebar is open - click to close */}
+      {isAuthenticated && isSidebarOpen && (
         <div
-          id="mobile-overlay"
           style={{
             position: 'fixed',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 999,
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            zIndex: 998,
+            cursor: 'pointer',
           }}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
       
+      {/* Only show sidebar when authenticated */}
       {isAuthenticated && (
         <Sidebar onLogout={handleLogout} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       )}
       <main id="main-content" style={{
         ...styles.main,
-        marginLeft: isMobile ? '0' : (isAuthenticated && isSidebarOpen ? '250px' : '0'),
+        // Always same margin regardless of sidebar open state (sidebar overlays)
+        marginLeft: isMobile ? '0' : (isAuthenticated ? '50px' : '0'),
         padding: isMobile ? '1rem' : '2rem',
         transition: 'margin-left 0.3s ease-in-out'
       }}>
         {children}
       </main>
-      <footer style={{...styles.footer, ...(isMobile ? styles.footerMobile : {})}}>
+      <footer style={{
+        ...styles.footer, 
+        ...(isMobile ? styles.footerMobile : {}),
+        left: isMobile ? 0 : (isAuthenticated ? '50px' : '0'),
+        transition: 'left 0.3s ease-in-out'
+      }}>
         <div id="footer-links" style={{...styles.footerLinks, ...(isMobile ? styles.footerLinksMobile : {})}}>
           <a href="#" style={styles.footerLink} title="Contact Us">
             <span style={styles.footerIcon}>📧</span>
