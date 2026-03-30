@@ -57,12 +57,14 @@ export const styles = {
   } as React.CSSProperties,
   userInfoContainer: {
     position: 'fixed',
-    top: '8px',
+    top: 0,
     right: '20px',
+    height: '72px',
+    display: 'flex',
+    alignItems: 'center',
     zIndex: 1001,
   } as React.CSSProperties,
   userInfoContainerMobile: {
-    top: '5px',
     right: '10px',
     left: '70px',
   } as React.CSSProperties,
@@ -236,7 +238,6 @@ export const styles = {
 
   // ── User info container (row layout) ────────────────────────────────────────
   userInfoRow: {
-    right: '20px',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
