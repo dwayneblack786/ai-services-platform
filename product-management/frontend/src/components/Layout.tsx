@@ -100,9 +100,9 @@ const Layout = ({ children }: LayoutProps) => {
         />
       )}
       
-      <header style={styles.header}>
+      <header id="app-header" style={styles.header}>
         {/* Real Estate Background SVG Pattern */}
-        <div style={styles.headerBackground}>
+        <div id="header-background" style={styles.headerBackground}>
           <svg 
             width="100%" 
             height="100%" 
@@ -142,29 +142,11 @@ const Layout = ({ children }: LayoutProps) => {
         {/* Sidebar Toggle Button - Only show when authenticated */}
         {isAuthenticated && (
           <button
+            id="sidebar-toggle"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 1002,
-              padding: '0.3rem 0.5rem',
-              fontSize: '1rem',
-              lineHeight: 1,
-              color: '#e2e8f0',
-              backgroundColor: 'rgba(251, 191, 36, 0.15)',
-              border: '1px solid rgba(251, 191, 36, 0.5)',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              boxShadow: '0 1px 6px rgba(0, 0, 0, 0.4)',
-              height: '32px',
-              width: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            title={isSidebarOpen ? 'Close navigation sidebar' : 'Open navigation sidebar'}
+            aria-label={isSidebarOpen ? 'Close navigation sidebar' : 'Open navigation sidebar'}
+            style={styles.sidebarToggle}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.3)';
               e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.8)';
@@ -181,39 +163,32 @@ const Layout = ({ children }: LayoutProps) => {
         )}
         
         {/* Company Name */}
-        <div style={styles.headerContent}>
-          <h1 
+        <div id="header-brand" style={styles.headerContent}>
+          <h1
+            id="company-name"
             style={{
               ...styles.companyName, 
               ...(isMobile ? styles.companyNameMobile : {})
             }}
             onClick={() => navigate('/home')}
+            title="Go to home"
+            aria-label="Infero Agents — Go to home"
           >
             Infero Agents
           </h1>
           {!isMobile && (
-            <p style={styles.companyTagline}>Real Estate AI Platform</p>
+            <p id="company-tagline" style={styles.companyTagline}>Real Estate AI Platform</p>
           )}
         </div>
         {!isAuthenticated && (
           <button
+            id="sign-in-btn"
             onClick={() => navigate('/login')}
+            title="Sign in to your account"
+            aria-label="Sign in to your account"
             style={{
-              position: 'absolute',
-              right: '20px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              padding: '10px 24px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: isMobile ? '0.9rem' : '1rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s ease',
-              minHeight: '44px',
-              zIndex: 1000
+              ...styles.signInButton,
+              ...(isMobile ? styles.signInButtonMobile : {}),
             }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#45a049')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#4CAF50')}
@@ -226,43 +201,29 @@ const Layout = ({ children }: LayoutProps) => {
         <div id="user-info-container" style={{
           ...styles.userInfoContainer,
           ...(isMobile ? styles.userInfoContainerMobile : {}),
-          right: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          flexDirection: 'row'
+          ...styles.userInfoRow,
         }}>
         {/* Circuit Breaker Status Monitor */}
-        <CircuitMonitor compact={true} />
+        <div id="circuit-monitor">
+          <CircuitMonitor compact={true} />
+        </div>
         
-        {isProjectAdmin && <SettingsDropdown />}
         <div id="user-info" style={{...styles.userInfo, ...(isMobile ? styles.userInfoMobile : {})}}>
+          {/* Admin settings — only visible to PROJECT_ADMIN */}
+          {isProjectAdmin && <SettingsDropdown />}
           {/* Avatar circle */}
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-            border: '2px solid rgba(37, 99, 235, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '0.95rem',
-            fontWeight: '700',
-            color: '#ffffff',
-            flexShrink: 0,
-            boxShadow: '0 0 10px rgba(37, 99, 235, 0.4)',
-          }}>
+          <div id="user-avatar" style={styles.userAvatar} title={user?.name ? `Signed in as ${user.name}` : 'User avatar'}>
             {user?.name?.charAt(0).toUpperCase() || '?'}
           </div>
           {/* Divider */}
-          <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(37, 99, 235, 0.3)', flexShrink: 0 }} />
+          <div id="user-info-divider" style={styles.userInfoDivider} />
           <div id="user-details">
             <span style={{...styles.userName, ...(isMobile ? styles.userNameMobile : {})}}>{user?.name}</span>
             {!isMobile && (
               <div id="tenant-id-container" style={styles.tenantIdContainer}>
                 <span style={styles.tenantId}>Tenant: {user?.tenantId}</span>
                 <button
+                  id="copy-tenant-btn"
                   onClick={copyTenantId}
                   style={styles.copyButton}
                   title="Copy Tenant ID"
@@ -272,7 +233,7 @@ const Layout = ({ children }: LayoutProps) => {
               </div>
             )}
           </div>
-          <span style={{...styles.roleBadge, backgroundColor: getRoleBadgeColor(user?.role)}}>
+          <span id="user-role-badge" style={{...styles.roleBadge, backgroundColor: getRoleBadgeColor(user?.role)}} title={`Your role: ${user?.role ?? 'Unknown'}`}>
             {user?.role}
           </span>
         </div>
@@ -282,16 +243,8 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Dim overlay when sidebar is open - click to close */}
       {isAuthenticated && isSidebarOpen && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.45)',
-            zIndex: 998,
-            cursor: 'pointer',
-          }}
+          id="sidebar-overlay"
+          style={styles.sidebarOverlay}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -309,7 +262,7 @@ const Layout = ({ children }: LayoutProps) => {
       }}>
         {children}
       </main>
-      <footer style={{
+      <footer id="app-footer" style={{
         ...styles.footer, 
         ...(isMobile ? styles.footerMobile : {}),
         left: isMobile ? 0 : (isAuthenticated ? '50px' : '0'),

@@ -186,4 +186,100 @@ export const styles = {
     alignItems: 'center',
     paddingLeft: '10px',
   } as React.CSSProperties,
+
+  // ── Sidebar toggle button ──────────────────────────────────────────────────
+  sidebarToggle: {
+    position: 'absolute',
+    left: '12px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    zIndex: 1002,
+    padding: '0.3rem 0.5rem',
+    fontSize: '1rem',
+    lineHeight: 1,
+    color: '#e2e8f0',
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+    border: '1px solid rgba(251, 191, 36, 0.5)',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    boxShadow: '0 1px 6px rgba(0, 0, 0, 0.4)',
+    height: '32px',
+    width: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as React.CSSProperties,
+  sidebarToggleHover: {
+    backgroundColor: 'rgba(251, 191, 36, 0.3)',
+    borderColor: 'rgba(251, 191, 36, 0.8)',
+    boxShadow: '0 0 8px rgba(251, 191, 36, 0.3)',
+  } as React.CSSProperties,
+
+  // ── Sign-in button ─────────────────────────────────────────────────────────
+  signInButton: {
+    position: 'absolute',
+    right: '20px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    padding: '10px 24px',
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+    minHeight: '44px',
+    zIndex: 1000,
+  } as React.CSSProperties,
+  signInButtonMobile: {
+    fontSize: '0.9rem',
+  } as React.CSSProperties,
+
+  // ── User info container (row layout) ────────────────────────────────────────
+  userInfoRow: {
+    right: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    flexDirection: 'row' as const,
+  } as React.CSSProperties,
+
+  // ── User avatar ────────────────────────────────────────────────────────────
+  userAvatar: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+    border: '2px solid rgba(37, 99, 235, 0.6)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.95rem',
+    fontWeight: '700',
+    color: '#ffffff',
+    flexShrink: 0,
+    boxShadow: '0 0 10px rgba(37, 99, 235, 0.4)',
+  } as React.CSSProperties,
+
+  // ── User info vertical divider ─────────────────────────────────────────────
+  userInfoDivider: {
+    width: '1px',
+    height: '32px',
+    backgroundColor: 'rgba(37, 99, 235, 0.3)',
+    flexShrink: 0,
+  } as React.CSSProperties,
+
+  // ── Sidebar dim overlay ────────────────────────────────────────────────────
+  sidebarOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    zIndex: 998,
+    cursor: 'pointer',
+  } as React.CSSProperties,
 };

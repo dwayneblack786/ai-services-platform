@@ -27,7 +27,7 @@ const SettingsDropdown = () => {
 
   return (
     <div style={styles.container}>
-      <button onClick={toggleDropdown} style={styles.button}>
+      <button onClick={toggleDropdown} style={styles.button} title="Admin settings" aria-label="Open admin settings menu">
         <span style={styles.icon}>⚙️</span>
       </button>
       {isOpen && (
