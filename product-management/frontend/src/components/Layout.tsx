@@ -190,8 +190,8 @@ const Layout = ({ children }: LayoutProps) => {
               ...styles.signInButton,
               ...(isMobile ? styles.signInButtonMobile : {}),
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#45a049')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#4CAF50')}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
           >
             Sign In
           </button>
@@ -268,22 +268,14 @@ const Layout = ({ children }: LayoutProps) => {
         left: isMobile ? 0 : (isAuthenticated ? '50px' : '0'),
         transition: 'left 0.3s ease-in-out'
       }}>
-        <div id="footer-links" style={{...styles.footerLinks, ...(isMobile ? styles.footerLinksMobile : {})}}>
-          <a href="/contact" style={styles.footerLink} title="Contact Us" aria-label="Contact Us">
-            <span style={styles.footerIcon}>📧</span>
-          </a>
-          <a href="/privacy" style={styles.footerLink} title="Privacy Policy" aria-label="Privacy Policy">
-            <span style={styles.footerIcon}>🔒</span>
-          </a>
-          <a href="/about" style={styles.footerLink} title="About Us" aria-label="About Infero Agents">
-            <span style={styles.footerIcon}>ℹ️</span>
-          </a>
+        <div id="footer-copyright" style={styles.copyright}>
+          <span>© {new Date().getFullYear()} Infero Agents</span>
         </div>
-        {!isMobile && (
-          <div id="footer-copyright" style={styles.copyright}>
-            <span>© {new Date().getFullYear()} Infero Agents</span>
-          </div>
-        )}
+        <div id="footer-links" style={{...styles.footerLinks, ...(isMobile ? styles.footerLinksMobile : {})}}>
+          <a href="/contact" style={styles.footerLink} title="Contact Us">Contact</a>
+          <a href="/privacy" style={styles.footerLink} title="Privacy Policy">Privacy</a>
+          <a href="/about" style={styles.footerLink} title="About Us">About</a>
+        </div>
       </footer>
     </>
   );

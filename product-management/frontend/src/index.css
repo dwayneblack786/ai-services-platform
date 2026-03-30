@@ -12,10 +12,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F9FAFB;
+  background-color: #0a0f1a;
   /* Prevent horizontal scroll on mobile */
   overflow-x: hidden;
-  color: #1F2937;
+  color: #e2e8f0;
 }
 
 #root {

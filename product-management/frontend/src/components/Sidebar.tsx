@@ -73,7 +73,7 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
         style={isOpen ? styles.sidebar : styles.sidebarClosed}
       >
         {/* Spacer to push content below the fixed header */}
-        <div style={{ height: '100px', flexShrink: 0 }} />
+        <div style={{ height: '72px', flexShrink: 0 }} />
         {isOpen && (
           <div style={styles.header}>
             <h2 style={styles.title}>Menu</h2>

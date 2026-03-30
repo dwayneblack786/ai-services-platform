@@ -42,22 +42,14 @@ const PublicLayout = ({ children }: LayoutProps) => {
       </main>
       
       <footer style={{...styles.footer, ...(isMobile ? styles.footerMobile : {})}}>
-        <div id="footer-links" style={{...styles.footerLinks, ...(isMobile ? styles.footerLinksMobile : {})}}>
-          <a href="#" style={styles.footerLink} title="Contact Us">
-            <span style={styles.footerIcon}>📧</span>
-          </a>
-          <a href="#" style={styles.footerLink} title="Privacy">
-            <span style={styles.footerIcon}>🔒</span>
-          </a>
-          <a href="#" style={styles.footerLink} title="About Us">
-            <span style={styles.footerIcon}>ℹ️</span>
-          </a>
+        <div id="footer-copyright" style={styles.copyright}>
+          <span>© {new Date().getFullYear()} Infero Agents</span>
         </div>
-        {!isMobile && (
-          <div id="footer-copyright" style={styles.copyright}>
-            <span>© {new Date().getFullYear()} Infero Agents</span>
-          </div>
-        )}
+        <div id="footer-links" style={{...styles.footerLinks, ...(isMobile ? styles.footerLinksMobile : {})}}>
+          <a href="/contact" style={styles.footerLink} title="Contact Us">Contact</a>
+          <a href="/privacy" style={styles.footerLink} title="Privacy Policy">Privacy</a>
+          <a href="/about" style={styles.footerLink} title="About Us">About</a>
+        </div>
       </footer>
     </>
   );
