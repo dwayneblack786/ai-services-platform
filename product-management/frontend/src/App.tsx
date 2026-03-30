@@ -5,6 +5,9 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
+import ContactUs from './pages/ContactUs';
+import Privacy from './pages/Privacy';
+import AboutUs from './pages/AboutUs';
 import OAuthCallback from './pages/OAuthCallback';
 import CompleteCompanyDetails from './pages/CompleteCompanyDetails';
 import { InitiateRegistration } from './pages/InitiateRegistration';
@@ -50,6 +53,9 @@ function App() {
         <Router>
           <Routes>
           <Route path="/home" element={<Layout><Home /></Layout>} />
+          <Route path="/contact" element={<Layout><ContactUs /></Layout>} />
+          <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
+          <Route path="/about" element={<Layout><AboutUs /></Layout>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-email" element={<VerifyEmail />} />

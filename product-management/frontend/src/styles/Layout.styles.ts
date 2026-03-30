@@ -132,6 +132,7 @@ export const styles = {
     marginBottom: '60px',
     minHeight: 'calc(100vh - 160px)',
     padding: '2rem',
+    backgroundColor: '#0a0f1a',
   } as React.CSSProperties,
   footer: {
     position: 'fixed',

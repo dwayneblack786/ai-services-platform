@@ -269,13 +269,13 @@ const Layout = ({ children }: LayoutProps) => {
         transition: 'left 0.3s ease-in-out'
       }}>
         <div id="footer-links" style={{...styles.footerLinks, ...(isMobile ? styles.footerLinksMobile : {})}}>
-          <a href="#" style={styles.footerLink} title="Contact Us">
+          <a href="/contact" style={styles.footerLink} title="Contact Us" aria-label="Contact Us">
             <span style={styles.footerIcon}>📧</span>
           </a>
-          <a href="#" style={styles.footerLink} title="Privacy">
+          <a href="/privacy" style={styles.footerLink} title="Privacy Policy" aria-label="Privacy Policy">
             <span style={styles.footerIcon}>🔒</span>
           </a>
-          <a href="#" style={styles.footerLink} title="About Us">
+          <a href="/about" style={styles.footerLink} title="About Us" aria-label="About Infero Agents">
             <span style={styles.footerIcon}>ℹ️</span>
           </a>
         </div>
