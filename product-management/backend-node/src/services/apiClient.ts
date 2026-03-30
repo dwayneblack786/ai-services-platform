@@ -301,5 +301,18 @@ export const javaVAClient = new ApiClient({
   name: 'JavaVA',
 });
 
+// Java Listing Service client (ListingLift multi-agent pipeline)
+export const javaListingClient = new ApiClient({
+  baseURL: process.env.JAVA_LISTING_URL || 'http://localhost:8137',
+  timeout: 60000, // 60 seconds — pipeline runs can take time
+  retryAttempts: 1,
+  circuitBreakerConfig: {
+    failureThreshold: 5,
+    successThreshold: 2,
+    timeout: 60000,
+  },
+  name: 'JavaListing',
+});
+
 // Export default client for backward compatibility
 export default javaVAClient;

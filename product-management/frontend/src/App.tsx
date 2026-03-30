@@ -5,9 +5,6 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
-import ContactUs from './pages/ContactUs';
-import Privacy from './pages/Privacy';
-import AboutUs from './pages/AboutUs';
 import OAuthCallback from './pages/OAuthCallback';
 import CompleteCompanyDetails from './pages/CompleteCompanyDetails';
 import { InitiateRegistration } from './pages/InitiateRegistration';
@@ -29,6 +26,8 @@ import ComputerVisionConfig from './pages/ComputerVisionConfig';
 import ListingLift from './pages/ListingLift';
 import ListingEditor from './pages/ListingEditor';
 import ListingPipeline from './pages/ListingPipeline';
+import ListingAnalysis from './pages/ListingAnalysis';
+import ProductSubscriptionGate from './components/ProductSubscriptionGate';
 import VoiceDemo from './pages/VoiceDemo';
 import Subscriptions from './pages/Subscriptions';
 import Payment from './pages/Payment';
@@ -53,9 +52,6 @@ function App() {
         <Router>
           <Routes>
           <Route path="/home" element={<Layout><Home /></Layout>} />
-          <Route path="/contact" element={<Layout><ContactUs /></Layout>} />
-          <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
-          <Route path="/about" element={<Layout><AboutUs /></Layout>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
@@ -265,6 +261,12 @@ function App() {
               <VoiceDemo />
             }
           />
+          {/* ListingLift product routes — subscription-gated */}
+          <Route path="/listinglift" element={<ProtectedRoute><Layout><ProductSubscriptionGate productSlug="listing-lift"><ListingLift /></ProductSubscriptionGate></Layout></ProtectedRoute>} />
+          <Route path="/listinglift/new" element={<ProtectedRoute><Layout><ProductSubscriptionGate productSlug="listing-lift"><ListingEditor /></ProductSubscriptionGate></Layout></ProtectedRoute>} />
+          <Route path="/listinglift/:id" element={<ProtectedRoute><Layout><ProductSubscriptionGate productSlug="listing-lift"><ListingAnalysis /></ProductSubscriptionGate></Layout></ProtectedRoute>} />
+          <Route path="/listinglift/:id/pipeline" element={<ProtectedRoute><Layout><ProductSubscriptionGate productSlug="listing-lift"><ListingPipeline /></ProductSubscriptionGate></Layout></ProtectedRoute>} />
+
           <Route path="/" element={<HomeRedirect />} />
         </Routes>
       </Router>

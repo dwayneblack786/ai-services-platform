@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { styles } from '../styles/Sidebar.styles';
 import { SidebarProps } from '../types';
 import { useAuth } from '../context/AuthContext';
+import apiClient from '../services/apiClient';
 
 // Consistent SVG icons at fixed 20x20 size
 const Icon = ({ d, viewBox = '0 0 24 24' }: { d: string | string[]; viewBox?: string }) => (
@@ -30,6 +32,8 @@ const NavIcons = {
   Reports: () => <Icon d={['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M16 13H8', 'M16 17H8', 'M10 9H8']} />,
   Admin: () => <Icon d={['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z']} />,
   Logout: () => <Icon d={['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'M16 17l5-5-5-5', 'M21 12H9']} />,
+  Listing: () => <Icon d={['M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z', 'M12 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0']} />,
+  Lock: () => <Icon d={['M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z', 'M7 11V7a5 5 0 0 1 10 0v4']} />,
 };
 
 const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
@@ -37,27 +41,63 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
   const location = useLocation();
   const { hasAnyRole } = useAuth();
 
-  // Check if user is admin or project admin
   const isAdminUser = hasAnyRole('ADMIN', 'PROJECT_ADMIN');
- 
-  // Core menu items (always visible)
+  const bypassSubscription = isAdminUser;
+
+  // Track which Real Estate AI products the tenant is subscribed to
+  const [subscribedSlugs, setSubscribedSlugs] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchSubscriptions = async () => {
+      try {
+        const [productsRes, subsRes] = await Promise.all([
+          apiClient.get('/api/products'),
+          apiClient.get('/api/subscriptions').catch(() => ({ data: { subscriptions: [] } })),
+        ]);
+
+        const products: any[] = productsRes.data.products || [];
+        const subs: any[] = subsRes.data.subscriptions || [];
+
+        const activeProductIds = new Set(
+          subs
+            .filter(s => ['active', 'trial'].includes(s.status))
+            .map(s => String(s.productId))
+        );
+
+        const subscribed = new Set<string>();
+        for (const product of products) {
+          const slug = product.slug || product.name.toLowerCase().replace(/\s+/g, '-');
+          if (activeProductIds.has(String(product._id))) {
+            subscribed.add(slug);
+          }
+        }
+
+        if (!cancelled) setSubscribedSlugs(subscribed);
+      } catch {
+        // Non-critical — sidebar still renders, products just show as locked
+      }
+    };
+    fetchSubscriptions();
+    return () => { cancelled = true; };
+  }, []);
+
   const coreMenuItems = [
-    { path: '/home', label: 'Home', icon: <NavIcons.Home /> },
-    { path: '/dashboard', label: 'Dashboard', icon: <NavIcons.Dashboard /> },
-    { path: '/users?view=tenant', label: 'Users', icon: <NavIcons.Users /> },
-    { path: '/products', label: 'Products', icon: <NavIcons.Products /> },
-    { path: '/subscriptions', label: 'Subscriptions', icon: <NavIcons.Subscriptions /> },
-    { path: '/payment', label: 'Payment', icon: <NavIcons.Payment /> },
-    { path: '/reports?view=tenant', label: 'Reports', icon: <NavIcons.Reports /> },
+    { path: '/home', label: 'Home', icon: <NavIcons.Home />, slug: undefined },
+    { path: '/dashboard', label: 'Dashboard', icon: <NavIcons.Dashboard />, slug: undefined },
+    { path: '/users?view=tenant', label: 'Users', icon: <NavIcons.Users />, slug: undefined },
+    { path: '/products', label: 'Products', icon: <NavIcons.Products />, slug: undefined },
+    { path: '/subscriptions', label: 'Subscriptions', icon: <NavIcons.Subscriptions />, slug: undefined },
+    { path: '/payment', label: 'Payment', icon: <NavIcons.Payment />, slug: undefined },
+    { path: '/reports?view=tenant', label: 'Reports', icon: <NavIcons.Reports />, slug: undefined },
+    { path: '/listinglift', label: 'ListingLift', icon: <NavIcons.Listing />, slug: 'listing-lift' },
   ];
 
-  // Admin-only menu items
   const adminMenuItems = [
-    { path: '/admin', label: 'Admin Dashboard', icon: <NavIcons.Admin /> },
+    { path: '/admin', label: 'Admin Dashboard', icon: <NavIcons.Admin />, slug: undefined },
   ];
 
-  // Combine menu items based on role
-  const menuItems = isAdminUser 
+  const menuItems = isAdminUser
     ? [...coreMenuItems, ...adminMenuItems]
     : coreMenuItems;
 
@@ -67,51 +107,54 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
     navigate('/home');
   };
 
+  const isActive = (path: string) => location.pathname === path.split('?')[0]
+    || (path !== '/home' && location.pathname.startsWith(path.split('?')[0]));
+
   return (
     <>
-      <div 
-        style={isOpen ? styles.sidebar : styles.sidebarClosed}
-      >
-        {/* Spacer to push content below the fixed header */}
+      <div style={isOpen ? styles.sidebar : styles.sidebarClosed}>
         <div style={{ height: '72px', flexShrink: 0 }} />
         {isOpen && (
           <div style={styles.header}>
             <h2 style={styles.title}>Menu</h2>
           </div>
         )}
+
+        {/* Core nav */}
         <nav style={isOpen ? styles.nav : styles.navCollapsed}>
-          {menuItems.map((item, index) => (
-            <button
-              key={item.path || `action-${index}`}
-              onClick={() => { setIsOpen(false); navigate(item.path); }}
-              style={
-                item.path && location.pathname === item.path.split('?')[0]
-                  ? { 
-                      ...(isOpen ? styles.navItem : styles.navItemCollapsed), 
-                      ...(isOpen ? styles.navItemActive : styles.navItemActiveCollapsed)
-                    }
-                  : (isOpen ? styles.navItem : styles.navItemCollapsed)
-              }
-              onMouseEnter={(e) => {
-                if (!(item.path && location.pathname === item.path.split('?')[0])) {
-                  e.currentTarget.style.backgroundColor = 'rgba(37, 99, 235, 0.1)';
+          {menuItems.map((item, index) => {
+            const locked = !!item.slug && !bypassSubscription && !subscribedSlugs.has(item.slug);
+            const active = isActive(item.path);
+            return (
+              <button
+                key={item.path || `action-${index}`}
+                onClick={() => { setIsOpen(false); navigate(item.path); }}
+                style={
+                  active
+                    ? { ...(isOpen ? styles.navItem : styles.navItemCollapsed), ...(isOpen ? styles.navItemActive : styles.navItemActiveCollapsed) }
+                    : (isOpen ? styles.navItem : styles.navItemCollapsed)
                 }
-              }}
-              onMouseLeave={(e) => {
-                if (!(item.path && location.pathname === item.path.split('?')[0])) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
-              title={!isOpen ? item.label : undefined}
-            >
-              <span style={styles.iconWrapper}>{item.icon}</span>
-              {isOpen && <span style={styles.label}>{item.label}</span>}
-            </button>
-          ))}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = 'rgba(37, 99, 235, 0.1)'; }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                title={!isOpen ? item.label : undefined}
+              >
+                <span style={styles.iconWrapper}>
+                  {locked ? <NavIcons.Lock /> : item.icon}
+                </span>
+                {isOpen && (
+                  <span style={locked ? { ...styles.label, display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' } : styles.label}>
+                    <span>{item.label}</span>
+                    {locked && <span style={upgradeBadgeStyle}>Upgrade</span>}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </nav>
+
         <div style={styles.footer}>
-          <button 
-            onClick={handleLogout} 
+          <button
+            onClick={handleLogout}
             style={isOpen ? styles.logoutButton : styles.logoutButtonCollapsed}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.2)';
@@ -130,6 +173,17 @@ const Sidebar = ({ onLogout, isOpen, setIsOpen }: SidebarProps) => {
       </div>
     </>
   );
+};
+
+
+const upgradeBadgeStyle: React.CSSProperties = {
+  fontSize: '10px',
+  fontWeight: 600,
+  backgroundColor: 'rgba(16, 185, 129, 0.15)',
+  color: '#10b981',
+  padding: '2px 6px',
+  borderRadius: '8px',
+  flexShrink: 0,
 };
 
 export default Sidebar;

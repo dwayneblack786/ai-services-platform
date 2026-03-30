@@ -41,7 +41,7 @@ router.post('/', async (req, res) => {
     }
     
     // Validate category
-    if (!['Virtual Assistant', 'IDP', 'Computer Vision'].includes(category)) {
+    if (!['Virtual Assistant', 'IDP', 'Computer Vision', 'Real Estate AI'].includes(category)) {
       return res.status(400).json({ error: 'Invalid category' });
     }
     

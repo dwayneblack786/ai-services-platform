@@ -68,6 +68,12 @@ import healthRoutes from './routes/health-routes';
 console.log('[Startup] ✅ Health routes imported');
 import agentRoutes from './routes/agent-routes';
 console.log('[Startup] ✅ Agent routes imported');
+import listingRoutes from './routes/listing-routes';
+console.log('[Startup] ✅ Listing routes imported');
+import listingPipelineRoutes from './routes/listing-pipeline-routes';
+console.log('[Startup] ✅ Listing pipeline routes imported');
+import listingStagingRoutes from './routes/listing-staging-routes';
+console.log('[Startup] ✅ Listing staging routes imported');
 import analyticsRoutes from './routes/analytics-routes';
 console.log('[Startup] ✅ Analytics routes imported');
 
@@ -529,6 +535,9 @@ try {
   app.use('/api/health', healthRoutes);
   app.use('/api/cache', cacheRoutes); // Unified cache API
   app.use('/api/agent', agentRoutes); // Spring AI Agent routes
+  app.use('/api/listings', listingRoutes);                    // ListingLift: listing CRUD
+  app.use('/api/listing-pipeline', listingPipelineRoutes);    // ListingLift: multi-agent pipeline
+  app.use('/api/listing-staging', listingStagingRoutes);      // ListingLift: virtual staging
   app.use('/api/analytics', analyticsRoutes);
   app.use('/api/call-logs', callLogsRoutes);
   app.use('/api/metrics', metricsRoutes);

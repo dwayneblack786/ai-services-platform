@@ -11,7 +11,8 @@ export interface PricingTier {
 // Mongoose Document interface
 export interface IProduct extends Document {
   name: string;
-  category: 'Virtual Assistant' | 'IDP' | 'Computer Vision';
+  slug?: string;
+  category: 'Virtual Assistant' | 'IDP' | 'Computer Vision' | 'Real Estate AI';
   subCategory?: string;
   description: string;
   features: string[];
@@ -34,7 +35,8 @@ export interface IProduct extends Document {
 
 const ProductSchema = new Schema<IProduct>({
   name: { type: String, required: true },
-  category: { type: String, enum: ['Virtual Assistant', 'IDP', 'Computer Vision'], required: true, index: true },
+  slug: { type: String, unique: true, sparse: true, index: true },
+  category: { type: String, enum: ['Virtual Assistant', 'IDP', 'Computer Vision', 'Real Estate AI'], required: true, index: true },
   subCategory: { type: String },
   description: { type: String, required: true },
   features: [{ type: String }],
@@ -74,7 +76,8 @@ export default ProductModel;
 export interface Product {
   _id?: string;
   name: string;
-  category: 'Virtual Assistant' | 'IDP' | 'Computer Vision';
+  slug?: string;
+  category: 'Virtual Assistant' | 'IDP' | 'Computer Vision' | 'Real Estate AI';
   subCategory?: string;
   description: string;
   features: string[];

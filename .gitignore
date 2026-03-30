@@ -25,3 +25,6 @@ bin/
 .idea/
 nul
 .aider*
+
+# Python listing-agents reference copy (not for production — Java service is canonical)
+services-python/listing-agents/
