@@ -139,7 +139,7 @@ const Login = () => {
             Don't have an account?
           </p>
           <Link
-            to="/register/initiate"
+            to={`/register/initiate${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect') || '')}` : ''}`}
             style={{
               display: 'inline-block',
               padding: '10px 24px',

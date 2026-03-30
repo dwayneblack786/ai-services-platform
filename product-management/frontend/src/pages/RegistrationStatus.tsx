@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { FormButton } from '../components/FormButton';
 import { Alert } from '../components/Alert';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -21,6 +21,8 @@ interface RegistrationStatus {
 export const RegistrationStatusPage: React.FC = () => {
   const { registrationId } = useParams<{ registrationId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [status, setStatus] = useState<RegistrationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -236,7 +238,7 @@ export const RegistrationStatusPage: React.FC = () => {
               </ul>
             </div>
 
-            <FormButton onClick={() => navigate('/login')}>
+            <FormButton onClick={() => navigate(`/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`)}>
               Go to Login
             </FormButton>
           </>

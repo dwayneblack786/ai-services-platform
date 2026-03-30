@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { FormInput } from '../components/FormInput';
 import { FormButton } from '../components/FormButton';
 import { Alert } from '../components/Alert';
@@ -9,6 +9,8 @@ import { tempCache } from '../services/cacheClient';
 
 export const InitiateRegistration: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [formData, setFormData] = useState({
     email: '',
     phoneNumber: '',
@@ -30,8 +32,13 @@ export const InitiateRegistration: React.FC = () => {
         // Store registration session ID (1 hour TTL)
         await tempCache.set('registrationSessionId', response.data.registrationSessionId, 3600);
         
+        // Store redirect URL if provided
+        if (redirect) {
+          await tempCache.set('registrationRedirect', redirect, 3600);
+        }
+        
         // Navigate to phone verification
-        navigate('/register/verify-phone', {
+        navigate(`/register/verify-phone${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`, {
           state: { 
             email: formData.email,
             phoneNumber: formData.phoneNumber,

@@ -110,20 +110,32 @@ const Layout = ({ children }: LayoutProps) => {
             style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           >
             <defs>
-              <linearGradient id="fadeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style={{ stopColor: '#000', stopOpacity: 0.4 }} />
-                <stop offset="60%" style={{ stopColor: '#000', stopOpacity: 0.8 }} />
-                <stop offset="100%" style={{ stopColor: '#000', stopOpacity: 0.95 }} />
+              {/* Warm-to-dark overlay: preserves vibrancy on left, fades to navy on right */}
+              <linearGradient id="headerOverlay" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style={{ stopColor: '#0a0f1a', stopOpacity: 0.05 }} />
+                <stop offset="40%" style={{ stopColor: '#0a0f1a', stopOpacity: 0.55 }} />
+                <stop offset="100%" style={{ stopColor: '#0a0f1a', stopOpacity: 0.96 }} />
+              </linearGradient>
+              {/* Blue accent shimmer on the left edge */}
+              <linearGradient id="accentEdge" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style={{ stopColor: '#2563eb', stopOpacity: 0.22 }} />
+                <stop offset="25%" style={{ stopColor: '#2563eb', stopOpacity: 0 }} />
               </linearGradient>
             </defs>
+            {/* Vibrant luxury penthouse / aerial city at dusk — warm amber + deep blue sky */}
             <image 
-              href="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&q=80" 
+              href="https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1400&q=85"
               width="100%" 
               height="100%" 
-              preserveAspectRatio="xMaxYMid slice"
-              opacity="0.3"
+              preserveAspectRatio="xMidYMid slice"
+              opacity="0.55"
             />
-            <rect width="100%" height="100%" fill="url(#fadeGradient)" />
+            {/* Dark overlay fading right-to-opaque */}
+            <rect width="100%" height="100%" fill="url(#headerOverlay)" />
+            {/* Blue left-edge accent */}
+            <rect width="100%" height="100%" fill="url(#accentEdge)" />
+            {/* Thin blue bottom border line */}
+            <line x1="0" y1="99%" x2="100%" y2="99%" stroke="rgba(37,99,235,0.5)" strokeWidth="1.5" />
           </svg>
         </div>
         
@@ -225,6 +237,26 @@ const Layout = ({ children }: LayoutProps) => {
         
         {isProjectAdmin && <SettingsDropdown />}
         <div id="user-info" style={{...styles.userInfo, ...(isMobile ? styles.userInfoMobile : {})}}>
+          {/* Avatar circle */}
+          <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+            border: '2px solid rgba(37, 99, 235, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.95rem',
+            fontWeight: '700',
+            color: '#ffffff',
+            flexShrink: 0,
+            boxShadow: '0 0 10px rgba(37, 99, 235, 0.4)',
+          }}>
+            {user?.name?.charAt(0).toUpperCase() || '?'}
+          </div>
+          {/* Divider */}
+          <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(37, 99, 235, 0.3)', flexShrink: 0 }} />
           <div id="user-details">
             <span style={{...styles.userName, ...(isMobile ? styles.userNameMobile : {})}}>{user?.name}</span>
             {!isMobile && (

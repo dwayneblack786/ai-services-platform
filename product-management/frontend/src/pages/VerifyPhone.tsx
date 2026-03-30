@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { FormInput } from '../components/FormInput';
 import { FormButton } from '../components/FormButton';
 import { Alert } from '../components/Alert';
@@ -10,6 +10,8 @@ import { tempCache } from '../services/cacheClient';
 export const VerifyPhone: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [verificationCode, setVerificationCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -59,7 +61,7 @@ export const VerifyPhone: React.FC = () => {
         
         // Navigate to account setup after short delay
         setTimeout(() => {
-          navigate('/register/setup-account');
+          navigate(`/register/setup-account${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`);
         }, 1500);
       }
     } catch (err: any) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FormButton } from '../components/FormButton';
 import { Alert } from '../components/Alert';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -25,6 +25,8 @@ interface RegistrationSummary {
 
 export const ReviewSubmit: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [summary, setSummary] = useState<RegistrationSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -82,8 +84,8 @@ export const ReviewSubmit: React.FC = () => {
         // Clear cache
         await tempCache.delete('registrationSessionId');
         
-        // Navigate to status page
-        navigate(`/register/status/${response.data.registrationId}`);
+        // Navigate to status page with redirect parameter
+        navigate(`/register/status/${response.data.registrationId}${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`);
       }
     } catch (err: any) {
       const errorData = err.response?.data;

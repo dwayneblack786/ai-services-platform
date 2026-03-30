@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FormInput } from '../components/FormInput';
 import { FormButton } from '../components/FormButton';
 import { Alert } from '../components/Alert';
@@ -9,6 +9,8 @@ import { tempCache } from '../services/cacheClient';
 
 export const SetupAccount: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -119,7 +121,7 @@ export const SetupAccount: React.FC = () => {
 
       if (response.data.success) {
         // Navigate to company setup
-        navigate('/register/setup-company');
+        navigate(`/register/setup-company${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`);
       }
     } catch (err: any) {
       const errorData = err.response?.data;
