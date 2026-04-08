@@ -358,7 +358,7 @@ if (greetingAudioRef.current) {
 ### Documentation
 - [VOICE_GREETING_IMPLEMENTATION.md](./VOICE_GREETING_IMPLEMENTATION.md) - Full guide (45 pages)
 - [VOICE_GREETING_WORKFLOW.md](./diagrams/VOICE_GREETING_WORKFLOW.md) - Diagrams (10 charts)
-- [PHASE_3_SUMMARY.md](./PHASE_3_SUMMARY.md) - Implementation summary
+- [PHASE_3_SUMMARY.md](./archive/PHASE_3_SUMMARY.md) - Implementation summary
 
 ---
 

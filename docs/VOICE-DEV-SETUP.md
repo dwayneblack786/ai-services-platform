@@ -4,7 +4,7 @@ Step-by-step guide to set up the voice AI development environment with Whisper S
 
 **Related Documentation**:
 - [Voice Configuration Guide](./VOICE-CONFIGURATION.md) - Configuration reference
-- [Phase 1 Summary](./PHASE-1-SUMMARY.md) - Quick overview
+- [Phase 1 Summary](./archive/PHASE-1-SUMMARY.md) - Quick overview
 - [STT/TTS Implementation Plan](./STT-TTS-IMPLEMENTATION-PLAN.md) - Full roadmap
 
 ## Table of Contents

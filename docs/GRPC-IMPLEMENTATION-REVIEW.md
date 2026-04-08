@@ -174,7 +174,7 @@ The gRPC implementation follows best practices and is appropriately structured:
 **Status**: StreamVoiceConversation returns UNIMPLEMENTED  
 **Reason**: Waiting for Phase 3 implementation (gRPC Voice Streaming)  
 **Impact**: Voice currently uses REST API, not real-time streaming  
-**Timeline**: Phase 3 (8-10 hours, see [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md))
+**Timeline**: Phase 3 (8-10 hours, see [IMPLEMENTATION_PROGRESS.md](./archive/IMPLEMENTATION_PROGRESS.md))
 
 ### 3. Spring Boot Run vs JAR Packaging (DOCUMENTED)
 **Limitation**: `mvn spring-boot:run` has classpath issues with proto-generated classes  
@@ -263,7 +263,7 @@ npx ts-node test-grpc-connection.ts
 
 ## 📚 Related Documentation
 
-- **Implementation Progress**: [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md) - Phase 1-5 tracking
+- **Implementation Progress**: [IMPLEMENTATION_PROGRESS.md](./archive/IMPLEMENTATION_PROGRESS.md) - Phase 1-5 tracking
 - **STT/TTS Plan**: [STT-TTS-IMPLEMENTATION-PLAN.md](./STT-TTS-IMPLEMENTATION-PLAN.md) - Phase 3 voice streaming details
 - **Proto Contracts**: 
   - [chat.proto](../services-java/va-service/src/main/proto/chat.proto)

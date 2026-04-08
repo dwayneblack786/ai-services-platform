@@ -44,7 +44,7 @@
 - **Phase 1:** 18/26 passing (Database: 9/9 ✅, Performance: 3/3 ✅)
 - **Phase 2:** 5/13 passing (LLM tests require API keys)
 - **MongoDB optimized:** 47x faster (81s → 1.7s)
-- See [TEST_FIXES_APPLIED.md](./TEST_FIXES_APPLIED.md) for details
+- See [TEST_FIXES_APPLIED.md](./archive/TEST_FIXES_APPLIED.md) for details
 
 ## 🔗 Key Files
 
@@ -86,7 +86,7 @@
 - Frontend API client ✅
 - Usage metrics tracking (in progress)
 - Session prompt snapshots (pending)
-- **Status:** 🔄 70% Complete - Backend ready, UI integration pending - See [PHASE_7_IMPLEMENTATION.md](./PHASE_7_SUMMARY.md)
+- **Status:** 🔄 70% Complete - Backend ready, UI integration pending - See [PHASE_7_IMPLEMENTATION.md](./archive/PHASE_7_SUMMARY.md)
 
 ### Phase 7: Cross-Service Integration
 - Java service integration
@@ -103,8 +103,8 @@
 ## 📚 Documentation
 - [PMS_IMPLEMENTATION_PLAN.md](../../.claude/plans/pms-implementation-plan.md) - Full plan
 - [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) - Production verification
-- [TEST_STATUS.md](./TEST_STATUS.md) - Test coverage & issues
-- [TEST_FIXES_APPLIED.md](./TEST_FIXES_APPLIED.md) - MongoDB test fixes (47x faster!)
+- [TEST_STATUS.md](./archive/TEST_STATUS.md) - Test coverage & issues
+- [TEST_FIXES_APPLIED.md](./archive/TEST_FIXES_APPLIED.md) - MongoDB test fixes (47x faster!)
 - [NEXT_STEPS.md](./NEXT_STEPS.md) - Deployment guide & optional phases
-- [PHASE_3_COMPLETE.md](./PHASE_3_COMPLETE.md) - Phase 3 details
+- [PHASE_3_COMPLETE.md](./archive/PHASE_3_COMPLETE.md) - Phase 3 details
 - [RAG_ARCHITECTURE.md](./RAG_ARCHITECTURE.md) - RAG design

@@ -2,7 +2,7 @@
 
 � **Related Documentation**:
 - [📋 CHANGELOG_2026-01-15.md](./CHANGELOG_2026-01-15.md) - Latest changes and improvements
-- [📊 TESTING_SUMMARY.md](./TESTING_SUMMARY.md) - Comprehensive test results and performance data
+- [📊 TESTING_SUMMARY.md](../archive/TESTING_SUMMARY.md) - Comprehensive test results and performance data
 - [🔒 RATE_LIMITING.md](../backend-node/RATE_LIMITING.md) - Rate limiting implementation guide
 
 �📑 **Table of Contents**
@@ -40,7 +40,7 @@ Successfully implemented **three-tier streaming architecture** with comprehensiv
 2. **Node.js → Java**: SSE proxy with authentication OR gRPC binary streaming
 3. **Java → LLM**: HTTP streaming with token-by-token callbacks
 
-**Results** (See [TESTING_SUMMARY.md](./TESTING_SUMMARY.md) for details):
+**Results** (See [TESTING_SUMMARY.md](../archive/TESTING_SUMMARY.md) for details):
 - ✅ Chat experience transformed from 5-8 second blocking waits to ChatGPT-like progressive token generation
 - ✅ **gRPC performance**: 108.60ms to first token, 86.40 tokens/sec
 - ✅ **SSE performance**: 129.40ms to first token, 81.33 tokens/sec
@@ -106,7 +106,7 @@ React state updates → Progressive UI display
   
 - **Winner**: **gRPC** 🏆 - Faster first token, higher throughput, more efficient
 - **Script**: [test-performance.js](../backend-node/test-performance.js)
-- **Full Report**: [TESTING_SUMMARY.md](./TESTING_SUMMARY.md)
+- **Full Report**: [TESTING_SUMMARY.md](../archive/TESTING_SUMMARY.md)
 
 ### Test 3: Rate Limiting ⚠️ INFRASTRUCTURE READY
 - **Status**: Middleware loaded, needs authenticated testing
@@ -1065,7 +1065,7 @@ The hybrid architecture with token streaming is now **fully implemented and work
    - ✅ SSE vs gRPC performance measured
    - ✅ gRPC wins: 16% faster first token, 6% higher throughput
    - ✅ Architectural decision: Use gRPC for inter-service, SSE for browsers
-   - ✅ Full report: [TESTING_SUMMARY.md](./TESTING_SUMMARY.md)
+  - ✅ Full report: [TESTING_SUMMARY.md](../archive/TESTING_SUMMARY.md)
 
 4. **⚠️ IN PROGRESS: Test Rate Limiting**
    - ⚠️ Middleware loaded and configured
@@ -1162,7 +1162,7 @@ The foundation is solid. The streaming works beautifully. Both HTTP and gRPC ser
 ## 📚 Additional Resources
 
 - **[CHANGELOG_2026-01-15.md](./CHANGELOG_2026-01-15.md)** - Detailed changelog with Jakarta EE fix, testing results, and lessons learned
-- **[TESTING_SUMMARY.md](./TESTING_SUMMARY.md)** - Complete test results, performance baselines, and production recommendations
+- **[TESTING_SUMMARY.md](../archive/TESTING_SUMMARY.md)** - Complete test results, performance baselines, and production recommendations
 - **[RATE_LIMITING.md](../backend-node/RATE_LIMITING.md)** - Rate limiting implementation guide, configuration, and monitoring
 - **Test Scripts**:
   - [test-grpc.js](../backend-node/test-grpc.js) - gRPC connectivity and streaming test

@@ -4,7 +4,7 @@ Complete configuration reference for STT (Speech-to-Text) and TTS (Text-to-Speec
 
 **Related Documentation**:
 - [Voice Development Setup](./VOICE-DEV-SETUP.md) - Step-by-step setup guide
-- [Phase 1 Summary](./PHASE-1-SUMMARY.md) - Quick reference
+- [Phase 1 Summary](./archive/PHASE-1-SUMMARY.md) - Quick reference
 - [Voice Streaming Architecture](./VOICE-STREAMING.md) - Streaming details
 
 ## Table of Contents

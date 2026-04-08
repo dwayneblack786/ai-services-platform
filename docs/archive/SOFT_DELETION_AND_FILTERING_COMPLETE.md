@@ -638,7 +638,7 @@ await promptService.hardDeletePrompt(id, actor);
 ## Documentation Links
 
 - [Soft Deletion Implementation Guide](./SOFT_DELETION_IMPLEMENTATION.md) - Detailed technical documentation
-- [API Testing Guide](./API_TESTING_GUIDE.md) - Comprehensive API testing instructions
+- [API Testing Guide](../platform/API_TESTING_GUIDE.md) - Comprehensive API testing instructions
 - [Deployment Checklist](./DEPLOYMENT_CHECKLIST.md) - Step-by-step deployment guide
 
 ---

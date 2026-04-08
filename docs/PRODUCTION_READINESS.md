@@ -212,7 +212,7 @@ lastScore={undefined} // TODO: Add scoring data when available
 
 ### Implementation Docs
 - [PMS_STATUS.md](./PMS_STATUS.md) - Current status
-- [PHASE_3_COMPLETE.md](./PHASE_3_COMPLETE.md) - Phase 3 details
+- [PHASE_3_COMPLETE.md](./archive/PHASE_3_COMPLETE.md) - Phase 3 details
 - [RAG_ARCHITECTURE.md](./RAG_ARCHITECTURE.md) - RAG design
 - [pms-implementation-plan.md](../../.claude/plans/pms-implementation-plan.md) - Full plan
 
