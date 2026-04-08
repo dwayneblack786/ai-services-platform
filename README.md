@@ -1252,7 +1252,7 @@ If issues arise, rollback is simple:
 
 ##### Backend Scripts
 - [MongoDB Scripts README](product-management/backend-node/scripts/mongo/README.md) - MongoDB utility scripts
-- [Consolidation Summary](backend-node/scripts/mongo/CONSOLIDATION_SUMMARY.md) - Data consolidation report
+- [Consolidation Summary](product-management/backend-node/scripts/mongo/CONSOLIDATION_SUMMARY.md) - Data consolidation report
 
 #### Frontend
 - [Frontend README](frontend/docs/README.md) - React frontend documentation

@@ -538,7 +538,7 @@ db.tenants.insertOne({
 ### 1. Seed Tenants
 
 ```bash
-npx ts-node scripts/keycloak/seed-tenants.ts
+npx ts-node product-management/scripts/keycloak/seed-tenants.ts
 ```
 
 ### 2. Test Tenant Lookup
@@ -593,7 +593,7 @@ mongo ai_platform
 db.tenants.find()
 
 # Seed tenants
-npx ts-node scripts/keycloak/seed-tenants.ts
+npx ts-node product-management/scripts/keycloak/seed-tenants.ts
 ```
 
 ### Issue: "Tenant context missing"

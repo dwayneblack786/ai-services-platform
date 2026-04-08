@@ -449,7 +449,7 @@ router.post('/projects', requireKeycloakAuth, async (req, res) => {
 ## Troubleshooting
 
 ### "Tenant not found"
-- Run: `npx ts-node scripts/keycloak/seed-tenants.ts`
+- Run: `npx ts-node product-management/scripts/keycloak/seed-tenants.ts`
 - Verify MongoDB connection
 
 ### "Realm not found in Keycloak"

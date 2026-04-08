@@ -20,7 +20,7 @@ The session menu system has been fully configured for product `69728bdb0959e1a2d
 
 ### ✅ Test Results
 
-**Script:** `scripts/mongo/test-menu-service.js`
+**Script:** `product-management/scripts/mongo/test-menu-service.js`
 
 **Output:**
 ```json
@@ -258,16 +258,16 @@ socket.emit('chat:send-message', {
    - Verify: `productId: "69728bdb0959e1a2da517684"`
 
 3. **Database bindings missing**
-   - Run: `node scripts/mongo/check-product-prompts.js`
+   - Run: `node product-management/scripts/mongo/check-product-prompts.js`
    - Verify: 2 chat bindings with activeProductionId set
 
 **Fix:**
 ```bash
 # Re-run seeding script
-node scripts/mongo/seed-product-prompts.js
+node product-management/scripts/mongo/seed-product-prompts.js
 
 # Verify configuration
-node scripts/mongo/test-menu-service.js
+node product-management/scripts/mongo/test-menu-service.js
 ```
 
 ### Issue: Options Appear but Click Doesn't Work
@@ -326,17 +326,17 @@ grep "promptId" product-management/backend-node/logs/*.log
 
 ### Check Database Configuration
 ```bash
-node scripts/mongo/check-product-prompts.js
+node product-management/scripts/mongo/check-product-prompts.js
 ```
 
 ### Test Menu Service Logic
 ```bash
-node scripts/mongo/test-menu-service.js
+node product-management/scripts/mongo/test-menu-service.js
 ```
 
 ### Reseed Data (if needed)
 ```bash
-node scripts/mongo/seed-product-prompts.js
+node product-management/scripts/mongo/seed-product-prompts.js
 ```
 
 ---

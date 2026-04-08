@@ -35,12 +35,12 @@
 
 2. **Setup database:**
    ```bash
-   node scripts/mongo/setup-database.js --seed
+   node product-management/scripts/mongo/setup-database.js --seed
    ```
 
 3. **Verify collections:**
    ```bash
-   node scripts/mongo/verify-collections.js
+   node product-management/scripts/mongo/verify-collections.js
    ```
 
 4. **Start development:**

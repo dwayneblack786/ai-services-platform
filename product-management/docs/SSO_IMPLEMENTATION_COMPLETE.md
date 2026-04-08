@@ -325,7 +325,7 @@ APP_URL=http://localhost:3001
 2. **Seed Tenants:**
    ```powershell
    cd product-management/backend-node
-   npx ts-node scripts/keycloak/seed-tenants.ts
+   npx ts-node product-management/scripts/keycloak/seed-tenants.ts
    ```
 
 3. **Create Keycloak Realms:**
@@ -336,7 +336,7 @@ APP_URL=http://localhost:3001
 
 ### Automated Startup (Recommended)
 ```powershell
-.\start-sso-system.ps1
+.\product-management\scripts\start-sso-system.ps1
 ```
 
 ### Manual Startup
@@ -451,7 +451,7 @@ curl -X POST http://localhost:5000/api/usage/events \
 ### "Tenant not found" Error
 **Symptom:** POST /tenant/lookup returns 404
 **Solution:** 
-- Run seed script: `npx ts-node scripts/keycloak/seed-tenants.ts`
+- Run seed script: `npx ts-node product-management/scripts/keycloak/seed-tenants.ts`
 - Verify tenant exists in MongoDB `keycloak_tenants` collection
 
 ### "Invalid realm" Error
@@ -783,7 +783,7 @@ APP_URL=http://localhost:3001
 
 ### Automated (Recommended)
 ```powershell
-.\start-sso-system.ps1
+.\product-management\scripts\start-sso-system.ps1
 ```
 
 ### Manual

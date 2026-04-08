@@ -22,7 +22,7 @@ A complete OAuth 2.0 and OIDC-inspired SSO system has been implemented between:
 5. `prompt-management/backend/src/utils/logger.ts` - Simple logger utility (55 lines)
 
 #### Documentation
-6. `docs/SSO_IMPLEMENTATION_GUIDE.md` - Comprehensive 500+ line implementation guide
+6. `product-management/docs/SSO_IMPLEMENTATION_GUIDE.md` - Comprehensive 500+ line implementation guide
 
 ### ✅ Modified Files
 
@@ -257,7 +257,7 @@ This implementation follows:
 ## Support
 
 For questions or issues:
-1. Check [SSO_IMPLEMENTATION_GUIDE.md](./SSO_IMPLEMENTATION_GUIDE.md)
+1. Check [SSO_IMPLEMENTATION_GUIDE.md](../product-management/docs/SSO_IMPLEMENTATION_GUIDE.md)
 2. Review logs in both services
 3. Test with provided curl commands
 4. Verify environment configuration

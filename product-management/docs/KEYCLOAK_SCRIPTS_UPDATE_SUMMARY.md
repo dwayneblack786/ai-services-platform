@@ -198,7 +198,7 @@ These files are **historical records** and document the previous architecture fo
 
 ### Start All Services
 ```powershell
-.\start-sso-system.ps1
+.\product-management\scripts\start-sso-system.ps1
 ```
 
 This will:

@@ -297,7 +297,7 @@ export const exchangeCodeForTokens = async (/* ... */) => {
 npm run dev
 
 # 2. Run SSO flow test
-.\test-sso-flow.ps1
+.\product-management\scripts\test-sso-flow.ps1
 
 # Expected result: All 8 steps pass, tokens issued successfully
 ```
@@ -394,12 +394,12 @@ Invoke-WebRequest -Uri "http://localhost:5000/api/oidc/.well-known/openid-config
 Invoke-WebRequest -Uri "http://localhost:5000/api/auth/dev-login" -Method POST -UseBasicParsing
 
 # 4. Test SSO flow (after fix)
-.\test-sso-flow.ps1
+.\product-management\scripts\test-sso-flow.ps1
 ```
 
 ### Automated Test Script
 
-Created: [`test-sso-flow.ps1`](../test-sso-flow.ps1)
+Created: [`test-sso-flow.ps1`](../product-management/scripts/test-sso-flow.ps1)
 
 ---
 

@@ -292,7 +292,7 @@ For production, update the following:
 
 ## References
 
-- [SSO Implementation Guide](./SSO_IMPLEMENTATION_GUIDE.md) - Detailed implementation
+- [SSO Implementation Guide](../product-management/docs/SSO_IMPLEMENTATION_GUIDE.md) - Detailed implementation
 - [SSO Quick Reference](./SSO_QUICK_REFERENCE.md) - API endpoints and token structure
 - [OAuth 2.0 RFC 6749](https://tools.ietf.org/html/rfc6749)
 - [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html)

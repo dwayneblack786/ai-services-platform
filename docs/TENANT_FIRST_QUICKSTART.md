@@ -124,7 +124,7 @@ mongo ai_platform
 db.keycloaktenants.find()
 
 # Re-seed if needed
-npx ts-node scripts/keycloak/seed-tenants.ts
+npx ts-node product-management/scripts/keycloak/seed-tenants.ts
 ```
 
 ### "Realm not found in Keycloak"

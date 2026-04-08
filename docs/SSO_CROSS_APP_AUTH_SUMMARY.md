@@ -261,7 +261,7 @@ JWT_SECRET=your-shared-secret-minimum-32-chars  # MUST match Product Management
 
 ## Related Documentation
 
-- [SSO Implementation Guide](./SSO_IMPLEMENTATION_GUIDE.md) - Detailed technical implementation
+- [SSO Implementation Guide](../product-management/docs/SSO_IMPLEMENTATION_GUIDE.md) - Detailed technical implementation
 - [SSO Quick Reference](./SSO_QUICK_REFERENCE.md) - API endpoints and token structure
 - [SSO Setup Guide](./SSO_SETUP_GUIDE.md) - Configuration and troubleshooting
 

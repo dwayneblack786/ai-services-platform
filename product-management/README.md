@@ -69,3 +69,25 @@ To verify product-management backend source/tests do not import root shared runt
 cd backend-node
 npm run validate:no-root-imports
 ```
+
+## Standalone Repo Readiness
+
+This folder is being prepared to become its own repository.
+
+### GitHub Actions (for standalone repo)
+
+Workflows are maintained under:
+- `product-management/.github/workflows/backend-ci.yml`
+- `product-management/.github/workflows/frontend-ci.yml`
+
+When you split into a standalone repo, move these to `.github/workflows/` at that repo root.
+
+### Extraction Script (preserves history)
+
+Run from anywhere:
+
+```powershell
+.\product-management\scripts\extract-product-management-repo.ps1 -OutputPath "../product-management-standalone"
+```
+
+This creates a history-preserving split using `git subtree` and clones it into the output folder.

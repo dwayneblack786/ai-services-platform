@@ -302,7 +302,7 @@ setSelectedPromptId(null);
 ### 1. Seed Test Data
 
 ```bash
-node scripts/mongo/seed-session-menu-test-data.js
+node product-management/scripts/mongo/seed-session-menu-test-data.js
 ```
 
 Creates:
@@ -313,7 +313,7 @@ Creates:
 ### 2. Verify Data
 
 ```bash
-node scripts/mongo/inspect-collections.js
+node product-management/scripts/mongo/inspect-collections.js
 ```
 
 Should show:
@@ -361,9 +361,9 @@ Should show:
 - ✅ `src/components/AssistantChat.tsx` - Option bubbles UI, selection handling
 
 ### Scripts
-- ✅ `scripts/mongo/seed-session-menu-test-data.js` (NEW)
-- ✅ `scripts/mongo/inspect-collections.js` (NEW)
-- ✅ `scripts/mongo/test-session-menu.js` (NEW)
+- ✅ `product-management/scripts/mongo/seed-session-menu-test-data.js` (NEW)
+- ✅ `product-management/scripts/mongo/inspect-collections.js` (NEW)
+- ✅ `product-management/scripts/mongo/test-session-menu.js` (NEW)
 
 ---
 
@@ -426,10 +426,10 @@ Should show:
 **Fix:**
 ```bash
 # Reseed test data
-node scripts/mongo/seed-session-menu-test-data.js
+node product-management/scripts/mongo/seed-session-menu-test-data.js
 
 # Verify
-node scripts/mongo/inspect-collections.js
+node product-management/scripts/mongo/inspect-collections.js
 ```
 
 ### Invalid Menu Selection Error

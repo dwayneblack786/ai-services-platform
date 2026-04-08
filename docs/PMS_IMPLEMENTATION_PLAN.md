@@ -265,15 +265,15 @@ URL → Scrape → Clean HTML → Markdown → Chunk → Embed → Vector Store
 npm install
 
 # Quick setup (creates all collections)
-node scripts/mongo/setup-database.js
+node product-management/scripts/mongo/setup-database.js
 
 # OR: Full setup with seed data
-node scripts/mongo/setup-database.js --seed
+node product-management/scripts/mongo/setup-database.js --seed
 ```
 
 #### 2. Verify Collections
 ```bash
-node scripts/mongo/verify-collections.js
+node product-management/scripts/mongo/verify-collections.js
 ```
 
 Expected output:
@@ -463,17 +463,17 @@ npm run test:gate:final     # 138 tests
 
 **Collections not found:**
 ```bash
-node scripts/mongo/setup-database.js
+node product-management/scripts/mongo/setup-database.js
 ```
 
 **Indexes missing:**
 ```bash
-node scripts/mongo/create-pms-collections.js
+node product-management/scripts/mongo/create-pms-collections.js
 ```
 
 **Verify setup:**
 ```bash
-node scripts/mongo/verify-collections.js
+node product-management/scripts/mongo/verify-collections.js
 ```
 
 ### Migration Issues
@@ -493,9 +493,9 @@ node scripts/mongo/verify-collections.js
 - Agentic flows: [AGENTIC_FLOWS.md](./AGENTIC_FLOWS.md)
 
 **Scripts:**
-- Setup: `scripts/mongo/setup-database.js`
-- Verify: `scripts/mongo/verify-collections.js`
-- Create: `scripts/mongo/create-pms-collections.js`
+- Setup: `product-management/scripts/mongo/setup-database.js`
+- Verify: `product-management/scripts/mongo/verify-collections.js`
+- Create: `product-management/scripts/mongo/create-pms-collections.js`
 
 ---
 

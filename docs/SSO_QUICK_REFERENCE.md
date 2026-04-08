@@ -129,7 +129,7 @@ curl http://localhost:5001/api/health
 
 ## 📚 Documentation Files
 
-1. `docs/SSO_IMPLEMENTATION_GUIDE.md` - Full guide (500+ lines)
+1. `product-management/docs/SSO_IMPLEMENTATION_GUIDE.md` - Full guide (500+ lines)
 2. `docs/SSO_IMPLEMENTATION_SUMMARY.md` - Implementation summary
 3. `docs/SSO_QUICK_REFERENCE.md` - This file
 

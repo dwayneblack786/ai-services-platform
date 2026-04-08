@@ -224,7 +224,7 @@ All temporary and form data has been properly migrated. No additional work neede
 ### Status
 All infrastructure complete and ready for comprehensive testing.
 
-**Testing Guide:** See [PHASE_5_TESTING_READY.md](../PHASE_5_TESTING_READY.md) for detailed test plans.
+**Testing Guide:** See [PHASE_5_TESTING_READY.md](./PHASE_5_TESTING_READY.md) for detailed test plans.
 
 ### Tasks to Complete
 
@@ -365,7 +365,7 @@ redis-server
 3. ✅ Complete Phase 3 - Migrate remaining localStorage usage
 4. ✅ Complete Phase 4 - Migrate Temporary/Form Data (verified - already complete)
 5. 🔄 **START Phase 5 - Testing & Validation** ← YOU ARE HERE
-   - See [PHASE_5_TESTING_READY.md](../PHASE_5_TESTING_READY.md) for test plans
+  - See [PHASE_5_TESTING_READY.md](./PHASE_5_TESTING_READY.md) for test plans
    - Estimated: 2-3 hours
 6. Phase 6 - Cleanup & Documentation
 
