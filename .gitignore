@@ -4,6 +4,7 @@ dist
 .vscode
 .DS_Store
 *.log
+*.backup
 
 # Security-sensitive files
 **/.env
