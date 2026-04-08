@@ -149,8 +149,8 @@ router.get('/active', requireKeycloakAuth, trackUsage('subscription', 'read'), a
 ```
 
 ### ✅ Step 9: Create Setup Scripts - COMPLETED
-- [x] `scripts/keycloak/seed-tenants.ts` - Seeds sample tenants
-- [x] `scripts/keycloak/setup-keycloak.ps1` - Creates Keycloak realms
+- [x] `product-management/scripts/keycloak/seed-tenants.ts` - Seeds sample tenants
+- [x] `product-management/scripts/keycloak/setup-keycloak.ps1` - Creates Keycloak realms
 
 ### ✅ Step 10: Update Startup Scripts - COMPLETED
 - [x] `start-sso-services.ps1` - Updated to check Keycloak
@@ -162,7 +162,7 @@ router.get('/active', requireKeycloakAuth, trackUsage('subscription', 'read'), a
 
 #### 1. Create Realm
 ```powershell
-.\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-acme-corp"
+.\product-management\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-acme-corp"
 ```
 
 #### 2. Create OIDC Client
@@ -217,14 +217,13 @@ APP_URL=http://localhost:3001
 
 ### 1. Seed Tenants
 ```powershell
-cd product-management/backend-node
-npx ts-node scripts/keycloak/seed-tenants.ts
+npx ts-node product-management/scripts/keycloak/seed-tenants.ts
 ```
 
 ### 2. Create Keycloak Realms
 ```powershell
-.\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-acme-corp"
-.\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-globex"
+.\product-management\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-acme-corp"
+.\product-management\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-globex"
 ```
 
 ### 3. Test Tenant Lookup

@@ -188,13 +188,12 @@ These files are **historical records** and document the previous architecture fo
 
 3. **Seed tenants:**
    ```powershell
-   cd product-management/backend-node
-   npx ts-node scripts/keycloak/seed-tenants.ts
+   npx ts-node product-management/scripts/keycloak/seed-tenants.ts
    ```
 
 4. **Create Keycloak realms:**
    ```powershell
-   .\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-acme-corp"
+   .\product-management\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-acme-corp"
    ```
 
 ### Start All Services
