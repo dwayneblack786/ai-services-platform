@@ -48,3 +48,10 @@ services-python/listing-agents/
 # Local Python envs
 .venv/
 venv/
+
+# Standalone repos extracted from monorepo (managed independently)
+ai-listing-agent/
+product-management/
+services-java/
+services-python/
+shared/
