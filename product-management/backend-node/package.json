@@ -43,6 +43,7 @@
     "check": "npm run lint && npm run test",
     "validate": "npm run lint && npm run build && npm run test",
     "validate:startup": "node scripts/validate-startup.js",
+    "validate:no-root-imports": "node scripts/validate-no-root-imports.js",
     "prepare": "npm run build:clean"
   },
   "keywords": [

@@ -6,7 +6,7 @@ import Tenant from '../models/Tenant';
 import logger from '../utils/logger';
 import { trackEvent } from '../middleware/appInsights.middleware';
 import { requireRole } from '../middleware/rbac';
-import { UserRole } from '../../../../shared/types';
+import { UserRole } from '../types/shared';
 import UserActivity from '../models/UserActivity';
 
 const router = Router();

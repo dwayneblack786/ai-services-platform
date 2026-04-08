@@ -5,7 +5,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { UserRole } from '../../../../shared/types';
+import { UserRole } from '../../../src/types/shared';
 import {
   requireRole,
   requireTenant,

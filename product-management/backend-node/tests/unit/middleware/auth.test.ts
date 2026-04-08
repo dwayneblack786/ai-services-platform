@@ -9,7 +9,7 @@ import { authenticateToken, verifyToken } from '../../../src/middleware/auth';
 import { users } from '../../../src/config/passport';
 import * as database from '../../../src/config/database';
 import { IUser } from '../../../src/models/User';
-import { UserRole } from '../../../../shared/types';
+import { UserRole } from '../../../src/types/shared';
 
 // Mock dependencies
 jest.mock('../../../src/config/passport', () => ({

@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { User as SharedUser, UserRole } from '../../../../shared/types';
+import { User as SharedUser, UserRole } from '../types/shared';
 
 export interface IUser extends Omit<SharedUser, 'id'>, Document {
   updateLastLogin(): Promise<void>;

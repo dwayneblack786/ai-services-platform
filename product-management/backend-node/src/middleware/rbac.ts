@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { User, UserRole } from '../../../../shared/types';
+import { User, UserRole } from '../types/shared';
 import { JWTPayload } from '../types/jwt.types';
 import * as jwt from 'jsonwebtoken';
 
@@ -32,8 +32,8 @@ export const requireRole = (...allowedRoles: UserRole[]) => {
     }
 
     // Normalize role to string for comparison
-    const userRole = typeof user.role === 'string' ? user.role : user.role?.toString();
-    const allowedRoleStrings = allowedRoles.map(r => typeof r === 'string' ? r : r.toString());
+    const userRole = String(user.role);
+    const allowedRoleStrings = allowedRoles.map((r) => String(r));
 
     // Check if user has required role
     if (!allowedRoleStrings.includes(userRole)) {

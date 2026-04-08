@@ -1,4 +1,4 @@
-import { UserRole } from '../../../../shared/types';
+import { UserRole } from './shared';
 
 /**
  * JWT token payload structure

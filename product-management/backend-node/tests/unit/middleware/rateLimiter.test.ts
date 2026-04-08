@@ -4,7 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { UserRole } from '../../../../shared/types';
+import { UserRole } from '../../../src/types/shared';
 import {
   streamRateLimiter,
   trackTokenUsage,

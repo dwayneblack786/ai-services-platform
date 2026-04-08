@@ -7,7 +7,7 @@ import RegistrationSession from '../models/RegistrationSession';
 import keycloakAdminService from './keycloak-admin.service';
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordResetConfirmationEmail } from './email.service';
 import logger from '../utils/logger';
-import { UserRole } from '../../../../shared/types';
+import { UserRole } from '../types/shared';
 
 export interface RegisterUserData {
   email: string;
