@@ -5,6 +5,20 @@ dist
 .DS_Store
 *.log
 
+# Security-sensitive files
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
+keycloak-secrets.txt
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local AI/tooling output
+out-prompt-context/
+
 # Claude/AI settings (local only)
 .claude/settings.local.json
 settings.local.json
