@@ -1,0 +1,21 @@
+{
+  "name": "product-management",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Product management control-plane workspace",
+  "workspaces": [
+    "backend-node",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev -w backend-node",
+    "dev:frontend": "npm run dev -w frontend",
+    "build": "npm run build -w backend-node && npm run build -w frontend",
+    "test": "npm run test -w backend-node",
+    "lint": "npm run lint -w backend-node && npm run lint -w frontend",
+    "validate:no-root-imports": "npm run validate:no-root-imports -w backend-node"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
