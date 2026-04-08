@@ -22,6 +22,7 @@ out-prompt-context/
 
 # Claude/AI settings (local only)
 .claude/settings.local.json
+.claude/settings.json
 settings.local.json
 
 # Java/Maven
@@ -43,3 +44,7 @@ nul
 
 # Python listing-agents reference copy (not for production — Java service is canonical)
 services-python/listing-agents/
+
+# Local Python envs
+.venv/
+venv/
