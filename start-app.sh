@@ -57,7 +57,7 @@ check_mongo() {
 }
 
 kill_ports() {
-  local ports=(5000 3002 5173 5174 8000 8136 50051)
+  local ports=(5000 3002 5173 5174 8000 8136 8137 50051)
   echo
   echo "Cleaning up existing processes on app ports..."
 
@@ -105,6 +105,9 @@ kill_ports
 start_service "VA-Service" "$ROOT_DIR/services-java/va-service" "./mvnw spring-boot:run" "$LOG_DIR/va-service.log"
 sleep 10
 
+start_service "Listing Service" "$ROOT_DIR/services-java/listing-service" "set -a; [ -f .env ] && source .env; set +a; ./mvnw -Dspring-boot.run.profiles=dev spring-boot:run" "$LOG_DIR/listing-service.log"
+sleep 10
+
 PYTHON_CMD="python3"
 if ! command -v python3 >/dev/null 2>&1; then
   PYTHON_CMD="python"
@@ -131,6 +134,7 @@ echo "Keycloak:              http://localhost:9999"
 echo "Whisper Server:        http://localhost:8000"
 echo "VA-Service HTTP:       http://localhost:8136"
 echo "VA-Service gRPC:       localhost:50051"
+echo "Listing Service:       http://localhost:8137"
 echo "Product Management:    http://localhost:5173"
 echo "Listing Agent:         http://localhost:5174"
 echo "Listing Agent API:     http://localhost:3002/api"
@@ -139,6 +143,7 @@ echo
 echo "Running health checks..."
 health_checks=(
   "VA-Service|http://localhost:8136/health"
+  "Listing Service|http://localhost:8137/actuator/health"
   "Keycloak|http://localhost:9999"
   "Product Mgmt|http://localhost:5000/health"
   "Listing Agent|http://localhost:3002/health"

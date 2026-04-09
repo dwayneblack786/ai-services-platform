@@ -12,8 +12,9 @@ ai-services-platform/
 │   ├── frontend/          # React + Vite + TypeScript (port 5173)
 │   └── backend-node/      # Express + MongoDB + TypeScript (port 3001)
 ├── services-java/
-│   ├── va-service/        # Virtual Assistant — Spring Boot + gRPC (port 8136)
+│   ├── listing-service/   # ListingLift agent pipeline — Spring Boot + LangChain4j
 │   ├── cv-service/        # Computer Vision gateway — Spring Boot
+│   ├── fieldvoice-service/ # FieldVoice agentic workflow — Spring Boot (planned)
 │   ├── idp-service/       # Identity Provider — Spring Boot
 │   └── common-libs/       # Shared Java utilities
 ├── services-python/
@@ -25,8 +26,10 @@ ai-services-platform/
 ```
 
 ### Key Decisions
+- **Standalone product architecture** — Each product follows a consistent stack: React + Vite + TypeScript frontend, Express + MongoDB + TypeScript backend, linked to a Java Spring Boot service for agentic workflow fulfillment. Products are hosted as integrated modules sharing platform infrastructure (auth, billing, usage tracking, RAG).
 - **ListingLift is NOT a standalone app.** It was originally in `ai-realestate/listinglift/` (Next.js) but is being integrated into this platform as a product. All ListingLift features become routes/services within the platform backend + frontend.
-- **LangGraph (Python)** for multi-agent orchestration of the listing pipeline.
+- **LangChain4j (Java)** for agent orchestration within Java services. The `services-python/listing-agents/` directory is a reference stub only.
+- **Chat VA removed.** The `va-service` (chat-based virtual assistant) is being removed from `product-management`. The voice virtual assistant is converted into **FieldVoice** — a dedicated agentic AI workflow product following the standard product stack pattern. Details TBD at implementation time.
 - **DINOv2 ViT-B/14** for property photo classification (PropVision). Trained locally on RTX 3090 Ti (24GB VRAM).
 - **MongoDB** is the default data store. The listing pipeline supports configurable data stores (MongoDB, PostgreSQL, S3) per tenant.
 - **Human-in-the-loop** review gates in the listing agent pipeline (after auto-fill and after compliance).
@@ -37,7 +40,7 @@ ai-services-platform/
 3. **PropBrief** — Market intelligence reports
 4. **ComplianceGuard** — Fair Housing compliance
 5. **DealDesk** — Commercial real estate document processing
-6. **FieldVoice** — AI voice receptionist
+6. **FieldVoice** — Agentic AI voice workflow for inbound call handling, lead qualification, and appointment scheduling (voice VA converted to agentic pipeline)
 7. **TenantLoop** — Property manager AI assistant
 
 ### Listing Pipeline (Sequential Multi-Agent)

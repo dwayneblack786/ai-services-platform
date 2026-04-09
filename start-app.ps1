@@ -88,7 +88,7 @@ Write-Host ""
 
 # Kill any existing node processes on our ports
 Write-Host "🧹 Cleaning up existing processes..." -ForegroundColor Yellow
-$ports = @(5000, 3002, 5173, 5174, 8000, 8136, 50051)
+$ports = @(5000, 3002, 5173, 5174, 8000, 8136, 8137, 50051)
 foreach ($port in $ports) {
     $connections = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
     if ($connections) {
@@ -115,6 +115,16 @@ Pop-Location
 Write-Host "   ✓ VA-Service started" -ForegroundColor Green
 Write-Host "   📡 HTTP: http://localhost:8136" -ForegroundColor Gray
 Write-Host "   📡 gRPC: localhost:50051`n" -ForegroundColor Gray
+
+Start-Sleep -Seconds 10
+
+# Start Listing Service (Java Spring Boot) - Port 8137
+Write-Host "3️⃣  Starting Listing Service (Port 8137)..." -ForegroundColor Cyan
+Push-Location services-java\listing-service
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", ".\start-server.ps1" -WindowStyle Normal
+Pop-Location
+Write-Host "   ✓ Listing Service started" -ForegroundColor Green
+Write-Host "   📡 HTTP: http://localhost:8137`n" -ForegroundColor Gray
 
 Start-Sleep -Seconds 10
 
@@ -195,9 +205,10 @@ Write-Host "================================`n" -ForegroundColor Cyan
 
 Write-Host "📋 Service URLs:" -ForegroundColor Yellow
 Write-Host "  Keycloak (IdP):       http://localhost:9999 (admin/admin)" -ForegroundColor White
-Write-Host "  Whisper ServerTTS/SST: http://localhost:8000" -ForegroundColor White
+Write-Host "  Whisper Server:       http://localhost:8000" -ForegroundColor White
 Write-Host "  VA-Service HTTP:      http://localhost:8136" -ForegroundColor White
 Write-Host "  VA-Service gRPC:      localhost:50051" -ForegroundColor White
+Write-Host "  Listing Service:      http://localhost:8137" -ForegroundColor White
 Write-Host "  Product Management:   http://localhost:5173" -ForegroundColor White
 Write-Host "  Listing Agent:        http://localhost:5174" -ForegroundColor White
 Write-Host "  Listing Agent API:    http://localhost:3002/api" -ForegroundColor White
@@ -229,12 +240,12 @@ Start-Sleep -Seconds 10
 Write-Host "`n🏥 Health Checks:" -ForegroundColor Yellow
 $healthChecks =
 @(
-
     @{ Name = "VA-Service"; URL = "http://localhost:8136/health" },
+    @{ Name = "Listing Service"; URL = "http://localhost:8137/actuator/health" },
     @{ Name = "Keycloak"; URL = "http://localhost:9999" },
     @{ Name = "Product Mgmt"; URL = "http://localhost:5000/health" },
     @{ Name = "Listing Agent"; URL = "http://localhost:3002/health" },
-    @{ Name = "Whisper ServerTTS/SST"; URL = "http://localhost:8000/health" }
+    @{ Name = "Whisper Server"; URL = "http://localhost:8000/health" }
 )
 
 foreach ($check in $healthChecks) {
