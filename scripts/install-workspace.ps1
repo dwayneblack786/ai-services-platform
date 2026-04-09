@@ -8,6 +8,7 @@ $RootDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 
 $Repos = @(
     "ai-listing-agent",
+    "ai-product-starter-template",
     "services-java",
     "services-python",
     "product-management",
@@ -19,6 +20,8 @@ $EnvTargets = @(
     @{ Target = "product-management/frontend/.env"; Example = "product-management/frontend/.env.example" },
     @{ Target = "ai-listing-agent/backend-node/.env"; Example = "ai-listing-agent/backend-node/.env.example" },
     @{ Target = "ai-listing-agent/frontend/.env"; Example = "ai-listing-agent/frontend/.env.example" },
+    @{ Target = "ai-product-starter-template/backend-node/.env"; Example = "ai-product-starter-template/backend-node/.env.example" },
+    @{ Target = "ai-product-starter-template/frontend/.env"; Example = "ai-product-starter-template/frontend/.env.example" },
     @{ Target = "services-java/va-service/.env"; Example = "services-java/va-service/.env.example" },
     @{ Target = "shared/.env"; Example = "shared/.env.example" }
 )
@@ -144,6 +147,10 @@ function Install-Dependencies {
 
     Install-NpmDeps -RelativeDir "ai-listing-agent/backend-node" -Label "ai-listing-agent backend"
     Install-NpmDeps -RelativeDir "ai-listing-agent/frontend" -Label "ai-listing-agent frontend"
+
+    Install-NpmDeps -RelativeDir "ai-product-starter-template/shared" -Label "ai-product-starter-template shared"
+    Install-NpmDeps -RelativeDir "ai-product-starter-template/backend-node" -Label "ai-product-starter-template backend"
+    Install-NpmDeps -RelativeDir "ai-product-starter-template/frontend" -Label "ai-product-starter-template frontend"
 }
 
 function Show-ComposeInstructions {

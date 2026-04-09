@@ -19,6 +19,7 @@ This README is written for three audiences at once:
 - [What Problem We Are Solving](#what-problem-we-are-solving)
 - [How The Workspace Connects](#how-the-workspace-connects)
 - [Architecture Diagrams](#architecture-diagrams)
+- [Platform Delivery Assets](#platform-delivery-assets)
 - [What Has Been Completed](#what-has-been-completed)
 - [Products We Offer](#products-we-offer)
 - [Success Metrics To Track](#success-metrics-to-track)
@@ -45,7 +46,7 @@ Each folder is part of one end-to-end system:
 - `services-java/`: Java Spring Boot agent workflow services (listing, CV, IDP, voice)
 - `services-python/`: Python model/inference services (speech, vision, and agent support)
 - `shared/`: shared contracts/types
-- `ai-product-template/`: starter template for new product modules
+- `ai-product-starter-template/`: internal starter template for new product modules that need the same baseline look, shell, and frontend/backend structure
 - `docs/` and `plans/`: architecture, decisions, and migration planning
 
 ```mermaid
@@ -154,6 +155,14 @@ flowchart LR
 		class U,AUTH,ROUTE,ORCH,STEP1,STEP2,HITL,STORE,BILL,RESP,PMON platform;
 	```
 
+## Platform Delivery Assets
+
+Not every workspace module is customer-facing. Some exist to speed up delivery and keep implementation consistent across products.
+
+- `ai-product-starter-template/`: internal starter project for launching a new product module with the shared platform shell, React + Vite frontend, Node.js + Express backend, shared TypeScript contracts, and placeholder service integration wiring
+
+This template is used to start new products faster while preserving the same structural conventions and baseline visual language across the portfolio.
+
 ## What Has Been Completed
 
 This section highlights delivered progress that matters to all three audiences:
@@ -212,6 +221,13 @@ The following capabilities are implemented and already operating across the work
 - completed broad UI modernization across shell, high-traffic pages, and utility screens
 - completed subscriptions, payments, and admin dashboard refinements with responsive card and grid behavior
 - completed management-plane rebrand documentation aligned to Infero Agents positioning
+
+#### ai-product-starter-template completed milestones
+
+- completed standalone starter workspace with frontend, backend-node, and shared package structure
+- completed reusable shell, navigation, and base page scaffolding for new product modules
+- completed starter backend routes for health checks, example API responses, and mock Java integration wiring
+- completed template documentation for setup, reuse guidance, and AI-assisted product bootstrapping prompts
 
 ### Recent Delivery Timeline
 
@@ -285,11 +301,13 @@ Optional: if your repositories are under a different GitHub owner, pass it expli
 
 What this script does:
 
-- clones missing sibling repos in this workspace (`ai-listing-agent`, `services-java`, `services-python`, `product-management`, `shared`)
+- clones missing sibling repos in this workspace (`ai-listing-agent`, `ai-product-starter-template`, `services-java`, `services-python`, `product-management`, `shared`)
 - creates missing `.env` files from `.env.example` templates (with prompt/confirmation)
 - installs Java dependencies using Maven wrapper offline dependency fetch
 - installs Node.js dependencies for active modules (`npm ci` when lockfile exists, otherwise `npm install`)
 - prints infrastructure startup commands for Docker and Podman
+
+The installer also prepares template environment files and dependencies for `ai-product-starter-template` when present or cloned.
 
 3. Start infrastructure with one of the compose files printed by the installer.
 
