@@ -133,28 +133,28 @@ flowchart LR
 	class LL,PV,FV,PB2,CG,DD,TL,MP,IDP,AP,AG,JSV,PSV,DATA platform;
 ```
 
-	### 3) Request Lifecycle (Auth To Outcome)
+### 3) Request Lifecycle (Auth To Outcome)
 
-	```mermaid
-	flowchart LR
-		U[User Request] --> AUTH[Identity and Session Check]
-		AUTH --> ROUTE[Product Route and Tenant Context]
-		ROUTE --> ORCH[Agent Workflow Orchestration]
+```mermaid
+flowchart LR
+	U[User Request] --> AUTH[Identity and Session Check]
+	AUTH --> ROUTE[Product Route and Tenant Context]
+	ROUTE --> ORCH[Agent Workflow Orchestration]
 
-		ORCH --> STEP1[Ingest and Classification]
-		STEP1 --> STEP2[Agent Generation and Validation]
-		STEP2 --> HITL[Human Review Gate]
-		HITL --> STORE[Persist Result and Metadata]
+	ORCH --> STEP1[Ingest and Classification]
+	STEP1 --> STEP2[Agent Generation and Validation]
+	STEP2 --> HITL[Human Review Gate]
+	HITL --> STORE[Persist Result and Metadata]
 
-		STORE --> BILL[Usage and Billing Event]
-		STORE --> RESP[Product Response to User]
+	STORE --> BILL[Usage and Billing Event]
+	STORE --> RESP[Product Response to User]
 
-		BILL --> PMON[Platform Monitoring and Analytics]
-		RESP --> PMON
+	BILL --> PMON[Platform Monitoring and Analytics]
+	RESP --> PMON
 
-		classDef platform fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
-		class U,AUTH,ROUTE,ORCH,STEP1,STEP2,HITL,STORE,BILL,RESP,PMON platform;
-	```
+	classDef platform fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+	class U,AUTH,ROUTE,ORCH,STEP1,STEP2,HITL,STORE,BILL,RESP,PMON platform;
+```
 
 ## Agentic Workflow And Human Approval Model
 
