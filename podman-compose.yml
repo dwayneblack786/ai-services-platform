@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: docker.io/library/mongo:7.0
+    container_name: mongodb-dev
+    restart: unless-stopped
+    ports:
+      - "27018:27018"
+    environment:
+      # Remove these for dev - no auth needed locally
+      # MONGO_INITDB_ROOT_USERNAME: admin
+      # MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: ai_platform
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  listing-service:
+    build:
+      context: ./services-java/listing-service
+      dockerfile: Dockerfile
+    container_name: listing-service-dev
+    restart: unless-stopped
+    ports:
+      - "8137:8137"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/ai_platform
+      MONGODB_DATABASE: ai_platform
+      VISION_SERVER_URL: http://vision-server:8001
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8137/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # redis:
+  #   image: docker.io/library/redis:7-alpine
+  #   container_name: redis-dev
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   command: ["redis-server", "--appendonly", "yes"]
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 5
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  # redis_data:
+  #   driver: local

@@ -374,7 +374,7 @@ Once the server starts successfully:
 ## Related Documentation
 
 - [VOICE-DEV-SETUP.md](./VOICE-DEV-SETUP.md) - Development environment setup
-- [PHASE-1-COMPLETION-REPORT.md](./PHASE-1-COMPLETION-REPORT.md) - Phase 1 implementation
+- [PHASE-1-COMPLETION-REPORT.md](./archive/PHASE-1-COMPLETION-REPORT.md) - Phase 1 implementation
 - [CLIENT-WORKFLOW-DIAGRAMS.md](./CLIENT-WORKFLOW-DIAGRAMS.md) - Client architecture
 
 ---

@@ -4,3 +4,54 @@ dist
 .vscode
 .DS_Store
 *.log
+*.backup
+
+# Security-sensitive files
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
+keycloak-secrets.txt
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local AI/tooling output
+out-prompt-context/
+
+# Claude/AI settings (local only)
+.claude/settings.local.json
+.claude/settings.json
+settings.local.json
+
+# Java/Maven
+target/
+bin/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE
+.classpath
+.project
+.settings/
+*.iml
+.idea/
+nul
+.aider*
+
+# Python listing-agents reference copy (not for production — Java service is canonical)
+services-python/listing-agents/
+
+# Local Python envs
+.venv/
+venv/
+
+# Standalone repos extracted from monorepo (managed independently)
+ai-listing-agent/
+product-management/
+services-java/
+services-python/
+shared/

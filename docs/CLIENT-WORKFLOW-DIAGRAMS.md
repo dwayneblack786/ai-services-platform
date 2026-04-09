@@ -992,7 +992,7 @@ curl -X POST \
 
 - [VOICE-DEV-SETUP.md](./VOICE-DEV-SETUP.md) - Development environment setup
 - [VOICE-CONFIGURATION.md](./VOICE-CONFIGURATION.md) - Configuration reference
-- [PHASE-1-COMPLETION-REPORT.md](./PHASE-1-COMPLETION-REPORT.md) - Phase 1 implementation details
+- [PHASE-1-COMPLETION-REPORT.md](./archive/PHASE-1-COMPLETION-REPORT.md) - Phase 1 implementation details
 - [COMPONENT_INTEGRATION_GUIDE.md](./COMPONENT_INTEGRATION_GUIDE.md) - Component integration
 - [END_TO_END_INTEGRATION_GUIDE.md](./END_TO_END_INTEGRATION_GUIDE.md) - End-to-end flows
 - [high-level-assistant-arch.md](./high-level-assistant-arch.md) - Architecture overview

@@ -229,41 +229,97 @@ paths:
         '500':
           description: Retrieval error
 
-  /voice/incoming:
+  /api/voice/incoming:
     post:
-      summary: Handle incoming phone call webhook from telephony provider
+      summary: Universal VoIP webhook - Auto-detects Twilio, Vonage, or Bandwidth
       tags: [Voice]
+      description: |
+        Universal webhook endpoint that automatically detects VoIP provider and returns
+        provider-specific response (TwiML XML, NCCO JSON, or BXML XML).
+        
+        **Auto-Detection:**
+        - **Twilio**: `CallSid` field or `x-twilio-signature` header
+        - **Vonage**: `uuid` + `conversation_uuid` fields
+        - **Bandwidth**: `callId` + `applicationId` fields
+        
+        **See**: [Voice Endpoints Architecture](VOICE_ENDPOINTS_ARCHITECTURE.md)
       requestBody:
         required: true
         content:
           application/x-www-form-urlencoded:
             schema:
               type: object
+              description: Twilio format (form-urlencoded)
               properties:
-                To:
+                CallSid:
                   type: string
-                  description: The number that was called (assistant phone number)
+                  description: Twilio call identifier
                 From:
                   type: string
                   description: Caller phone number
-                CallSid:
+                To:
                   type: string
-                  description: Telephony provider call identifier
-              required: [To, From]
+                  description: Called number (assistant phone number)
+              required: [From, To]
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  description: Vonage format
+                  properties:
+                    uuid:
+                      type: string
+                    conversation_uuid:
+                      type: string
+                    from:
+                      type: string
+                    to:
+                      type: string
+                  required: [uuid, from, to]
+                - type: object
+                  description: Bandwidth format
+                  properties:
+                    callId:
+                      type: string
+                    from:
+                      type: string
+                    to:
+                      type: string
+                    applicationId:
+                      type: string
+                  required: [callId, from, to, applicationId]
       responses:
         '200':
-          description: TwiML/voice instructions to the telephony provider
+          description: Provider-specific call control response
           content:
             application/xml:
               schema:
                 type: string
+                description: TwiML XML (Twilio) or BXML XML (Bandwidth)
+            application/json:
+              schema:
+                type: array
+                description: NCCO JSON (Vonage)
+                items:
+                  type: object
         '400':
-          description: Invalid request
+          description: Invalid request or unrecognized provider
+        '403':
+          description: Outside business hours
 
-  /voice/stream:
+  /api/voice/stream:
     post:
-      summary: Handle streaming audio chunks during an active call
+      summary: Process audio chunks during active call
       tags: [Voice]
+      description: |
+        Receives audio from VoIP provider, processes through STT → LLM → TTS,
+        returns audio response.
+        
+        **Pipeline**: WhisperSTT → ChatSession → AzureTTS
+        
+        **Audio Formats**:
+        - Twilio/Bandwidth: μ-law, 8kHz, Base64
+        - Vonage: PCM, 16kHz, Base64
       requestBody:
         required: true
         content:
@@ -273,15 +329,17 @@ paths:
               properties:
                 callId:
                   type: string
-                  description: Internal call identifier (assistant_calls._id)
+                  description: MongoDB assistant_calls._id
+                  example: 507f1f77bcf86cd799439011
                 audioChunk:
                   type: string
                   format: byte
-                  description: Encoded audio chunk from telephony provider
+                  description: Base64-encoded audio chunk
+                  example: UklGRiQAAABXQVZFZm10IBAAAAABAAEA...
               required: [callId, audioChunk]
       responses:
         '200':
-          description: Voice response or streaming instructions
+          description: TTS audio response
           content:
             application/json:
               schema:
@@ -290,14 +348,33 @@ paths:
                   ttsAudio:
                     type: string
                     format: byte
-                    description: Encoded audio to play back to caller
+                    description: Base64 TTS audio (μ-law or PCM)
+                  transcription:
+                    type: string
+                    description: User's speech text
+                  assistantResponse:
+                    type: string
+                    description: Assistant's text (before TTS)
         '400':
           description: Invalid payload
+        '404':
+          description: Call not found
+        '502':
+          description: VA service unavailable
 
-  /voice/end:
+  /api/voice/end:
     post:
-      summary: Mark a call as ended and finalize metrics
+      summary: Finalize call and record metrics
       tags: [Voice]
+      description: |
+        Finalizes voice call session, updates MongoDB with metrics, stores transcript.
+        
+        **Actions**:
+        - Update status to 'completed'
+        - Calculate usage (STT seconds, TTS chars, LLM tokens)
+        - Store transcript and conversation history
+        - Trigger billing calculations
+        - Java VA service cleanup
       requestBody:
         required: true
         content:
@@ -307,17 +384,49 @@ paths:
               properties:
                 callId:
                   type: string
+                  description: MongoDB call identifier
+                  example: 507f1f77bcf86cd799439011
                 durationSeconds:
                   type: integer
+                  description: Total call duration
+                  example: 180
                 endedBy:
                   type: string
                   enum: [caller, assistant, system]
+                  description: Who initiated termination
+                  example: caller
               required: [callId, durationSeconds, endedBy]
       responses:
         '200':
-          description: Call end recorded
+          description: Call finalized successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  callSummary:
+                    type: object
+                    properties:
+                      callId:
+                        type: string
+                      duration:
+                        type: integer
+                      sttSeconds:
+                        type: number
+                      ttsCharacters:
+                        type: integer
+                      llmTokens:
+                        type: integer
+                      costEstimate:
+                        type: number
         '400':
           description: Invalid payload
+        '404':
+          description: Call not found
 
   /assistant/settings:
     get:
