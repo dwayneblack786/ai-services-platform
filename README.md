@@ -18,6 +18,8 @@ This README is written for three audiences at once:
 
 - [What Problem We Are Solving](#what-problem-we-are-solving)
 - [How The Workspace Connects](#how-the-workspace-connects)
+- [Architecture Diagrams](#architecture-diagrams)
+- [Platform Delivery Assets](#platform-delivery-assets)
 - [What Has Been Completed](#what-has-been-completed)
 - [Products We Offer](#products-we-offer)
 - [Success Metrics To Track](#success-metrics-to-track)
@@ -44,7 +46,7 @@ Each folder is part of one end-to-end system:
 - `services-java/`: Java Spring Boot agent workflow services (listing, CV, IDP, voice)
 - `services-python/`: Python model/inference services (speech, vision, and agent support)
 - `shared/`: shared contracts/types
-- `ai-product-template/`: starter template for new product modules
+- `ai-product-starter-template/`: internal starter template for new product modules that need the same baseline look, shell, and frontend/backend structure
 - `docs/` and `plans/`: architecture, decisions, and migration planning
 
 ```mermaid
@@ -57,31 +59,179 @@ flowchart LR
 	P --> D
 	PM[Platform Control Plane] --> FE
 	PM --> BE
+
+	classDef core fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+	class U,FE,BE,J,P,D,PM core;
 ```
+
+## Architecture Diagrams
+
+The diagrams below show how current and pending products connect through one shared system.
+
+### 1) End-To-End Platform Flow
+
+```mermaid
+flowchart LR
+	U[Real Estate Users] --> PM[Platform Control Plane]
+	PM --> PF[Product Frontends]
+	PF --> PB[Node.js Product Backends]
+
+	PB --> JS[Java Agent Services]
+	PB --> PS[Python Inference Services]
+	JS --> SD[(Shared Data + Tenant Context)]
+	PS --> SD
+
+	PM --> ID[Identity and Access]
+	PM --> BA[Billing and Product Access]
+	PM --> OR[Cross-Product Orchestration]
+
+	ID --> PB
+	BA --> PB
+	OR --> JS
+	OR --> PS
+
+	classDef platform fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+	class U,PM,PF,PB,JS,PS,SD,ID,BA,OR platform;
+```
+
+### 2) Current And Pending Product Map
+
+```mermaid
+flowchart LR
+	subgraph CUR[Current Products]
+		LL[ListingLift]
+		PV[PropVision]
+		FV[FieldVoice Transition]
+	end
+
+	subgraph PEN[Pending Products]
+		PB2[PropBrief]
+		CG[ComplianceGuard]
+		DD[DealDesk]
+		TL[TenantLoop]
+	end
+
+	LL --> MP[Management Plane]
+	PV --> MP
+	FV --> MP
+	PB2 --> MP
+	CG --> MP
+	DD --> MP
+	TL --> MP
+
+	MP --> IDP[Identity and Tenant Context]
+	MP --> AP[Product Access and Billing]
+	MP --> AG[Agent Workflow Layer]
+
+	AG --> JSV[Java Services]
+	AG --> PSV[Python Services]
+	JSV --> DATA[(Shared Data and Events)]
+	PSV --> DATA
+
+	classDef platform fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+	class LL,PV,FV,PB2,CG,DD,TL,MP,IDP,AP,AG,JSV,PSV,DATA platform;
+```
+
+	### 3) Request Lifecycle (Auth To Outcome)
+
+	```mermaid
+	flowchart LR
+		U[User Request] --> AUTH[Identity and Session Check]
+		AUTH --> ROUTE[Product Route and Tenant Context]
+		ROUTE --> ORCH[Agent Workflow Orchestration]
+
+		ORCH --> STEP1[Ingest and Classification]
+		STEP1 --> STEP2[Agent Generation and Validation]
+		STEP2 --> HITL[Human Review Gate]
+		HITL --> STORE[Persist Result and Metadata]
+
+		STORE --> BILL[Usage and Billing Event]
+		STORE --> RESP[Product Response to User]
+
+		BILL --> PMON[Platform Monitoring and Analytics]
+		RESP --> PMON
+
+		classDef platform fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+		class U,AUTH,ROUTE,ORCH,STEP1,STEP2,HITL,STORE,BILL,RESP,PMON platform;
+	```
+
+## Platform Delivery Assets
+
+Not every workspace module is customer-facing. Some exist to speed up delivery and keep implementation consistent across products.
+
+- `ai-product-starter-template/`: internal starter project for launching a new product module with the shared platform shell, React + Vite frontend, Node.js + Express backend, shared TypeScript contracts, and placeholder service integration wiring
+
+This template is used to start new products faster while preserving the same structural conventions and baseline visual language across the portfolio.
 
 ## What Has Been Completed
 
-This section is focused on what is already delivered in the two core product workspaces: `ai-listing-agent` and `product-management`.
+This section highlights delivered progress that matters to all three audiences:
+
+- customers: faster, more reliable workflow outcomes in one platform
+- investors: clear execution from concept to integrated product architecture
+- developers: a working, multi-service foundation with proven integration patterns
+
+The platform has already moved from early assistant experiments into a vertical, agentic real-estate AI system with production-oriented foundations.
+
+This platform direction is based on lessons from earlier assistant implementations, and the current plan is to add skills to each agent tool to make the overall solution more complete and consistent.
+
+### Evolution Summary
+
+The execution path has been deliberate and measurable:
+
+- phase 1: generative AI chat and voice VA capabilities were implemented first as shared assistant foundations
+- phase 2: horizontal integration established shared services and reusable platform capabilities
+- phase 3: vertical integration shifted delivery to real-estate-specific workflows and product boundaries
+- phase 4: agentic transition now centers delivery around specialized workflow agents per product
+
+### Scope Repurposing (Delivered Direction)
+
+To align platform value with user needs and product focus:
+
+- chat is being repurposed into a site AI assistant for AI Services Platform guidance and customer support journeys
+- voice is being repurposed into a dedicated FieldVoice agent workflow product for field and lead-handling operations
+
+### Delivered Technology Highlights
+
+The following capabilities are implemented and already operating across the workspace:
+
+- platform and product frontends using React, Vite, and TypeScript
+- API and business-service layer using Node.js and Express with TypeScript
+- agent workflow orchestration services using Java Spring Boot
+- model and inference support services using Python service patterns
+- tenant-aware authentication and session integration using OAuth and Keycloak
+- operational data and caching foundations using MongoDB and Redis
+- multi-repo workspace automation for install, bootstrap, and environment setup
+- integrated management-plane to product-module to service-layer connectivity
 
 ### Milestone Snapshot
 
 #### ai-listing-agent completed milestones
 
 - completed standalone product workspace setup with frontend and backend structure
-- completed ListingLift README, setup flow, and environment documentation
-- completed phase-1 login modernization and shell/header/sidebar UX upgrades
-- completed listing workflow UI modernization and service reliability hardening
-- completed branding and documentation refresh with homepage preview and updated product narrative
+- completed listing workflow UI modernization and reliability hardening for core user journeys
+- completed phase-1 login modernization plus shell, header, and sidebar UX improvements
+- completed environment and setup documentation for faster onboarding and repeatable local startup
+- completed branding and product narrative refresh for clearer external positioning
 
 #### product-management completed milestones
 
-- completed standalone extraction and shared-auth integration work for independent operation
-- completed migration cleanup and documentation normalization for product-management ownership
-- completed broad UI modernization across shell, pages, and utility surfaces
-- completed subscriptions, payments, and admin dashboard refinement with responsive card and grid updates
-- completed management plane rebrand documentation for Infero Agents positioning
+- completed standalone extraction and shared-auth integration for independent operation
+- completed migration cleanup and documentation normalization under product-management ownership
+- completed broad UI modernization across shell, high-traffic pages, and utility screens
+- completed subscriptions, payments, and admin dashboard refinements with responsive card and grid behavior
+- completed management-plane rebrand documentation aligned to Infero Agents positioning
+
+#### ai-product-starter-template completed milestones
+
+- completed standalone starter workspace with frontend, backend-node, and shared package structure
+- completed reusable shell, navigation, and base page scaffolding for new product modules
+- completed starter backend routes for health checks, example API responses, and mock Java integration wiring
+- completed template documentation for setup, reuse guidance, and AI-assisted product bootstrapping prompts
 
 ### Recent Delivery Timeline
+
+Recent commits show continued execution momentum and architectural consistency.
 
 #### ai-listing-agent recent delivered changes
 
@@ -151,11 +301,13 @@ Optional: if your repositories are under a different GitHub owner, pass it expli
 
 What this script does:
 
-- clones missing sibling repos in this workspace (`ai-listing-agent`, `services-java`, `services-python`, `product-management`, `shared`)
+- clones missing sibling repos in this workspace (`ai-listing-agent`, `ai-product-starter-template`, `services-java`, `services-python`, `product-management`, `shared`)
 - creates missing `.env` files from `.env.example` templates (with prompt/confirmation)
 - installs Java dependencies using Maven wrapper offline dependency fetch
 - installs Node.js dependencies for active modules (`npm ci` when lockfile exists, otherwise `npm install`)
 - prints infrastructure startup commands for Docker and Podman
+
+The installer also prepares template environment files and dependencies for `ai-product-starter-template` when present or cloned.
 
 3. Start infrastructure with one of the compose files printed by the installer.
 
