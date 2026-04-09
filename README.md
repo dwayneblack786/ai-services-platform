@@ -19,6 +19,7 @@ This README is written for three audiences at once:
 - [What Problem We Are Solving](#what-problem-we-are-solving)
 - [How The Workspace Connects](#how-the-workspace-connects)
 - [Architecture Diagrams](#architecture-diagrams)
+- [Agentic Workflow And Human Approval Model](#agentic-workflow-and-human-approval-model)
 - [Platform Delivery Assets](#platform-delivery-assets)
 - [What Has Been Completed](#what-has-been-completed)
 - [Products We Offer](#products-we-offer)
@@ -154,6 +155,52 @@ flowchart LR
 		classDef platform fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
 		class U,AUTH,ROUTE,ORCH,STEP1,STEP2,HITL,STORE,BILL,RESP,PMON platform;
 	```
+
+## Agentic Workflow And Human Approval Model
+
+This platform uses agentic workflows where specialized agents execute defined steps in sequence with auditable inputs, outputs, and confidence signals.
+
+### What Will Be Agentic Workflows
+
+The following workflow types are designed to run as agentic pipelines:
+
+- listing preparation workflows (ingest, classification, auto-fill, copy generation, compliance pre-check)
+- vision workflows (photo attribute detection, quality checks, anomaly flags)
+- voice workflows (lead intake, qualification, appointment coordination, disposition logging)
+- document workflows (extraction, structuring, risk/compliance tagging)
+- tenant and customer support workflows (triage, routing, guided responses, follow-up tasks)
+
+### Why Agentic Workflows
+
+Agentic delivery is used because it provides:
+
+- clearer ownership of each workflow stage through specialized agents
+- better reliability than one generic prompt flow by separating tasks by function
+- stronger auditability through step-level traces, confidence, and decision logs
+- safer automation by allowing targeted human review at policy and risk boundaries
+- easier evolution by upgrading or replacing one agent without rewriting the whole workflow
+
+### Human-In-The-Loop Requirements
+
+Human review is required whenever automation confidence is low or business risk is high. Typical triggers include:
+
+- confidence below product-defined thresholds
+- compliance, legal, fair-housing, or policy-sensitive output
+- financial, contractual, or customer-impacting actions
+- cross-system conflicts or ambiguous source data
+- customer escalation, dispute, or exception handling
+
+### Multi-Level Human Approvals (When Needed)
+
+Approval levels are risk-based and can be configured per tenant or product:
+
+| Level | Reviewer | Typical Scope | Result |
+|---|---|---|---|
+| Level 1 | Operator or agent user | routine low-risk edits and validation | approve, request regeneration, or escalate |
+| Level 2 | Team lead or compliance reviewer | medium-risk compliance or quality-sensitive outputs | approve with notes, reject, or escalate |
+| Level 3 | Manager, legal, or admin approver | high-risk, legal, contractual, publishing, or external-release actions | final approve or hard reject |
+
+Not every workflow requires all levels. The default model is minimum necessary approval with mandatory escalation for high-risk decisions.
 
 ## Platform Delivery Assets
 
