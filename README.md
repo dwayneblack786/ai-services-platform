@@ -60,7 +60,7 @@ flowchart LR
 	PM[Platform Control Plane] --> FE
 	PM --> BE
 
-	classDef core fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+	classDef core fill:#1d1f24,stroke:#8b9098,color:#4e4e05 ,stroke-width:1px;
 	class U,FE,BE,J,P,D,PM core;
 ```
 
