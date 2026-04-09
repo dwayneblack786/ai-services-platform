@@ -18,6 +18,7 @@ This README is written for three audiences at once:
 
 - [What Problem We Are Solving](#what-problem-we-are-solving)
 - [How The Workspace Connects](#how-the-workspace-connects)
+- [Architecture Diagrams](#architecture-diagrams)
 - [What Has Been Completed](#what-has-been-completed)
 - [Products We Offer](#products-we-offer)
 - [Success Metrics To Track](#success-metrics-to-track)
@@ -57,7 +58,101 @@ flowchart LR
 	P --> D
 	PM[Platform Control Plane] --> FE
 	PM --> BE
+
+	classDef core fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+	class U,FE,BE,J,P,D,PM core;
 ```
+
+## Architecture Diagrams
+
+The diagrams below show how current and pending products connect through one shared system.
+
+### 1) End-To-End Platform Flow
+
+```mermaid
+flowchart LR
+	U[Real Estate Users] --> PM[Platform Control Plane]
+	PM --> PF[Product Frontends]
+	PF --> PB[Node.js Product Backends]
+
+	PB --> JS[Java Agent Services]
+	PB --> PS[Python Inference Services]
+	JS --> SD[(Shared Data + Tenant Context)]
+	PS --> SD
+
+	PM --> ID[Identity and Access]
+	PM --> BA[Billing and Product Access]
+	PM --> OR[Cross-Product Orchestration]
+
+	ID --> PB
+	BA --> PB
+	OR --> JS
+	OR --> PS
+
+	classDef platform fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+	class U,PM,PF,PB,JS,PS,SD,ID,BA,OR platform;
+```
+
+### 2) Current And Pending Product Map
+
+```mermaid
+flowchart LR
+	subgraph CUR[Current Products]
+		LL[ListingLift]
+		PV[PropVision]
+		FV[FieldVoice Transition]
+	end
+
+	subgraph PEN[Pending Products]
+		PB2[PropBrief]
+		CG[ComplianceGuard]
+		DD[DealDesk]
+		TL[TenantLoop]
+	end
+
+	LL --> MP[Management Plane]
+	PV --> MP
+	FV --> MP
+	PB2 --> MP
+	CG --> MP
+	DD --> MP
+	TL --> MP
+
+	MP --> IDP[Identity and Tenant Context]
+	MP --> AP[Product Access and Billing]
+	MP --> AG[Agent Workflow Layer]
+
+	AG --> JSV[Java Services]
+	AG --> PSV[Python Services]
+	JSV --> DATA[(Shared Data and Events)]
+	PSV --> DATA
+
+	classDef platform fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+	class LL,PV,FV,PB2,CG,DD,TL,MP,IDP,AP,AG,JSV,PSV,DATA platform;
+```
+
+	### 3) Request Lifecycle (Auth To Outcome)
+
+	```mermaid
+	flowchart LR
+		U[User Request] --> AUTH[Identity and Session Check]
+		AUTH --> ROUTE[Product Route and Tenant Context]
+		ROUTE --> ORCH[Agent Workflow Orchestration]
+
+		ORCH --> STEP1[Ingest and Classification]
+		STEP1 --> STEP2[Agent Generation and Validation]
+		STEP2 --> HITL[Human Review Gate]
+		HITL --> STORE[Persist Result and Metadata]
+
+		STORE --> BILL[Usage and Billing Event]
+		STORE --> RESP[Product Response to User]
+
+		BILL --> PMON[Platform Monitoring and Analytics]
+		RESP --> PMON
+
+		classDef platform fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
+		class U,AUTH,ROUTE,ORCH,STEP1,STEP2,HITL,STORE,BILL,RESP,PMON platform;
+	```
 
 ## What Has Been Completed
 
