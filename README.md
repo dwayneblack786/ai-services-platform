@@ -6,6 +6,8 @@ Work in progress: this README is actively being updated and will evolve as archi
 
 This project is a vertical AI integration for real estate teams. Instead of one generic AI tool, it delivers a connected set of products that share the same foundation for identity, tenancy, data, and agent orchestration.
 
+All products in this platform are agentic products, designed around specialized workflow agents rather than generic chat-only interfaces.
+
 This README is written for three audiences at once:
 
 - business and investment stakeholders evaluating category and growth potential
@@ -16,6 +18,7 @@ This README is written for three audiences at once:
 
 - [What Problem We Are Solving](#what-problem-we-are-solving)
 - [How The Workspace Connects](#how-the-workspace-connects)
+- [What Has Been Completed](#what-has-been-completed)
 - [Products We Offer](#products-we-offer)
 - [Success Metrics To Track](#success-metrics-to-track)
 - [Install After Clone](#install-after-clone)
@@ -55,6 +58,46 @@ flowchart LR
 	PM[Platform Control Plane] --> FE
 	PM --> BE
 ```
+
+## What Has Been Completed
+
+This section is focused on what is already delivered in the two core product workspaces: `ai-listing-agent` and `product-management`.
+
+### Milestone Snapshot
+
+#### ai-listing-agent completed milestones
+
+- completed standalone product workspace setup with frontend and backend structure
+- completed ListingLift README, setup flow, and environment documentation
+- completed phase-1 login modernization and shell/header/sidebar UX upgrades
+- completed listing workflow UI modernization and service reliability hardening
+- completed branding and documentation refresh with homepage preview and updated product narrative
+
+#### product-management completed milestones
+
+- completed standalone extraction and shared-auth integration work for independent operation
+- completed migration cleanup and documentation normalization for product-management ownership
+- completed broad UI modernization across shell, pages, and utility surfaces
+- completed subscriptions, payments, and admin dashboard refinement with responsive card and grid updates
+- completed management plane rebrand documentation for Infero Agents positioning
+
+### Recent Delivery Timeline
+
+#### ai-listing-agent recent delivered changes
+
+- `534f915`: docs update for README branding and homepage preview
+- `3e53bba`: shell header identity and sidebar UX polish
+- `5b10768`: listing workflow UI modernization and reliability improvements
+- `ea88618`: phase-1 login experience modernization
+- `55ec403`: default tenant bootstrap login fix
+
+#### product-management recent delivered changes
+
+- `1e641fd`: subscriptions, payments, and admin dashboard UI refinement
+- `0a1a3ed`: broad product-management UI system modernization
+- `a46bbeb`: README rebrand to Infero Agents management plane
+- `6a71a96`: README rewrite with FieldVoice migration framing
+- `f4a75fc`: ListingLift integration as subscription-gated platform product
 
 ## Products We Offer
 
