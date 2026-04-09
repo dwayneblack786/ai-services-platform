@@ -51,6 +51,7 @@ Each folder is part of one end-to-end system:
 - `docs/` and `plans/`: architecture, decisions, and migration planning
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryTextColor': '#ffffff', 'secondaryTextColor': '#ffffff', 'tertiaryTextColor': '#ffffff', 'lineColor': '#8b9098', 'clusterBkg': '#1d1f24', 'clusterBorder': '#8b9098' }}}%%
 flowchart LR
 	U[Real Estate Users] --> FE[Product Frontends]
 	FE --> BE[Node.js Product Backends]
@@ -61,7 +62,7 @@ flowchart LR
 	PM[Platform Control Plane] --> FE
 	PM --> BE
 
-	classDef core fill:#1d1f24,stroke:#8b9098,color:#4e4e05 ,stroke-width:1px;
+	classDef core fill:#1d1f24,stroke:#8b9098,color:#ffffff,stroke-width:1px;
 	class U,FE,BE,J,P,D,PM core;
 ```
 
@@ -72,6 +73,7 @@ The diagrams below show how current and pending products connect through one sha
 ### 1) End-To-End Platform Flow
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryTextColor': '#ffffff', 'secondaryTextColor': '#ffffff', 'tertiaryTextColor': '#ffffff', 'lineColor': '#8b9098', 'clusterBkg': '#1d1f24', 'clusterBorder': '#8b9098' }}}%%
 flowchart LR
 	U[Real Estate Users] --> PM[Platform Control Plane]
 	PM --> PF[Product Frontends]
@@ -98,6 +100,7 @@ flowchart LR
 ### 2) Current And Pending Product Map
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryTextColor': '#ffffff', 'secondaryTextColor': '#ffffff', 'tertiaryTextColor': '#ffffff', 'lineColor': '#8b9098', 'clusterBkg': '#1d1f24', 'clusterBorder': '#8b9098' }}}%%
 flowchart LR
 	subgraph CUR[Current Products]
 		LL[ListingLift]
@@ -136,6 +139,7 @@ flowchart LR
 ### 3) Request Lifecycle (Auth To Outcome)
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryTextColor': '#ffffff', 'secondaryTextColor': '#ffffff', 'tertiaryTextColor': '#ffffff', 'lineColor': '#8b9098', 'clusterBkg': '#1d1f24', 'clusterBorder': '#8b9098' }}}%%
 flowchart LR
 	U[User Request] --> AUTH[Identity and Session Check]
 	AUTH --> ROUTE[Product Route and Tenant Context]
