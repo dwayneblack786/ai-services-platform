@@ -2,8 +2,8 @@
 
 Context:
 
-- This workspace contains multiple independent repositories under one folder tree.
-- Correct change handling requires repository-scoped git actions and quality gates.
+- This workspace contains one workspace repository at the root plus multiple independent product repositories under the same folder tree.
+- Correct change handling requires knowing which repository owns the changed files before staging or committing.
 
 Source file/path:
 
@@ -16,6 +16,7 @@ Last verified date:
 
 Verified commands:
 
+- `Set-Location "C:/Users/Owner/Documents/ai-services-platform"; git status --short` (workspace root)
 - `Set-Location ai-listing-agent; git status --short`
 - `Set-Location product-management; git status --short`
 - `Set-Location services-java; git status --short`
@@ -23,7 +24,9 @@ Verified commands:
 
 Actionable notes:
 
-- Treat `services-java`, `product-management`, `ai-listing-agent`, and `shared` as separate git repositories.
+- The workspace root (`ai-services-platform/`) is its own git repository used during development. It owns `.claude/`, `docs/`, `plans/`, `podman-compose.yml`, root `CLAUDE.md`, and shared scripts.
+- Treat `services-java`, `product-management`, `ai-listing-agent`, and `shared` as separate product repositories; each has its own history, branches, and PR lifecycle.
+- Workspace root commits must not contain source files owned by a nested product repo.
 - Stage and commit only files owned by the active repository.
 - Run syntax/build/tests/coverage in the owning repository for changed tiers.
 - For cross-repo features, create one commit/PR per repository and document merge order.

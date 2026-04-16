@@ -16,7 +16,9 @@ Each tier has its own `CLAUDE.md` with stack-specific details.
 
 ## Repository Boundaries
 
-Treat the following directories as independent git repositories with their own history, branches, remotes, and PR lifecycle:
+The workspace root (`ai-services-platform/`) is a workspace-scoped repository used during development. It hosts shared tooling, platform-level docs, `.claude/` rules/skills/wiki, `podman-compose.yml`, and cross-cutting configuration that does not belong to any single product repo. Commits here are development-context changes, not product-feature changes.
+
+Treat the following directories as independent product repositories with their own history, branches, remotes, and PR lifecycle:
 
 - `services-java`
 - `product-management`
@@ -26,10 +28,11 @@ Treat the following directories as independent git repositories with their own h
 Change handling requirements:
 
 1. Scope git operations (`status`, `diff`, `add`, `commit`, `push`) to the repository that owns the changed files.
-2. Do not mix changes from different repositories in one commit.
-3. Run syntax/build/test/coverage gates only for affected tiers inside the affected repository.
-4. Open and track PRs per repository, even when one feature spans multiple repositories.
-5. Document cross-repo dependencies and merge order in PR notes.
+2. Workspace root commits cover: `.claude/`, `docs/`, `plans/`, `podman-compose.yml`, root `CLAUDE.md`, and shared scripts. They must not include source files owned by a nested product repo.
+3. Do not mix changes from different repositories in one commit.
+4. Run syntax/build/test/coverage gates only for affected tiers inside the affected repository.
+5. Open and track PRs per repository, even when one feature spans multiple repositories.
+6. Document cross-repo dependencies and merge order in PR notes.
 
 ## Rules
 
