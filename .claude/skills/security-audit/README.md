@@ -34,6 +34,12 @@ This directory contains tier-specific security audit skills to ensure all change
    - Tenant boundary enforcement
    - Sensitive data handling
 
+6. **audit-ai-llm-systems.md** — AI, LLM, RAG, and agentic workflow security
+   - Prompt injection and context isolation
+   - Tool-calling safety and loop bounds
+   - Tenant-safe retrieval and grounded generation
+   - Secret, PII, and model-output protection
+
 ## Quick Selector
 
 | Change Type | Tier | Audit Skill |
@@ -43,6 +49,7 @@ This directory contains tier-specific security audit skills to ensure all change
 | Spring service, controller | Java | `audit-java-spring.md` |
 | New API endpoint, gRPC method | Any | `audit-api-contracts.md` |
 | Database query, ORM operation | Any | `audit-data-protection.md` |
+| LLM integration, RAG, tool calling, agent loop | Any | `audit-ai-llm-systems.md` |
 
 ## Recommended Usage Flow
 
@@ -69,6 +76,7 @@ Run a security audit when changes affect:
 - Error handling or logging
 - API endpoints or gRPC methods
 - New dependencies
+- AI prompts, tool-calling, retrieval, model routing, or agentic workflows
 
 ## Failure Criteria (Block Merge)
 
