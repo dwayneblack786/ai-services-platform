@@ -45,6 +45,7 @@ All durable governance lives under **`.ai/`** (model-agnostic canonical source):
 `.claude/` is the **Claude runtime adapter** — kept in sync with `.ai/` via:
 ```powershell
 npm run ai:sync      # sync .ai → .claude
+npm run ai:sync:auto # auto-detect .ai changes; sync .claude and skills mirrors as needed
 npm run ai:validate  # verify zero drift
 ```
 

@@ -5,6 +5,7 @@ Skills in this folder help organize, discover, and preserve project knowledge ac
 ## Skills
 
 1. **obsidian-workflow.md** — Set up and maintain an Obsidian vault for the `.ai/` directory to create a persistent, locally-queryable knowledge layer. Covers vault setup, linking conventions, integration with Copilot Chat, search queries for pattern discovery, and token efficiency gains.
+2. **governance-sync-by-change.md** — Auto-select governance sync strategy from changed `.ai` files and run the correct sync path for `.claude`, `.agent`, and `.github` skills mirror targets.
 
 ## When to Use
 

@@ -4,6 +4,7 @@ Scope:
 
 - `podman-compose.yml`
 - `start-app.ps1`, `start-app.sh`
+- `scripts/` directory (`*.ps1`, `*.sh`)
 - `infra/` directory
 - `.env.example` or any template environment file
 - Any change to service port assignments, container image versions, or volume configuration
@@ -12,6 +13,7 @@ Mandatory trigger:
 
 - Any edit to `podman-compose.yml`.
 - Any edit to startup scripts (`start-app.ps1`, `start-app.sh`).
+- Any new or edited script in `scripts/`.
 - Any new or changed required environment variable across any tier.
 - Any change to a service's listen port (frontend, backend, Java, Python services).
 - Any change to MongoDB or Redis container configuration.
@@ -54,16 +56,24 @@ Required checks:
    - MongoDB and Redis must not be exposed on `0.0.0.0` in default configuration.
    - Only expose ports that are required for local development or integration.
 
+7. **Cross-platform script parity:**
+   - Any new operational script must have both a Windows PowerShell path (`.ps1`) and a Linux/macOS shell path (`.sh`) unless the script is truly platform-specific.
+   - If platform-specific behavior is required, document the reason at the top of the script and provide a fallback command path in `scripts/README.md`.
+   - When editing an existing paired script, update both variants in the same change to keep behavior aligned.
+   - Keep command semantics equivalent across platforms (same inputs, same outputs, same side effects).
+
 Verification:
 
 - After any compose change: `podman-compose up -d` starts cleanly with no errors.
 - After any startup script change: run the script end-to-end and confirm all services reach their expected ports.
+- After any cross-platform script change: run both the `.ps1` and `.sh` variants (or provide documented rationale if one variant is intentionally not applicable).
 
 Pass criteria:
 
 - No secrets in committed infra files.
 - Port table above is accurate and conflict-free.
 - Both startup scripts are consistent with each other.
+- New or edited operational scripts have Windows and Linux/macOS parity (or explicit documented exception).
 - `.env.example` updated for any new required variable.
 
 Fail handling:
@@ -71,4 +81,5 @@ Fail handling:
 - Do not merge compose changes that introduce secrets.
 - Do not merge port changes that create conflicts without updating the port table in this rule.
 - Do not merge startup script changes that break the startup order.
+- Do not merge new operational scripts that are missing a cross-platform counterpart without documented exception and fallback.
 - Apply the infra skill before merging: `.ai/skills/code-changes/senior-devops-infra.md`

@@ -54,6 +54,13 @@ Promotion workflow after coding:
 3. Do not promote raw transcripts, speculative notes, or one-off dead ends.
 4. Link new high-value wiki entries from `.ai/wiki/index.md`.
 
+Governance sync automation (mandatory):
+
+- Any change under `.ai/` must trigger governance synchronization before commit.
+- Preferred command: `npm run ai:sync:auto` (auto-detects changed `.ai` areas and runs the correct sync flow + validation).
+- If `.ai/skills/` changed, sync must include skills mirror targets: `.agent/skills` and `.github/skills` in addition to `.claude`.
+- Pre-commit automation in `.ai/hooks/pre-commit` should handle this when staged files include `.ai/*`; if pre-commit is unavailable, run `npm run ai:sync:auto` manually.
+
 Quality rule:
 
 - Knowledge entries must be maintained as code evolves; stale entries should be corrected or removed.

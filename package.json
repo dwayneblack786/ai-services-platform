@@ -1,6 +1,8 @@
 {
   "scripts": {
     "ai:sync": "pwsh -File ./scripts/sync-ai-governance.ps1",
+    "ai:sync:skills-all": "pwsh -File ./scripts/sync-ai-governance.ps1 -SyncSkillsToAllTargets",
+    "ai:sync:auto": "pwsh -File ./scripts/sync-ai-governance-auto.ps1 -Validate",
     "ai:validate": "pwsh -File ./scripts/validate-ai-governance-sync.ps1"
   },
   "dependencies": {

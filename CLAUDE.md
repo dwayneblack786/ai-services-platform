@@ -52,6 +52,7 @@ Model-agnostic governance workflow:
 - Canonical shared governance content: `.ai/`
 - Claude runtime adapter content: `.claude/`
 - Sync command: `./scripts/sync-ai-governance.ps1`
+- Auto sync by change: `npm run ai:sync:auto`
 - Validation command: `./scripts/validate-ai-governance-sync.ps1`
 
 ## Plans

@@ -182,6 +182,8 @@
   },
   "active": "3107fb2785d45f8d",
   "lastOpenFiles": [
+    "wiki/runbooks/governance-sync-by-change.md",
+    "skills/knowledge-management/governance-sync-by-change.md",
     "hooks/pre-commit",
     "hooks",
     "rules/15-no-secrets-in-git.md",

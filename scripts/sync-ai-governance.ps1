@@ -18,10 +18,14 @@
 
 .EXAMPLE
   .\scripts\sync-ai-governance.ps1 -IncludeObsidian
+
+.EXAMPLE
+  .\scripts\sync-ai-governance.ps1 -SyncSkillsToAllTargets
 #>
 
 param(
-  [switch]$IncludeObsidian
+  [switch]$IncludeObsidian,
+  [switch]$SyncSkillsToAllTargets
 )
 
 $ErrorActionPreference = 'Stop'
@@ -38,6 +42,26 @@ if (-not (Test-Path $ClaudeRoot)) {
   throw "Missing target folder: $ClaudeRoot"
 }
 
+function Sync-Directory {
+  param(
+    [Parameter(Mandatory = $true)][string]$Source,
+    [Parameter(Mandatory = $true)][string]$Destination
+  )
+
+  if (-not (Test-Path $Source)) {
+    Write-Host "SKIP $Source (not found)" -ForegroundColor Yellow
+    return $false
+  }
+
+  if (Test-Path $Destination) {
+    Remove-Item -Path $Destination -Recurse -Force
+  }
+
+  Copy-Item -Path $Source -Destination $Destination -Recurse -Force
+  Write-Host "SYNC $Source -> $Destination" -ForegroundColor Green
+  return $true
+}
+
 $dirs = @("agents", "commands", "hooks", "rules", "skills", "wiki")
 if ($IncludeObsidian) {
   $dirs += ".obsidian"
@@ -47,17 +71,23 @@ foreach ($dir in $dirs) {
   $src = Join-Path $AiRoot $dir
   $dst = Join-Path $ClaudeRoot $dir
 
-  if (-not (Test-Path $src)) {
-    Write-Host "SKIP $src (not found)" -ForegroundColor Yellow
-    continue
-  }
+  Sync-Directory -Source $src -Destination $dst | Out-Null
+}
 
-  if (Test-Path $dst) {
-    Remove-Item -Path $dst -Recurse -Force
-  }
+if ($SyncSkillsToAllTargets) {
+  $skillsSource = Join-Path $AiRoot "skills"
+  $extraSkillTargets = @(".agent", ".github")
 
-  Copy-Item -Path $src -Destination $dst -Recurse -Force
-  Write-Host "SYNC $src -> $dst" -ForegroundColor Green
+  foreach ($target in $extraSkillTargets) {
+    $targetRoot = Join-Path $WorkspaceRoot $target
+    if (-not (Test-Path $targetRoot)) {
+      Write-Host "SKIP $targetRoot (not found)" -ForegroundColor Yellow
+      continue
+    }
+
+    $targetSkills = Join-Path $targetRoot "skills"
+    Sync-Directory -Source $skillsSource -Destination $targetSkills | Out-Null
+  }
 }
 
 Write-Host ""

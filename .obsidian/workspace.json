@@ -179,6 +179,7 @@
   },
   "active": "2ffaaa1246b0de4a",
   "lastOpenFiles": [
+    "scripts/sync-ai-governance-auto.ps1",
     "plans/phase-a-java-grpc-agents-v2.md",
     "docs/README.md",
     "ai-listing-agent/node_modules/color-convert/README.md",
@@ -214,7 +215,6 @@
     "scripts/start-sso-system.ps1",
     "services-java/va-service/CLAUDE.md",
     "Untitled.canvas",
-    "ai-services-platfrom/create a link.md",
-    "ai-services-platfrom/Welcome.md"
+    "ai-services-platfrom/create a link.md"
   ]
 }

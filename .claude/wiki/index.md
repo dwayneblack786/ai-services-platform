@@ -13,6 +13,7 @@ Sections:
 - [Service Notes: va-service](services/va-service.md)
 - [Runbooks](runbooks/README.md)
 - [Runbook: Repository Boundaries and Change Flow](runbooks/repo-boundaries-and-change-flow.md)
+- [Runbook: Governance Sync By Change](runbooks/governance-sync-by-change.md)
 - [Runbook: Listing Service Change Verification](runbooks/listing-service-change-verification.md)
 - [Runbook: Java gRPC Proto Sync and Runtime Checks](runbooks/java-grpc-proto-sync-and-runtime-checks.md)
 - [Runbook: MongoDB Operations — Connection Failures, Slow Queries, Index Maintenance](runbooks/mongodb-operations.md)

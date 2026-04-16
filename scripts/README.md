@@ -95,6 +95,7 @@ All scripts live under `scripts/` (workspace root). The former `product-manageme
 | Script | Purpose |
 |--------|---------|
 | `sync-ai-governance.ps1` | Sync shared governance content from `.ai/` (canonical) to `.claude/` (Claude runtime adapter) |
+| `sync-ai-governance-auto.ps1` | Detect `.ai/` changes and auto-run the right sync flow (`.claude` always; `.agent/.github` skills only when `.ai/skills` changed) |
 | `validate-ai-governance-sync.ps1` | Validate parity between `.ai/` and `.claude/` using SHA256 hashes |
 
 ---
@@ -115,6 +116,15 @@ These scripts live with their service and are not moved here because they are ti
 
 - Run MongoDB scripts against the local dev database: `mongosh ai_platform < script.js`
 - Run PowerShell scripts from workspace root unless the script header says otherwise.
+- For new operational scripts, provide both `.ps1` (Windows) and `.sh` (Linux/macOS) variants unless the script is truly platform-specific.
+- If a script is platform-specific, document why in the script header and list a fallback command path in this README.
 - Do not create a new script without first checking this index.
 - After adding a new script, update this README immediately.
-- For model-agnostic governance updates: run `./scripts/sync-ai-governance.ps1` then `./scripts/validate-ai-governance-sync.ps1`.
+- For model-agnostic governance updates:
+	- `npm run ai:sync:auto` to auto-detect changed `.ai` areas and run the correct sync + validation.
+	- `npm run ai:sync` for full `.ai -> .claude` sync only.
+	- `npm run ai:sync:skills-all` when you explicitly need skills mirrored to `.agent` and `.github`.
+
+Automation:
+
+- The canonical hook `.ai/hooks/pre-commit` auto-runs governance sync when staged files include `.ai/*` (if `pwsh` is available), then stages generated sync outputs before secret scanning.
