@@ -11,6 +11,7 @@ Sections:
 - [Service Notes: product-management](services/product-management.md)
 - [Service Notes: listing-service](services/listing-service.md)
 - [Runbooks](runbooks/README.md)
+- [Runbook: Repository Boundaries and Change Flow](runbooks/repo-boundaries-and-change-flow.md)
 - [Decisions](decisions/README.md)
 
 Usage:

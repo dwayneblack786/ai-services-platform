@@ -14,6 +14,23 @@ ai-services-platform/
 
 Each tier has its own `CLAUDE.md` with stack-specific details.
 
+## Repository Boundaries
+
+Treat the following directories as independent git repositories with their own history, branches, remotes, and PR lifecycle:
+
+- `services-java`
+- `product-management`
+- `ai-listing-agent`
+- `shared`
+
+Change handling requirements:
+
+1. Scope git operations (`status`, `diff`, `add`, `commit`, `push`) to the repository that owns the changed files.
+2. Do not mix changes from different repositories in one commit.
+3. Run syntax/build/test/coverage gates only for affected tiers inside the affected repository.
+4. Open and track PRs per repository, even when one feature spans multiple repositories.
+5. Document cross-repo dependencies and merge order in PR notes.
+
 ## Rules
 
 Repository-wide development and quality rules are defined in:

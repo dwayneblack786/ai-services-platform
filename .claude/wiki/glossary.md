@@ -12,6 +12,11 @@
 
 - Post-edit order: syntax, build, tests, coverage when applicable, security review.
 
+## Repository Scope
+
+- `services-java`, `product-management`, `ai-listing-agent`, and `shared` are independent git repositories.
+- Changes, commits, and PRs must be handled per repository.
+
 Last verified date:
 
 - 2026-04-16

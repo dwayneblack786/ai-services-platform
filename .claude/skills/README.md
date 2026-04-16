@@ -33,8 +33,16 @@ This index helps select the right skill quickly.
 - Implementing senior Java Spring standards changes:
   - `code-changes/senior-java-spring-standards.md`
 
+## Repository Scope Rules
+
+- Treat `services-java`, `product-management`, `ai-listing-agent`, and `shared` as separate git repositories.
+- Run `git status`, `git diff`, staging, commits, and pushes from the owning repository path.
+- Keep commits repository-local; do not combine file changes from multiple repositories in one commit.
+- Run quality gates in the owning repository for changed tiers only.
+
 ## Recommended Usage Flow
 
-1. Pick one implementation skill from `code-changes/` based on the tier.
-2. Run one or more focused review skills from `code-review/`.
-3. Always finish with `code-review/review-gate-enforcer.md`.
+1. Identify the repository that owns the target files.
+2. Pick one implementation skill from `code-changes/` based on the tier.
+3. Run one or more focused review skills from `code-review/`.
+4. Always finish with `code-review/review-gate-enforcer.md`.

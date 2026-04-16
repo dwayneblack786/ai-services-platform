@@ -13,6 +13,7 @@ Rule files:
 7. `07-test-coverage-gates.md`
 8. `08-plan-output-rules.md`
 9. `09-ai-wiki-knowledge-rules.md`
+10. `10-repository-boundaries-and-change-scope.md`
 
 Execution order after code edits:
 
