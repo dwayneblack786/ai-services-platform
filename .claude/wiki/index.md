@@ -12,7 +12,25 @@ Sections:
 - [Service Notes: listing-service](services/listing-service.md)
 - [Runbooks](runbooks/README.md)
 - [Runbook: Repository Boundaries and Change Flow](runbooks/repo-boundaries-and-change-flow.md)
+- [Runbook: Listing Service Change Verification](runbooks/listing-service-change-verification.md)
+- [Runbook: Java gRPC Proto Sync and Runtime Checks](runbooks/java-grpc-proto-sync-and-runtime-checks.md)
 - [Decisions](decisions/README.md)
+
+High-value rules to check from here:
+
+- `../rules/04-security-standards.md` — auth, secrets, tenant boundaries, input validation
+- `../rules/05-tech-stack-standards.md` — approved frameworks and stack constraints
+- `../rules/06-testing-standards-by-tier.md` — required test expectations by tier
+- `../rules/09-ai-wiki-knowledge-rules.md` — knowledge ingestion and retrieval workflow
+- `../rules/10-repository-boundaries-and-change-scope.md` — repository ownership and git scope
+
+Session startup path:
+
+1. Check the most relevant `/memories/repo/` note first
+2. Open this index
+3. Open one relevant service page or runbook
+4. Open the matching skill or rule if needed
+5. Read deeper docs only when the above still leaves a gap
 
 Security workflow references:
 
@@ -23,7 +41,9 @@ Security workflow references:
 Usage:
 
 - Check this index before opening large source documents.
+- Prefer targeted retrieval over broad reading. Pull one repo memory note, one service page, and one skill or rule before opening deeper documentation.
 - Use the security-audit skill set when a change affects auth, secrets, external input, APIs, or data access.
+- Promote durable findings from session work into repo memory, runbooks, decisions, or service notes.
 - Update the relevant page after architecture, workflow, or verification commands change.
 
 Last verified date:

@@ -31,13 +31,30 @@ Summarization standards:
 - Capture commands that are verified to work.
 - Mark unknowns and assumptions explicitly.
 - Avoid duplicating full documentation text.
+- Avoid storing full chat transcripts as durable memory.
+- Prefer distilled conclusions over chronological notes.
 
 Retrieval workflow before coding:
 
-1. Check wiki index and relevant service page first.
-2. Read original docs only when wiki lacks required detail.
-3. After completing work, update wiki entries affected by the change.
+1. Check the smallest relevant memory source first:
+   - `/memories/repo/` for compact reusable facts
+   - `.claude/wiki/index.md` and the relevant service or runbook page
+2. Open the matching skill or rule only if the task requires implementation, review, or security guidance.
+3. Read original docs or source files only when the targeted memory and wiki notes lack required detail.
+4. After completing work, update wiki entries affected by the change.
+
+Promotion workflow after coding:
+
+1. Review current session notes and extracted facts.
+2. Promote reusable facts to the smallest durable destination:
+   - `/memories/repo/` for compact agent-facing facts and recurring gotchas
+   - `.claude/wiki/runbooks/` for repeatable troubleshooting steps and verified commands
+   - `.claude/wiki/decisions/` for architecture decisions and tradeoffs
+   - `.claude/wiki/services/` for stable service-specific facts and contracts
+3. Do not promote raw transcripts, speculative notes, or one-off dead ends.
+4. Link new high-value wiki entries from `.claude/wiki/index.md`.
 
 Quality rule:
 
 - Knowledge entries must be maintained as code evolves; stale entries should be corrected or removed.
+- Long-term memory should improve retrieval, not increase default context size.

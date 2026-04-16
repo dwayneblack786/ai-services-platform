@@ -72,8 +72,10 @@ This index helps select the right skill quickly.
 
 0. **Knowledge baseline (Optional but recommended):** If this is your first session or you're starting fresh on a large feature, spend 10 min on `knowledge-management/obsidian-workflow.md` to set up Obsidian vault. Reduces token consumption and accelerates context discovery in subsequent sessions.
 1. Identify the repository that owns the target files.
-2. Pick one implementation skill from `code-changes/` based on the tier.
-3. If the change is AI-heavy, agentic, retrieval-based, or involves model/provider integration, use `code-changes/senior-ai-agentic-implementation.md`.
-4. If the change touches auth, input handling, secrets, data access, APIs, external calls, or AI/LLM behavior, run the matching skill from `security-audit/`.
-5. Run one or more focused review skills from `code-review/`, including `code-review/review-ai-agentic-systems.md` for AI features.
-6. Always finish with `code-review/review-gate-enforcer.md`.
+2. Pull targeted context first: one `/memories/repo/` note, `wiki/index.md`, and one service page or runbook.
+3. Pick one implementation skill from `code-changes/` based on the tier.
+4. If the change is AI-heavy, agentic, retrieval-based, or involves model/provider integration, use `code-changes/senior-ai-agentic-implementation.md`.
+5. If the change touches auth, input handling, secrets, data access, APIs, external calls, or AI/LLM behavior, run the matching skill from `security-audit/`.
+6. Run one or more focused review skills from `code-review/`, including `code-review/review-ai-agentic-systems.md` for AI features.
+7. Promote durable findings to repo memory or wiki pages before ending the task.
+8. Always finish with `code-review/review-gate-enforcer.md`.

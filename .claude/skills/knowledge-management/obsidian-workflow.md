@@ -12,6 +12,44 @@ Treat your `.claude/` directory structure as an Obsidian vault to create a persi
 - You need to search across all documentation to find related concepts (e.g., "auth" appears in rules, skills, wiki)
 - Building a mental model of cross-tier dependencies (Node → Java → Python service calls)
 
+## Memory Model
+
+Use a layered memory model so context stays selective:
+
+- `/memories/session/` for temporary work-in-progress notes and current-task plans
+- `/memories/repo/` for compact, reusable facts the agent should retrieve later
+- `.claude/wiki/` for broader, human-readable architecture, decisions, and runbooks
+- Obsidian as the discovery layer over `.claude/`, not as a raw transcript dump
+
+Rule of thumb:
+
+- Store conclusions, commands, contracts, patterns, and gotchas
+- Do not store full chat transcripts or large copied documents as long-term memory
+
+## Session Startup Workflow
+
+Before reading source code or large docs, pull the smallest useful context set:
+
+1. Check relevant repo memory notes in `/memories/repo/`
+2. Open `wiki/index.md` and the most relevant service page
+3. Open the matching skill only if the task is implementation, review, or security-heavy
+4. Read deeper docs or source only if the above still leaves a gap
+
+Recommended startup questions:
+
+- Which repository owns this work?
+- Is there already a repo memory note for this area?
+- Which one service page or runbook is most likely to contain the answer?
+- Which single rule or skill applies before opening broader documentation?
+
+Example startup path for a Java AI change:
+
+1. Check `/memories/repo/` for listing-service or gRPC-related notes
+2. Open `wiki/services/listing-service.md`
+3. Open `rules/10-repository-boundaries-and-change-scope.md`
+4. Open `skills/code-changes/senior-ai-agentic-implementation.md`
+5. Open original docs or source only if those notes are insufficient
+
 ## Setup: Opening the Vault
 
 ### Option A: Single `.claude` Vault (Recommended for this project)
@@ -106,7 +144,7 @@ Use Obsidian's search feature (`Ctrl+Shift+F`) to find patterns:
 | `auth` | Find all auth-related rules, conventions, and checks |
 | `security` | Locate all security standards and audit checklists |
 | `tenant` | Understand multi-tenancy boundaries and data scoping |
-| `Node\|Express\" | Backend Node tier conventions and Node-specific audits |
+| `Node\|Express` | Backend Node tier conventions and Node-specific audits |
 | `Java\|Spring` | Spring Boot patterns, Java conventions, service isolation |
 | `gRPC` | Find gRPC service definitions, proto contracts, streaming guidance |
 | `RAG` | Locate retrieval-augmented generation patterns and provider info |
@@ -146,6 +184,24 @@ Use Obsidian's search feature (`Ctrl+Shift+F`) to find patterns:
 - Common gotchas you want flagged
 - Project-wide assumptions or constraints
 - Vendor/tool preferences
+
+### Repo Memory (`.claude/../memories/repo/`)
+**Use for compact, high-value facts the agent should retrieve later:**
+- Build or test commands that are easy to forget
+- Repository-boundary rules and git workflow constraints
+- Recurring service-specific gotchas
+- Shared contract details that affect multiple tasks
+- Verified implementation patterns that saved time across sessions
+
+**Good repo memory examples:**
+- "`services-java` and `ai-listing-agent` are separate git repos; never commit across both in one change"
+- "Backend coverage command is `npm run coverage` under `ai-listing-agent/backend-node`"
+- "Shared auth types use string ObjectId values at API boundaries"
+
+**Bad repo memory examples:**
+- Entire task transcripts
+- Temporary debugging notes that only matter for one session
+- Long copied documentation sections already preserved elsewhere
 
 ---
 
@@ -275,9 +331,30 @@ If working with VS Code Copilot Chat that has workspace file access:
 ### After Each Completed Task
 
 1. Review session memory notes (`.claude/../memories/session/`)
-2. If a pattern emerged that will apply to future work, promote to `wiki/decisions/` or `wiki/runbooks/`
-3. Update `wiki/index.md` with link to new knowledge
-4. If a rule or skill was clarified by real implementation, update it in `.claude/rules/` or `.claude/skills/`
+2. Decide whether the result is temporary or durable
+3. Promote durable facts to the smallest useful destination:
+   - `/memories/repo/` for compact agent-facing facts
+   - `wiki/runbooks/` for repeatable troubleshooting and verified commands
+   - `wiki/decisions/` for architectural choices and tradeoffs
+   - `wiki/services/` for stable service facts and contracts
+4. Update `wiki/index.md` if you added a new high-value page
+5. If a rule or skill was clarified by real implementation, update it in `.claude/rules/` or `.claude/skills/`
+
+### Promotion Checklist
+
+Promote a finding from session work when at least one of these is true:
+
+- You expect to need it again in a later session
+- It changes how work should be done in a repository or service
+- It is a verified command, contract detail, or environment constraint
+- It explains a recurring failure mode or troubleshooting sequence
+- It captures an architectural decision with ongoing impact
+
+Keep it out of long-term memory when it is:
+
+- A one-off dead end during debugging
+- A partial thought that still needs verification
+- A full conversation transcript instead of a distilled conclusion
 
 ### Monthly Obsidian Maintenance
 
@@ -348,16 +425,17 @@ git commit -m "docs: update wiki with [pattern/decision]"
 ## Next Steps
 
 1. **Open vault:** File → Open vault → select `.claude` folder
-2. **Explore graph:** Click graph icon → zoom out to see all interconnections
-3. **Test search:** Try `auth` or `security` queries
-4. **Add first links:** Edit `wiki/index.md` to link each rule file:
+2. **Run a startup pass:** Check one `/memories/repo/` note, `wiki/index.md`, and one service page before opening deeper docs
+3. **Explore graph:** Click graph icon → zoom out to see all interconnections
+4. **Test search:** Try `auth` or `security` queries
+5. **Add first links:** Edit `wiki/index.md` to link each rule file:
    ```markdown
    - [[../rules/01-syntax-checks]] — TypeScript, Express, Spring Boot syntax validation
    - [[../rules/02-compile-checks]] — Build verification for each tier
    ...
    ```
-5. **Bookmark common searches:** Create a "Quick Searches" note with saved query shortcuts
-6. **Start documenting:** When you solve a tricky problem, add to `wiki/runbooks/`
+6. **Bookmark common searches:** Create a "Quick Searches" note with saved query shortcuts
+7. **Promote durable findings:** After a task, move only reusable facts into repo memory or wiki
 
 ---
 
