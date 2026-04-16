@@ -58,6 +58,8 @@ This index helps select the right skill quickly.
   - `code-changes/senior-java-spring-standards.md`
 - Implementing AI integrations, agent loops, RAG, and multi-provider LLM workflows:
   - `code-changes/senior-ai-agentic-implementation.md`
+- MongoDB schema design, query optimization, indexing, migrations, multi-tenant isolation, and relational database interoperability:
+  - `code-changes/senior-data-engineer-database.md`
 - Test-Driven Development (Red-Green-Refactor cycle):
   - `code-changes/senior-tdd-test-first.md`
 
@@ -74,6 +76,7 @@ This index helps select the right skill quickly.
 1. Identify the repository that owns the target files.
 2. Pull targeted context first: one `/memories/repo/` note, `wiki/index.md`, and one service page or runbook.
 3. Pick one implementation skill from `code-changes/` based on the tier.
+4. For any schema, query, index, migration, or data-pipeline change in any tier, also use `code-changes/senior-data-engineer-database.md`.
 4. If the change is AI-heavy, agentic, retrieval-based, or involves model/provider integration, use `code-changes/senior-ai-agentic-implementation.md`.
 5. If the change touches auth, input handling, secrets, data access, APIs, external calls, or AI/LLM behavior, run the matching skill from `security-audit/`.
 6. Run one or more focused review skills from `code-review/`, including `code-review/review-ai-agentic-systems.md` for AI features.
