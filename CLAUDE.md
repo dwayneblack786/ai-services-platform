@@ -151,6 +151,14 @@ cd services-python/whisper-server && python server.py      # Whisper (8000)
 cd services-python/vision-server && python server.py       # Vision (8001)
 ```
 
+## Scripts
+
+All platform utility and dev scripts are in `scripts/` (workspace root). See `scripts/README.md` for the full inventory.
+
+**Rule:** Before creating any new script, check `scripts/README.md`. If a matching script exists, use or extend it.
+
+Services-python helper scripts remain co-located in `services-python/` and are documented in `scripts/README.md`.
+
 ## Plans
 - `plans/phase-1-dinov2-training-pipeline.md`
 - Master plan: `.claude/plans/curried-bouncing-dolphin.md`

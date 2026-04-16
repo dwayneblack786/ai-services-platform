@@ -1,21 +1,108 @@
-# Scripts Migration Notes
+# Scripts
 
-Operational scripts for product-management are being moved under `product-management/scripts`.
+**Canonical location for all platform utility and dev scripts.**
 
-Current local script homes:
-- `product-management/scripts/keycloak`
-- `product-management/scripts/mongo`
+> **Agent rule:** Check this file before creating any new script. If a script for the task already exists, use or extend it rather than creating a duplicate.
 
-Compatibility wrappers remain in select root script paths during migration.
+All scripts live under `scripts/` (workspace root). The former `product-management/scripts/` has been consolidated here. Python service helper scripts remain co-located with their service in `services-python/` (see section below).
+
+---
 
 ## Workspace Bootstrap
 
-- install-workspace.ps1: Windows bootstrap for cloning standalone repos, creating missing env files from examples, and installing Java/Node dependencies.
-- install-workspace.sh: macOS/Linux bootstrap with the same workflow.
-- install_mongodb_tools.py: interactive MongoDB Community Server and MongoDB Compass installer.
+| Script | Purpose |
+|--------|---------|
+| `install-workspace.ps1` | Windows: clone repos, create env files from examples, install Java/Node deps |
+| `install-workspace.sh` | macOS/Linux: same as above |
+| `install_mongodb_tools.py` | Interactive MongoDB Community Server + Compass installer |
 
-## Code Intelligence And Validation Skills
+---
 
-- `code-intel/build-knowledge-graph.ps1`: generate cross-repo dependency knowledge graph artifacts for research and impact analysis.
-- `code-intel/validate-workspace-changes.ps1`: run syntax and test validation across workspace modules.
-- `code-intel/README.md`: usage guide and recommended change-safety workflow.
+## Developer Utilities
+
+| Script | Purpose |
+|--------|---------|
+| `kill-dev-ports.ps1` | Kill processes occupying dev ports (3001, 3002, 5173, 5174, 8136, 8137) |
+| `extract-product-management-repo.ps1` | Extract product-management repo files for standalone use |
+| `cleanup-localstorage.html` | Browser tool to clear localStorage for dev/test sessions |
+| `check-user.js` | Check a MongoDB user document by email or ID |
+
+---
+
+## Auth / SSO / Keycloak
+
+| Script | Purpose |
+|--------|---------|
+| `keycloak/setup-keycloak.ps1` | Bootstrap Keycloak realms and clients for local dev |
+| `keycloak/seed-tenants.ts` | Seed tenant users and roles into Keycloak |
+| `start-sso-system.ps1` | Start the full SSO stack (Keycloak + dependent services) |
+| `test-keycloak-migration.ps1` | Verify Keycloak migration: realm config, client setup, token flow |
+| `test-sso-flow.ps1` | End-to-end SSO login + token test |
+
+---
+
+## MongoDB
+
+| Script | Purpose |
+|--------|---------|
+| `mongo/setup-database.js` | Create collections, indexes, and defaults for `ai_platform` DB |
+| `mongo/create-pms-collections.js` | Create product-management-specific collections |
+| `mongo/seed-product-prompts.js` | Seed default product prompt configurations |
+| `mongo/seed-session-menu-test-data.js` | Seed session and menu test data |
+| `mongo/consolidate-ai-services.js` | Consolidate AI service config documents |
+| `mongo/inspect-collections.js` | Print collection counts and sample docs |
+| `mongo/verify-collections.js` | Assert expected collections exist and are non-empty |
+| `mongo/check-product-prompts.js` | Verify prompt documents are present and well-formed |
+| `mongo/drop-ai-services.js` | Drop AI service config collection (destructive — use with care) |
+| `mongo/remove-old-prompt-collections.js` | Remove legacy prompt collections after migration |
+| `mongo/test-mongo.js` | Basic MongoDB connectivity test |
+| `mongo/test-menu-service.js` | Menu service data integrity test |
+| `mongo/test-session-menu.js` | Session + menu integration test |
+| `mongo/backups/` | Manual JSON exports — keep as reference, do not auto-run |
+
+---
+
+## Prompt / Config Export
+
+| Script | Purpose |
+|--------|---------|
+| `export-prompt-config.ps1` | Export current prompt configuration from MongoDB to JSON |
+
+---
+
+## Voice / Whisper / Streaming
+
+| Script | Purpose |
+|--------|---------|
+| `test-voice-streaming.ps1` | Test WebSocket voice streaming end-to-end |
+| `test-whisper-integration.ps1` | Test Whisper STT integration via HTTP |
+
+---
+
+## Code Intelligence
+
+| Script | Purpose |
+|--------|---------|
+| `code-intel/build-knowledge-graph.ps1` | Generate cross-repo dependency knowledge graph |
+| `code-intel/validate-workspace-changes.ps1` | Run syntax and test validation across workspace modules |
+
+---
+
+## services-python Helper Scripts (co-located with service)
+
+These scripts live with their service and are not moved here because they are tightly coupled to the service runtime.
+
+| Script | Location | Purpose |
+|--------|----------|---------|
+| `start-vision.ps1` | `services-python/vision-server/` | Start the vision (PropVision) inference server |
+| `quick_start_validation.ps1` | `services-python/vision-server/` | Quick validation of vision server setup |
+| `test_*.py` | `services-python/vision-server/` | Vision server unit and integration tests |
+
+---
+
+## Conventions
+
+- Run MongoDB scripts against the local dev database: `mongosh ai_platform < script.js`
+- Run PowerShell scripts from workspace root unless the script header says otherwise.
+- Do not create a new script without first checking this index.
+- After adding a new script, update this README immediately.

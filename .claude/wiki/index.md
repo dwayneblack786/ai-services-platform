@@ -18,6 +18,10 @@ Sections:
 - [Runbook: MongoDB Operations — Connection Failures, Slow Queries, Index Maintenance](runbooks/mongodb-operations.md)
 - [Decisions](decisions/README.md)
 
+Scripts:
+
+- All platform scripts live in `scripts/` (workspace root). See `scripts/README.md` for the full inventory before creating any new script.
+
 High-value rules to check from here:
 
 - `../rules/04-security-standards.md` — auth, secrets, tenant boundaries, input validation
