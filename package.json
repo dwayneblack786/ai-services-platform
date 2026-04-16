@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "ai:sync": "pwsh -File ./scripts/sync-ai-governance.ps1",
+    "ai:validate": "pwsh -File ./scripts/validate-ai-governance-sync.ps1"
+  },
   "dependencies": {
     "axios": "^1.13.4",
     "lucide-react": "^1.7.0"

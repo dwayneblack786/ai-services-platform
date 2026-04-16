@@ -12,10 +12,10 @@ Source file/path:
 - `product-management/CLAUDE.md`
 - `product-management/backend-node/`
 - `product-management/frontend/`
-- `.claude/skills/code-changes/senior-backend-node-architecture.md`
-- `.claude/skills/code-changes/senior-frontend-react-ui-node.md`
-- `.claude/skills/code-review/review-backend-express-ts.md`
-- `.claude/skills/code-review/review-frontend-react-ts.md`
+- `.ai/skills/code-changes/senior-backend-node-architecture.md`
+- `.ai/skills/code-changes/senior-frontend-react-ui-node.md`
+- `.ai/skills/code-review/review-backend-express-ts.md`
+- `.ai/skills/code-review/review-frontend-react-ts.md`
 
 Last verified date:
 
@@ -33,7 +33,7 @@ Verified commands:
 Repository ownership:
 
 - Git operations for this service belong to the `product-management` repository.
-- Workspace root (`.claude/`, `docs/`, `plans/`) is a separate repo — do not mix commits.
+- Workspace root (`.ai/`, `docs/`, `plans/`) is a separate repo — do not mix commits.
 - Canonical gRPC proto definitions live in `product-management/backend-node/proto/` and are the shared source for all Java and Python services.
 
 Stack:
@@ -73,7 +73,7 @@ Integration boundaries:
 Operational checks:
 
 - Start infra before running backend: `podman-compose up -d` (MongoDB + Redis).
-- If auth middleware order changes, re-run security audit: `.claude/skills/security-audit/audit-node-backend.md`.
+- If auth middleware order changes, re-run security audit: `.ai/skills/security-audit/audit-node-backend.md`.
 - If proto contracts change, communicate to all consumer service teams before merging.
 - New backend logic requires matching or updated tests; coverage command is `npm run test:coverage`.
 

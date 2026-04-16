@@ -181,5 +181,5 @@ When reviewing, report findings in this order:
 - `docs/SPRING_AI_AGENT_IMPLEMENTATION.md`
 - `docs/PROVIDER_AGNOSTIC_DESIGN.md`
 - `docs/RAG_ARCHITECTURE.md`
-- `.claude/rules/04-security-standards.md`
-- `.claude/skills/security-audit/README.md`
+- `.ai/rules/04-security-standards.md`
+- `.ai/skills/security-audit/README.md`

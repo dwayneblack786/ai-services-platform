@@ -90,6 +90,15 @@ All scripts live under `scripts/` (workspace root). The former `product-manageme
 
 ---
 
+## AI Governance Sync
+
+| Script | Purpose |
+|--------|---------|
+| `sync-ai-governance.ps1` | Sync shared governance content from `.ai/` (canonical) to `.claude/` (Claude runtime adapter) |
+| `validate-ai-governance-sync.ps1` | Validate parity between `.ai/` and `.claude/` using SHA256 hashes |
+
+---
+
 ## services-python Helper Scripts (co-located with service)
 
 These scripts live with their service and are not moved here because they are tightly coupled to the service runtime.
@@ -108,3 +117,4 @@ These scripts live with their service and are not moved here because they are ti
 - Run PowerShell scripts from workspace root unless the script header says otherwise.
 - Do not create a new script without first checking this index.
 - After adding a new script, update this README immediately.
+- For model-agnostic governance updates: run `./scripts/sync-ai-governance.ps1` then `./scripts/validate-ai-governance-sync.ps1`.

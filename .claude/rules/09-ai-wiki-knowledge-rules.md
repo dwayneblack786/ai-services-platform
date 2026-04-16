@@ -6,13 +6,13 @@ Purpose:
 
 Knowledge location convention:
 
-- Use `.claude/wiki` as the knowledge base root.
+- Use `.ai/wiki` as the knowledge base root.
 - Suggested structure:
-  - `.claude/wiki/index.md`
-  - `.claude/wiki/decisions/`
-  - `.claude/wiki/runbooks/`
-  - `.claude/wiki/glossary.md`
-  - `.claude/wiki/services/` (one file per service)
+  - `.ai/wiki/index.md`
+  - `.ai/wiki/decisions/`
+  - `.ai/wiki/runbooks/`
+  - `.ai/wiki/glossary.md`
+  - `.ai/wiki/services/` (one file per service)
 
 Ingestion rule for new information:
 
@@ -38,7 +38,7 @@ Retrieval workflow before coding:
 
 1. Check the smallest relevant memory source first:
    - `/memories/repo/` for compact reusable facts
-   - `.claude/wiki/index.md` and the relevant service or runbook page
+   - `.ai/wiki/index.md` and the relevant service or runbook page
 2. Open the matching skill or rule only if the task requires implementation, review, or security guidance.
 3. Read original docs or source files only when the targeted memory and wiki notes lack required detail.
 4. After completing work, update wiki entries affected by the change.
@@ -48,11 +48,11 @@ Promotion workflow after coding:
 1. Review current session notes and extracted facts.
 2. Promote reusable facts to the smallest durable destination:
    - `/memories/repo/` for compact agent-facing facts and recurring gotchas
-   - `.claude/wiki/runbooks/` for repeatable troubleshooting steps and verified commands
-   - `.claude/wiki/decisions/` for architecture decisions and tradeoffs
-   - `.claude/wiki/services/` for stable service-specific facts and contracts
+   - `.ai/wiki/runbooks/` for repeatable troubleshooting steps and verified commands
+   - `.ai/wiki/decisions/` for architecture decisions and tradeoffs
+   - `.ai/wiki/services/` for stable service-specific facts and contracts
 3. Do not promote raw transcripts, speculative notes, or one-off dead ends.
-4. Link new high-value wiki entries from `.claude/wiki/index.md`.
+4. Link new high-value wiki entries from `.ai/wiki/index.md`.
 
 Quality rule:
 

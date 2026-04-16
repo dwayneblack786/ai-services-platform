@@ -44,4 +44,4 @@ Fail handling:
 - Do not merge a proto field removal without confirming all consumers are updated in the same coordinated release.
 - Do not silently remove a REST route or rename a response field used by the frontend.
 - If the change is cross-repo, document the dependency order and merge sequence in PR notes before merging any side.
-- Apply the contract review skill before merging: `.claude/skills/code-review/review-contract-and-breaking-change.md`
+- Apply the contract review skill before merging: `.ai/skills/code-review/review-contract-and-breaking-change.md`

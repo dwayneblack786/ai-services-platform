@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Treat your `.claude/` directory structure as an Obsidian vault to create a persistent, locally-queryable knowledge layer that reduces token consumption, accelerates context assembly, and enables pattern discovery across rules, decisions, and implementation guidance.
+Treat your `.ai/` directory structure as an Obsidian vault to create a persistent, locally-queryable knowledge layer that reduces token consumption, accelerates context assembly, and enables pattern discovery across rules, decisions, and implementation guidance.
 
 ## When to Use This Skill
 
@@ -18,8 +18,8 @@ Use a layered memory model so context stays selective:
 
 - `/memories/session/` for temporary work-in-progress notes and current-task plans
 - `/memories/repo/` for compact, reusable facts the agent should retrieve later
-- `.claude/wiki/` for broader, human-readable architecture, decisions, and runbooks
-- Obsidian as the discovery layer over `.claude/`, not as a raw transcript dump
+- `.ai/wiki/` for broader, human-readable architecture, decisions, and runbooks
+- Obsidian as the discovery layer over `.ai/`, not as a raw transcript dump
 
 Rule of thumb:
 
@@ -52,10 +52,10 @@ Example startup path for a Java AI change:
 
 ## Setup: Opening the Vault
 
-### Option A: Single `.claude` Vault (Recommended for this project)
+### Option A: Single `.ai` Vault (Recommended for this project)
 
 1. Open Obsidian → "Create new vault"
-2. Select folder: `c:\Users\Owner\Documents\ai-services-platform\.claude`
+2. Select folder: `c:\Users\Owner\Documents\ai-services-platform\.ai`
 3. Name: `ai-services-platform-knowledge`
 4. Obsidian will index all markdown files:
    - `rules/` (10 core development standards)
@@ -65,13 +65,13 @@ Example startup path for a Java AI change:
 
 ### Option B: Multi-Folder Vault (Advanced)
 
-If you want to unify `.claude/` + `docs/` (lighter documentation) + `plans/` (feature roadmap):
+If you want to unify `.ai/` + `docs/` (lighter documentation) + `plans/` (feature roadmap):
 1. Create vault at workspace root
 2. Exclude folders in Obsidian settings (Files & Links → Excluded files):
    - `node_modules/`, `services-java/target/`, `.venv/`, `.git/`
 3. This gives you a full project knowledge graph but may be noisier
 
-**Recommendation: Start with Option A** (`.claude` only) for focused knowledge management.
+**Recommendation: Start with Option A** (`.ai` only) for focused knowledge management.
 
 ---
 
@@ -80,7 +80,7 @@ If you want to unify `.claude/` + `docs/` (lighter documentation) + `plans/` (fe
 ### File Organization (Already in Place)
 
 ```
-.claude/
+.ai/
 ├── rules/
 │   ├── README.md                          # Index of all 10 rules
 │   ├── 01-syntax-checks.md
@@ -128,7 +128,7 @@ If you want to unify `.claude/` + `docs/` (lighter documentation) + `plans/` (fe
   - Or paste the direct markdown link: *"See [[04-security-standards#Cross-tier conventions]]"*
 
 **Suggested first link pass** (add these to your notes):
-- `wiki/index.md` → links to each `.claude/rules/` rule (reinforces master rules)
+- `wiki/index.md` → links to each `.ai/rules/` rule (reinforces master rules)
 - `skills/README.md` → links to core decisions (Rule 9, Rule 10 for context)
 - Each security-audit skill → links to related Rule 4 sections
 - Each code-changes skill → links to relevant tech stack rule (Rule 5) and testing rule (Rule 6)
@@ -156,7 +156,7 @@ Use Obsidian's search feature (`Ctrl+Shift+F`) to find patterns:
 
 ## When to Write Where
 
-### Obsidian Vault (`.claude/`)
+### Obsidian Vault (`.ai/`)
 **Use for durable, discoverable knowledge:**
 - Architecture decisions and rationale (`decisions/`)
 - Service contracts, API boundaries, gRPC protos
@@ -168,7 +168,7 @@ Use Obsidian's search feature (`Ctrl+Shift+F`) to find patterns:
 
 **Example:** *"Spring Boot + LangChain4j agent orchestration pattern"* → create `wiki/decisions/agentic-orchestration-pattern.md`, link it from `wiki/services/listing-service.md` and `skills/code-changes/senior-ai-agentic-implementation.md`.
 
-### Session Memory (`.claude/../memories/session/`)
+### Session Memory (`.ai/../memories/session/`)
 **Use for temporary, task-specific notes:**
 - Work-in-progress plans and task breakdowns
 - Temporary context for current conversation
@@ -178,14 +178,14 @@ Use Obsidian's search feature (`Ctrl+Shift+F`) to find patterns:
 
 **Example:** *"Debugging why Keycloak token validation failing on tenant boundary check"* → session note while investigating, then promote to `wiki/runbooks/` if it becomes a repeatable pattern.
 
-### User Memory (`.claude/../memories/`)
+### User Memory (`.ai/../memories/`)
 **Use for agent-persistent preferences:**
 - Your preferred command sequences
 - Common gotchas you want flagged
 - Project-wide assumptions or constraints
 - Vendor/tool preferences
 
-### Repo Memory (`.claude/../memories/repo/`)
+### Repo Memory (`.ai/../memories/repo/`)
 **Use for compact, high-value facts the agent should retrieve later:**
 - Build or test commands that are easy to forget
 - Repository-boundary rules and git workflow constraints
@@ -265,8 +265,8 @@ Open: skills/code-changes/senior-ai-agentic-implementation.md
 **Step 4: Capture decision in session memory**
 ```
 Create: /memories/session/ai-endpoint-implementation-plan.md
-→ Link to: [[../../../.claude/skills/code-changes/senior-ai-agentic-implementation#Tool Calling Standards]]
-→ Link to: [[../../../.claude/skills/security-audit/audit-ai-llm-systems#Tool Calling and Action Safety]]
+→ Link to: [[../../../.ai/skills/code-changes/senior-ai-agentic-implementation#Tool Calling Standards]]
+→ Link to: [[../../../.ai/skills/security-audit/audit-ai-llm-systems#Tool Calling and Action Safety]]
 → When complete, promote key lessons to wiki/decisions/
 ```
 
@@ -293,7 +293,7 @@ Review for compliance with [[skills/security-audit/audit-ai-llm-systems#Tool Cal
 ### With Obsidian Workflow
 
 **Each session:**
-- Link to `.claude/rules/10-repository-boundaries` (5 tokens)
+- Link to `.ai/rules/10-repository-boundaries` (5 tokens)
 - Reference `skills/security-audit/audit-java-spring#Java Spring Boot config` (3 tokens)
 - Mention `wiki/services/listing-service` for context (2 tokens)
 
@@ -320,7 +320,7 @@ Review for compliance with [[skills/security-audit/audit-ai-llm-systems#Tool Cal
 ### Proposed Future Feature
 
 If working with VS Code Copilot Chat that has workspace file access:
-- Ask: *"Check my Obsidian vault (.claude/ folder) for security audit checklist matching this tier"*
+- Ask: *"Check my Obsidian vault (.ai/ folder) for security audit checklist matching this tier"*
 - Agent could read vault structure and reference directly
 - Would eliminate manual copy-paste
 
@@ -330,7 +330,7 @@ If working with VS Code Copilot Chat that has workspace file access:
 
 ### After Each Completed Task
 
-1. Review session memory notes (`.claude/../memories/session/`)
+1. Review session memory notes (`.ai/../memories/session/`)
 2. Decide whether the result is temporary or durable
 3. Promote durable facts to the smallest useful destination:
    - `/memories/repo/` for compact agent-facing facts
@@ -338,7 +338,7 @@ If working with VS Code Copilot Chat that has workspace file access:
    - `wiki/decisions/` for architectural choices and tradeoffs
    - `wiki/services/` for stable service facts and contracts
 4. Update `wiki/index.md` if you added a new high-value page
-5. If a rule or skill was clarified by real implementation, update it in `.claude/rules/` or `.claude/skills/`
+5. If a rule or skill was clarified by real implementation, update it in `.ai/rules/` or `.ai/skills/`
 
 ### Promotion Checklist
 
@@ -373,7 +373,7 @@ Search: "TODO\|FIXME\|@deprecated"
 ```bash
 # Your Obsidian vault lives in git; no special sync needed
 # Vault changes auto-save to disk → git status/commit as normal
-git add .claude/
+git add .ai/
 git commit -m "docs: update wiki with [pattern/decision]"
 ```
 
@@ -398,7 +398,7 @@ git commit -m "docs: update wiki with [pattern/decision]"
 **Problem:** You've added notes, but they don't appear in search.
 
 **Solution:**
-1. Files → Vault settings → Files & Links → Confirm scan folders includes `.claude/`
+1. Files → Vault settings → Files & Links → Confirm scan folders includes `.ai/`
 2. Do: **Vault stats** (Ctrl+Shift+S) to force re-index
 3. Restart Obsidian if needed
 
@@ -416,7 +416,7 @@ git commit -m "docs: update wiki with [pattern/decision]"
 **Problem:** You've added lots of session notes to vault; search results are cluttered.
 
 **Solution:**
-- Move completed session notes to `.claude/../memories/session/archive/` (not indexed if in `.obscidian/`)
+- Move completed session notes to `.ai/../memories/session/archive/` (not indexed if in `.obscidian/`)
 - Or exclude `session/` from Obsidian vault (Files & Links → Excluded files)
 - Keep only durable wiki, rules, and skills in main vault
 
@@ -424,7 +424,7 @@ git commit -m "docs: update wiki with [pattern/decision]"
 
 ## Next Steps
 
-1. **Open vault:** File → Open vault → select `.claude` folder
+1. **Open vault:** File → Open vault → select `.ai` folder
 2. **Run a startup pass:** Check one `/memories/repo/` note, `wiki/index.md`, and one service page before opening deeper docs
 3. **Explore graph:** Click graph icon → zoom out to see all interconnections
 4. **Test search:** Try `auth` or `security` queries
@@ -441,7 +441,7 @@ git commit -m "docs: update wiki with [pattern/decision]"
 
 ## References
 
-- **Rule 9:** `.claude/rules/09-ai-wiki-knowledge-rules.md` (knowledge organization principles)
-- **Rule 10:** `.claude/rules/10-repository-boundaries-and-change-scope.md` (repo structure and git scope)
+- **Rule 9:** `.ai/rules/09-ai-wiki-knowledge-rules.md` (knowledge organization principles)
+- **Rule 10:** `.ai/rules/10-repository-boundaries-and-change-scope.md` (repo structure and git scope)
 - **Obsidian Official Docs:** https://help.obsidian.md/
 - **Dataview Plugin:** https://blacksmithgu.github.io/obsidian-dataview/

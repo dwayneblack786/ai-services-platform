@@ -8,7 +8,7 @@ Context:
 Source file/path:
 
 - `CLAUDE.md`
-- `.claude/rules/10-repository-boundaries-and-change-scope.md`
+- `.ai/rules/10-repository-boundaries-and-change-scope.md`
 
 Last verified date:
 
@@ -24,7 +24,7 @@ Verified commands:
 
 Actionable notes:
 
-- The workspace root (`ai-services-platform/`) is its own git repository used during development. It owns `.claude/`, `docs/`, `plans/`, `podman-compose.yml`, root `CLAUDE.md`, and shared scripts.
+- The workspace root (`ai-services-platform/`) is its own git repository used during development. It owns `.ai/`, `docs/`, `plans/`, `podman-compose.yml`, root `CLAUDE.md`, and shared scripts.
 - Treat `services-java`, `product-management`, `ai-listing-agent`, and `shared` as separate product repositories; each has its own history, branches, and PR lifecycle.
 - Workspace root commits must not contain source files owned by a nested product repo.
 - Stage and commit only files owned by the active repository.

@@ -423,7 +423,7 @@ app.post('/api/admin/users/:id/suspend', adminOnly, (req, res) => {
 
 ## References
 
-- Rule 4: Security Standards (`.claude/rules/04-security-standards.md`)
+- Rule 4: Security Standards (`.ai/rules/04-security-standards.md`)
 - OWASP Top 10: `code-review/review-security-scanning-pentesting.md`
 - Express Security: https://expressjs.com/en/advanced/best-practice-security.html
 - Node.js Security: https://nodejs.org/en/docs/guides/security/

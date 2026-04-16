@@ -22,3 +22,18 @@ Sync notes:
 - Canonical pre-commit hook in this folder: `.ai/hooks/pre-commit`
 - If content is updated under `.claude/`, copy only model-agnostic updates into `.ai/`.
 - Do not rewrite product behavior or service-specific contracts during sync.
+
+Gradual canonicalization workflow:
+
+1. Make shared governance edits in `.ai/` first.
+2. Sync `.ai` into `.claude` for shared directories:
+	- `./scripts/sync-ai-governance.ps1`
+3. Validate parity:
+	- `./scripts/validate-ai-governance-sync.ps1`
+4. Commit both `.ai/` and `.claude/` updates together when sync is intentional.
+
+Optional:
+
+- Include `.obsidian` in sync/validation only when needed:
+  - `./scripts/sync-ai-governance.ps1 -IncludeObsidian`
+  - `./scripts/validate-ai-governance-sync.ps1 -IncludeObsidian`

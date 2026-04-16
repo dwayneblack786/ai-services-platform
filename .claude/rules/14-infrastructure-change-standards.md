@@ -71,4 +71,4 @@ Fail handling:
 - Do not merge compose changes that introduce secrets.
 - Do not merge port changes that create conflicts without updating the port table in this rule.
 - Do not merge startup script changes that break the startup order.
-- Apply the infra skill before merging: `.claude/skills/code-changes/senior-devops-infra.md`
+- Apply the infra skill before merging: `.ai/skills/code-changes/senior-devops-infra.md`

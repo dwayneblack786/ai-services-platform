@@ -10,9 +10,9 @@ Source file/path:
 
 - `services-java/va-service/CLAUDE.md`
 - `services-java/va-service/src/main/java/com/ai/va/`
-- `.claude/skills/code-changes/senior-java-spring-standards.md`
-- `.claude/skills/code-changes/senior-ai-agentic-implementation.md`
-- `.claude/skills/code-review/review-java-listing-service.md`
+- `.ai/skills/code-changes/senior-java-spring-standards.md`
+- `.ai/skills/code-changes/senior-ai-agentic-implementation.md`
+- `.ai/skills/code-review/review-java-listing-service.md`
 
 Last verified date:
 

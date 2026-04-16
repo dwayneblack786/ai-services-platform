@@ -13,8 +13,8 @@ Source file/path:
 - `product-management/backend-node/`
 - `ai-listing-agent/backend-node/`
 - `services-java/listing-service/`
-- `.claude/skills/code-changes/senior-data-engineer-database.md`
-- `.claude/skills/code-changes/senior-devops-infra.md`
+- `.ai/skills/code-changes/senior-data-engineer-database.md`
+- `.ai/skills/code-changes/senior-devops-infra.md`
 
 Last verified date:
 
@@ -172,6 +172,6 @@ Last verified date:
 
 ## Related Skills
 
-- `.claude/skills/code-changes/senior-data-engineer-database.md`
-- `.claude/skills/code-changes/senior-devops-infra.md`
-- `.claude/skills/code-review/review-database-data-layer.md`
+- `.ai/skills/code-changes/senior-data-engineer-database.md`
+- `.ai/skills/code-changes/senior-devops-infra.md`
+- `.ai/skills/code-review/review-database-data-layer.md`

@@ -269,6 +269,6 @@ All tests must pass and coverage must meet Rule 7 (success + at least one edge c
 
 ## References
 
-- Rule 6: Testing Standards By Tier (`.claude/rules/06-testing-standards-by-tier.md`)
-- Rule 7: Coverage Gates (`.claude/rules/07-test-coverage-gates.md`)
+- Rule 6: Testing Standards By Tier (`.ai/rules/06-testing-standards-by-tier.md`)
+- Rule 7: Coverage Gates (`.ai/rules/07-test-coverage-gates.md`)
 - circuitBreaker.test.ts (example test in production codebase)

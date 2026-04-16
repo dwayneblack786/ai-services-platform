@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Claude hook: pre-commit secret scanner
-# Canonical location: .claude/hooks/pre-commit
+# AI hook: pre-commit secret scanner
+# Canonical location: .ai/hooks/pre-commit
 # Installed into each repo as .git/hooks/pre-commit by scripts/install-hooks.ps1
 
 set -e
@@ -63,7 +63,7 @@ done
 if [ "$FAIL" -eq 1 ]; then
   echo ""
   echo -e "${RED}Commit blocked. Remove secrets before committing.${NC}"
-  echo "See .claude/rules/15-no-secrets-in-git.md for guidance."
+  echo "See .ai/rules/15-no-secrets-in-git.md for guidance."
   echo "If a secret was already committed, rotate it immediately."
   exit 1
 fi

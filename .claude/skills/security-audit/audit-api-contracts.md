@@ -492,7 +492,7 @@ grep -rn "getMetadata\|onMetadata" src/main/java/*Service.java
 
 ## References
 
-- Rule 4: Security Standards (`.claude/rules/04-security-standards.md`)
+- Rule 4: Security Standards (`.ai/rules/04-security-standards.md`)
 - REST Best Practices: https://restfulapi.net/
 - API Security: https://cheatsheetseries.owasp.org/cheatsheets/REST_Assessment_Cheat_Sheet.html
 - gRPC Security: https://grpc.io/docs/guides/auth/

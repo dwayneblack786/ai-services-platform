@@ -473,7 +473,7 @@ cat application.yml | grep -i "audit.*retention\|log.*retention"
 
 ## References
 
-- Rule 4: Security Standards (`.claude/rules/04-security-standards.md`)
+- Rule 4: Security Standards (`.ai/rules/04-security-standards.md`)
 - OWASP SQL Injection: https://owasp.org/www-community/attacks/SQL_Injection
 - GDPR Article 17: https://gdpr-info.eu/art-17-gdpr/
 - CIS Database Benchmarks: https://www.cisecurity.org/cis-benchmarks/

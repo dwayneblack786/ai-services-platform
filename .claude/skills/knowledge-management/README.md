@@ -4,7 +4,7 @@ Skills in this folder help organize, discover, and preserve project knowledge ac
 
 ## Skills
 
-1. **obsidian-workflow.md** — Set up and maintain an Obsidian vault for the `.claude/` directory to create a persistent, locally-queryable knowledge layer. Covers vault setup, linking conventions, integration with Copilot Chat, search queries for pattern discovery, and token efficiency gains.
+1. **obsidian-workflow.md** — Set up and maintain an Obsidian vault for the `.ai/` directory to create a persistent, locally-queryable knowledge layer. Covers vault setup, linking conventions, integration with Copilot Chat, search queries for pattern discovery, and token efficiency gains.
 
 ## When to Use
 
@@ -18,14 +18,14 @@ Skills in this folder help organize, discover, and preserve project knowledge ac
 
 1. **First session or starting a large feature:**
    - Read `obsidian-workflow.md` completely (10–15 min)
-   - Open Obsidian vault in your `.claude/` folder
+   - Open Obsidian vault in your `.ai/` folder
    - Explore the graph view and run a few test searches
    - Bookmark common queries (e.g., `auth`, `security`, `tenant`)
 
 2. **Subsequent sessions:**
    - Reference Obsidian vault when you need rules, decisions, or patterns
    - Link to vault notes in chat: e.g., `[[rules/04-security-standards]]`
-   - Add session notes to `.claude/../memories/session/` and promote durable knowledge to `wiki/` after task completion
+   - Add session notes to `.ai/../memories/session/` and promote durable knowledge to `wiki/` after task completion
 
 ## Integration with Other Skills
 
@@ -38,7 +38,7 @@ Skills in this folder help organize, discover, and preserve project knowledge ac
 
 | Action | Command |
 |--------|---------|
-| Open vault | Obsidian → Create vault → select `.claude` folder |
+| Open vault | Obsidian → Create vault → select `.ai` folder |
 | Search across notes | `Ctrl+Shift+F` in Obsidian |
 | Find backlinks | `Ctrl+Shift+G` on a note (shows what references it) |
 | Rebuild index | Vault stats (`Ctrl+Shift+S`) → Force re-index |
@@ -47,5 +47,5 @@ Skills in this folder help organize, discover, and preserve project knowledge ac
 ## References
 
 - **Obsidian official docs:** https://help.obsidian.md/
-- **Rule 9 (AI Wiki Knowledge Organization):** `.claude/rules/09-ai-wiki-knowledge-rules.md` (describes the vault structure this skill helps you navigate)
+- **Rule 9 (AI Wiki Knowledge Organization):** `.ai/rules/09-ai-wiki-knowledge-rules.md` (describes the vault structure this skill helps you navigate)
 - **Main skills index:** `../README.md` for the complete skill directory and recommended workflow

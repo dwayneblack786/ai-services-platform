@@ -171,6 +171,13 @@ Commit-time secret enforcement is implemented via Git pre-commit hooks:
 - Installed target per repo: `.git/hooks/pre-commit`
 - Install/update command: `./scripts/install-hooks.ps1`
 
+Model-agnostic governance workflow:
+
+- Canonical shared governance content: `.ai/`
+- Claude runtime adapter content: `.claude/`
+- Sync command: `./scripts/sync-ai-governance.ps1`
+- Validation command: `./scripts/validate-ai-governance-sync.ps1`
+
 ## Plans
 - `plans/phase-1-dinov2-training-pipeline.md`
 - Master plan: `.claude/plans/curried-bouncing-dolphin.md`

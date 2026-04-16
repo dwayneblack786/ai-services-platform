@@ -13,10 +13,10 @@ Source file/path:
 - `ai-listing-agent/MODERNIZATION_PLAN.md`
 - `ai-listing-agent/backend-node/`
 - `ai-listing-agent/frontend/`
-- `.claude/skills/code-changes/senior-backend-node-architecture.md`
-- `.claude/skills/code-changes/senior-frontend-react-ui-node.md`
-- `.claude/skills/code-review/review-backend-express-ts.md`
-- `.claude/skills/code-review/review-frontend-react-ts.md`
+- `.ai/skills/code-changes/senior-backend-node-architecture.md`
+- `.ai/skills/code-changes/senior-frontend-react-ui-node.md`
+- `.ai/skills/code-review/review-backend-express-ts.md`
+- `.ai/skills/code-review/review-frontend-react-ts.md`
 
 Last verified date:
 
@@ -35,7 +35,7 @@ Verified commands:
 Repository ownership:
 
 - Git operations for this service belong to the `ai-listing-agent` repository.
-- Do not mix workspace root (`.claude/`) changes in an `ai-listing-agent` commit.
+- Do not mix workspace root (`.ai/`) changes in an `ai-listing-agent` commit.
 
 Stack:
 

@@ -49,9 +49,9 @@ Session startup path:
 
 Security workflow references:
 
-- `.claude/skills/security-audit/README.md` — entry point for tier-specific security audit skills
-- `.claude/skills/code-review/review-security-auth-tenant.md` — focused auth, tenant, and secret review
-- `.claude/skills/code-review/review-security-scanning-pentesting.md` — OWASP and dependency scanning review
+- `.ai/skills/security-audit/README.md` — entry point for tier-specific security audit skills
+- `.ai/skills/code-review/review-security-auth-tenant.md` — focused auth, tenant, and secret review
+- `.ai/skills/code-review/review-security-scanning-pentesting.md` — OWASP and dependency scanning review
 
 Usage:
 

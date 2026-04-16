@@ -481,7 +481,7 @@ grep -rn "Pageable\|Page<" src/main/java/
 
 ## References
 
-- Rule 4: Security Standards (`.claude/rules/04-security-standards.md`)
+- Rule 4: Security Standards (`.ai/rules/04-security-standards.md`)
 - OWASP Top 10: `code-review/review-security-scanning-pentesting.md`
 - Spring Security: https://spring.io/projects/spring-security
 - Spring Boot Actuator: https://spring.io/guides/gs/actuator-service/

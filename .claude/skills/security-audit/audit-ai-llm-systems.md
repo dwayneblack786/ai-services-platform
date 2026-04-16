@@ -177,10 +177,10 @@ const result = ResultSchema.parse(JSON.parse(modelText));
 
 ## References
 
-- `.claude/rules/04-security-standards.md`
+- `.ai/rules/04-security-standards.md`
 - `docs/AGENTIC_FLOWS.md`
 - `docs/SPRING_AI_AGENT_IMPLEMENTATION.md`
 - `docs/PROVIDER_AGNOSTIC_DESIGN.md`
 - `docs/RAG_ARCHITECTURE.md`
-- `.claude/skills/code-changes/senior-ai-agentic-implementation.md`
-- `.claude/skills/code-review/review-ai-agentic-systems.md`
+- `.ai/skills/code-changes/senior-ai-agentic-implementation.md`
+- `.ai/skills/code-review/review-ai-agentic-systems.md`

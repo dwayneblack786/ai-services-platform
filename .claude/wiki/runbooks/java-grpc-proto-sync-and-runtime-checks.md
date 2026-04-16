@@ -9,9 +9,9 @@ Source file/path:
 
 - `services-java/CLAUDE.md`
 - `docs/GRPC-SPRING-TROUBLESHOOTING.md`
-- `.claude/wiki/services/listing-service.md`
-- `.claude/wiki/services/product-management.md`
-- `.claude/skills/security-audit/audit-api-contracts.md`
+- `.ai/wiki/services/listing-service.md`
+- `.ai/wiki/services/product-management.md`
+- `.ai/skills/security-audit/audit-api-contracts.md`
 
 Last verified date:
 

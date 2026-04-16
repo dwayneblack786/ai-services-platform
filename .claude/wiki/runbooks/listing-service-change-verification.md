@@ -8,11 +8,11 @@ Context:
 Source file/path:
 
 - `services-java/CLAUDE.md`
-- `.claude/wiki/services/listing-service.md`
-- `.claude/skills/code-review/review-java-listing-service.md`
-- `.claude/rules/01-syntax-checks.md`
-- `.claude/rules/02-compile-checks.md`
-- `.claude/rules/06-testing-standards-by-tier.md`
+- `.ai/wiki/services/listing-service.md`
+- `.ai/skills/code-review/review-java-listing-service.md`
+- `.ai/rules/01-syntax-checks.md`
+- `.ai/rules/02-compile-checks.md`
+- `.ai/rules/06-testing-standards-by-tier.md`
 
 Last verified date:
 

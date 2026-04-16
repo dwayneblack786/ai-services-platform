@@ -296,5 +296,5 @@ Before marking AI implementation work complete:
 - `docs/SPRING_AI_AGENT_IMPLEMENTATION.md`
 - `docs/PROVIDER_AGNOSTIC_DESIGN.md`
 - `docs/RAG_ARCHITECTURE.md`
-- `.claude/rules/04-security-standards.md`
-- `.claude/wiki/services/listing-service.md`
+- `.ai/rules/04-security-standards.md`
+- `.ai/wiki/services/listing-service.md`

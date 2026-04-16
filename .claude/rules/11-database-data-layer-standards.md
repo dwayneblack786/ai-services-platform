@@ -57,4 +57,4 @@ Fail handling:
 - Do not merge schema changes that drop or rename fields without a two-phase migration plan.
 - Do not merge queries lacking `tenantId` scoping on tenant collections.
 - Do not merge incomplete migrations (no idempotency, no batch logic).
-- Apply the review skill before merging: `.claude/skills/code-review/review-database-data-layer.md`
+- Apply the review skill before merging: `.ai/skills/code-review/review-database-data-layer.md`

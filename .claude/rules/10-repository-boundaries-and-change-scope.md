@@ -7,7 +7,7 @@ Purpose:
 Repository boundaries:
 
 **Workspace root** (`ai-services-platform/` itself):
-- A development workspace repository. Owns: `.claude/`, `docs/`, `plans/`, `podman-compose.yml`, root-level `CLAUDE.md`, and shared scripts.
+- A development workspace repository. Owns: `.ai/`, `docs/`, `plans/`, `podman-compose.yml`, root-level `CLAUDE.md`, and shared scripts.
 - Use for: cross-cutting platform docs, rules, skills, wiki updates, and dev tooling changes.
 - Do not include product source files from nested repos in workspace-root commits.
 - Verify: `Set-Location "C:/Users/Owner/Documents/ai-services-platform"; git status --short`

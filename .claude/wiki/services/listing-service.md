@@ -11,8 +11,8 @@ Source file/path:
 
 - `services-java/CLAUDE.md`
 - `services-java/listing-service/`
-- `.claude/skills/code-changes/senior-ai-agentic-implementation.md`
-- `.claude/skills/code-review/review-java-listing-service.md`
+- `.ai/skills/code-changes/senior-ai-agentic-implementation.md`
+- `.ai/skills/code-review/review-java-listing-service.md`
 
 Last verified date:
 
@@ -27,7 +27,7 @@ Verified commands:
 Repository ownership:
 
 - Git operations for this service belong to the `services-java` repository.
-- Do not combine `.claude/` docs with `services-java` source changes in one repository-local commit.
+- Do not combine `.ai/` docs with `services-java` source changes in one repository-local commit.
 - Canonical gRPC protos are shared from `product-management/backend-node/proto/`; each Java service keeps its own local copy.
 
 Pipeline:

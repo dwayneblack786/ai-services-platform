@@ -33,7 +33,7 @@ Do not commit any of the following:
 
 ## Claude Hook (Pre-commit)
 
-Canonical hook source is `.claude/hooks/pre-commit`.
+Canonical hook source is `.ai/hooks/pre-commit`.
 
 Installed hook target in each repo is `.git/hooks/pre-commit`. It runs automatically on `git commit` and blocks commits containing secret patterns.
 
@@ -48,9 +48,9 @@ To install manually for a single repo, run from workspace root:
 
 ```powershell
 # Windows (PowerShell)
-Copy-Item ".claude/hooks/pre-commit" ".git/hooks/pre-commit"
+Copy-Item ".ai/hooks/pre-commit" ".git/hooks/pre-commit"
 # Or for Git Bash / WSL
-# cp .claude/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# cp .ai/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 ```
 
 ## Pre-commit Scan Patterns

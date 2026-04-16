@@ -430,7 +430,7 @@ grep -rn "catch" src/ | head -20
 
 ## References
 
-- Rule 4: Security Standards (`.claude/rules/04-security-standards.md`)
+- Rule 4: Security Standards (`.ai/rules/04-security-standards.md`)
 - OWASP Top 10 for React: `code-review/review-security-scanning-pentesting.md`
 - React Security: https://react.dev/learn/security
 - MDN Web Security: https://developer.mozilla.org/en-US/docs/Web/Security
