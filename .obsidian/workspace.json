@@ -1,0 +1,217 @@
+{
+  "main": {
+    "id": "f634fd6892238817",
+    "type": "split",
+    "children": [
+      {
+        "id": "a8ff47d2efae0214",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "18cb0e80adb3814a",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "c7c35bc2168045f2",
+    "type": "split",
+    "children": [
+      {
+        "id": "3c6ba8c61790eb87",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "05e8d6c10f63b9d3",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": true
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "2ffaaa1246b0de4a",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "21dd80f88802f890",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "69ae333b4ea8e2e1",
+    "type": "split",
+    "children": [
+      {
+        "id": "aec812d66ccb27ad",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f984357cc91261c2",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "53c4459399380f4d",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "1ce5d318ab6ecf14",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "869d055d77b3d329",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "dbde044cce85e0ba",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "18cb0e80adb3814a",
+  "lastOpenFiles": [
+    "scripts/validate-ai-governance-sync.ps1",
+    "scripts/sync-ai-governance.ps1",
+    "scripts/install-hooks.ps1",
+    "scripts/hooks/pre-commit",
+    "scripts/hooks",
+    "docs/START_TESTING_GUIDE.md",
+    "docs/SSO_TESTING_CHECKLIST.md",
+    "docs/SSO_MIGRATION_COMPLETE.md",
+    "docs/SSO_IMPLEMENTATION_COMPLETE.md",
+    "docs/SSO_ARCHITECTURE_VERIFICATION.md",
+    "docs/SSO_ANALYSIS_AND_IMPROVEMENT_PLAN.md",
+    "docs/SECURITY_MONITORING_SETUP.md",
+    "docs/REGISTRATION_TESTING_GUIDE.md",
+    "docs/REGISTRATION_IMPLEMENTATION_COMPLETE.md",
+    "docs/REDIS_CACHE_MIGRATION_PLAN.md",
+    "docs/PHASE_5_TESTING_READY.md",
+    "docs/PHASE_2_TESTING_GUIDE.md",
+    "docs/LOCAL_TESTING_AND_OAUTH.md",
+    "docs/KEYCLOAK_SCRIPTS_UPDATE_SUMMARY.md",
+    "docs/KEYCLOAK_MIGRATION_COMPLETE.md",
+    "docs/AUTHENTICATION_ARCHITECTURE.md",
+    "docs/ADMIN_DASHBOARD_TESTING_GUIDE.md",
+    "docs/ADMIN_DASHBOARD_ACTIVITY_TRACKING.md",
+    "docs/ADMIN_DASHBOARD_ACCESS_GUIDE.md",
+    "scripts/test-whisper-integration.ps1",
+    "scripts/test-voice-streaming.ps1",
+    "scripts/test-sso-flow.ps1",
+    "scripts/test-keycloak-migration.ps1",
+    "scripts/start-sso-system.ps1",
+    "scripts/kill-dev-ports.ps1",
+    "services-java/va-service/CLAUDE.md",
+    "Untitled.canvas",
+    "ai-services-platfrom/create a link.md",
+    "ai-services-platfrom/Welcome.md"
+  ]
+}
