@@ -30,8 +30,22 @@ Use these skills when evaluating changes, not implementing them.
 | Observability and errors | `review-observability-and-errors.md` |
 | Core Web Vitals, accessibility, SEO | `review-web-quality-audits.md` |
 
+## Security Audit Skills
+
+For deeper security review, use the dedicated `../security-audit/` skill set:
+
+- `../security-audit/README.md` — selector for security audit workflows
+- `../security-audit/audit-node-backend.md` — backend auth, validation, secrets, rate limiting, tenant checks
+- `../security-audit/audit-react-frontend.md` — XSS, auth state, cookies, CSP, frontend secrets
+- `../security-audit/audit-java-spring.md` — Spring Security, JWT, authorization, validation, secure external calls
+- `../security-audit/audit-api-contracts.md` — REST/gRPC auth, validation, versioning, rate limiting, safe errors
+- `../security-audit/audit-data-protection.md` — SQL/NoSQL injection, encryption, retention, backup, audit trails
+
+Use these when a change affects security posture directly, not just general code quality.
+
 ## Recommended Flow
 
 1. Pick the tier-specific skill(s) matching changed files.
-2. Run security and/or observability review if the change touches auth, secrets, or error paths.
-3. Always finish with `review-gate-enforcer.md`.
+2. Run a matching `../security-audit/` skill when the change touches auth, secrets, external input, APIs, or data access.
+3. Run security and/or observability review if the change touches auth, secrets, or error paths.
+4. Always finish with `review-gate-enforcer.md`.

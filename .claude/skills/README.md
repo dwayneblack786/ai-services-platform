@@ -6,6 +6,7 @@ This index helps select the right skill quickly.
 
 - `code-review/`: Skills for evaluating existing changes.
 - `code-changes/`: Skills for implementing senior-level changes.
+- `security-audit/`: Tier-specific security audit playbooks and checklists.
 
 ## Task Type -> Skill
 
@@ -21,6 +22,18 @@ This index helps select the right skill quickly.
   - `code-review/review-security-auth-tenant.md`
 - OWASP, penetration testing, and dependency scanning:
   - `code-review/review-security-scanning-pentesting.md`
+- Tier-specific security audit entry point:
+  - `security-audit/README.md`
+- Node/Express backend security audit:
+  - `security-audit/audit-node-backend.md`
+- React frontend security audit:
+  - `security-audit/audit-react-frontend.md`
+- Java/Spring service security audit:
+  - `security-audit/audit-java-spring.md`
+- API/gRPC contract and endpoint security audit:
+  - `security-audit/audit-api-contracts.md`
+- Data protection and database security audit:
+  - `security-audit/audit-data-protection.md`
 - Tests and coverage review:
   - `code-review/review-tests-and-coverage.md`
 - Contract and breaking-change review:
@@ -50,5 +63,6 @@ This index helps select the right skill quickly.
 
 1. Identify the repository that owns the target files.
 2. Pick one implementation skill from `code-changes/` based on the tier.
-3. Run one or more focused review skills from `code-review/`.
-4. Always finish with `code-review/review-gate-enforcer.md`.
+3. If the change touches auth, input handling, secrets, data access, APIs, or external calls, run the matching skill from `security-audit/`.
+4. Run one or more focused review skills from `code-review/`.
+5. Always finish with `code-review/review-gate-enforcer.md`.
