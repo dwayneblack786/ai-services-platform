@@ -4,12 +4,15 @@ This index helps select the right skill quickly.
 
 ## Structure
 
+- `knowledge-management/`: Skills for project knowledge organization, discovery, and context preservation.
 - `code-review/`: Skills for evaluating existing changes.
 - `code-changes/`: Skills for implementing senior-level changes.
 - `security-audit/`: Tier-specific security audit playbooks and checklists.
 
 ## Task Type -> Skill
 
+- Setting up persistent development knowledge (optional but recommended):
+  - `knowledge-management/obsidian-workflow.md`
 - General pre-merge quality gates:
   - `code-review/review-gate-enforcer.md`
 - Frontend React/TypeScript review:
@@ -67,6 +70,7 @@ This index helps select the right skill quickly.
 
 ## Recommended Usage Flow
 
+0. **Knowledge baseline (Optional but recommended):** If this is your first session or you're starting fresh on a large feature, spend 10 min on `knowledge-management/obsidian-workflow.md` to set up Obsidian vault. Reduces token consumption and accelerates context discovery in subsequent sessions.
 1. Identify the repository that owns the target files.
 2. Pick one implementation skill from `code-changes/` based on the tier.
 3. If the change is AI-heavy, agentic, retrieval-based, or involves model/provider integration, use `code-changes/senior-ai-agentic-implementation.md`.
