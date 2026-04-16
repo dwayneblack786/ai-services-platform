@@ -9,9 +9,11 @@ Use these skills when evaluating changes, not implementing them.
 3. `review-backend-express-ts.md` — Express + TypeScript API changes
 4. `review-java-listing-service.md` — Spring Boot services under `services-java/` (all current and future)
 5. `review-security-auth-tenant.md` — auth, tenant boundaries, secrets
-6. `review-tests-and-coverage.md` — test quality and coverage gaps
-7. `review-contract-and-breaking-change.md` — API/gRPC/type contract changes
-8. `review-observability-and-errors.md` — logging, tracing, error handling
+6. `review-security-scanning-pentesting.md` — OWASP Top 10, penetration testing, dependency scanning
+7. `review-tests-and-coverage.md` — test quality and coverage gaps
+8. `review-contract-and-breaking-change.md` — API/gRPC/type contract changes
+9. `review-observability-and-errors.md` — logging, tracing, error handling
+10. `review-web-quality-audits.md` — Core Web Vitals, accessibility (WCAG), SEO
 
 ## Quick Selector
 
@@ -22,9 +24,11 @@ Use these skills when evaluating changes, not implementing them.
 | Backend Express/TypeScript | `review-backend-express-ts.md` |
 | Java services (`services-java/`) | `review-java-listing-service.md` |
 | Auth, tenant, secrets | `review-security-auth-tenant.md` |
+| OWASP Top 10, pentesting, dependencies | `review-security-scanning-pentesting.md` |
 | Tests and coverage | `review-tests-and-coverage.md` |
 | Contracts and breaking changes | `review-contract-and-breaking-change.md` |
 | Observability and errors | `review-observability-and-errors.md` |
+| Core Web Vitals, accessibility, SEO | `review-web-quality-audits.md` |
 
 ## Recommended Flow
 

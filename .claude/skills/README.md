@@ -19,12 +19,16 @@ This index helps select the right skill quickly.
   - `code-review/review-java-listing-service.md`
 - Security/auth/tenant review:
   - `code-review/review-security-auth-tenant.md`
+- OWASP, penetration testing, and dependency scanning:
+  - `code-review/review-security-scanning-pentesting.md`
 - Tests and coverage review:
   - `code-review/review-tests-and-coverage.md`
 - Contract and breaking-change review:
   - `code-review/review-contract-and-breaking-change.md`
 - Observability and error-handling review:
   - `code-review/review-observability-and-errors.md`
+- Web quality audits (Core Web Vitals, accessibility, SEO):
+  - `code-review/review-web-quality-audits.md`
 
 - Implementing senior frontend UI + React + Node integration changes:
   - `code-changes/senior-frontend-react-ui-node.md`
@@ -32,6 +36,8 @@ This index helps select the right skill quickly.
   - `code-changes/senior-backend-node-architecture.md`
 - Implementing senior Java Spring standards changes:
   - `code-changes/senior-java-spring-standards.md`
+- Test-Driven Development (Red-Green-Refactor cycle):
+  - `code-changes/senior-tdd-test-first.md`
 
 ## Repository Scope Rules
 
