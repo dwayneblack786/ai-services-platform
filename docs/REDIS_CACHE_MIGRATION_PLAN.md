@@ -257,10 +257,10 @@ All infrastructure complete and ready for comprehensive testing.
 redis-server
 
 # 2. Start backend
-cd product-management/backend-node && npm run dev
+cd ai-product-management/backend-node && npm run dev
 
 # 3. Start frontend  
-cd product-management/frontend && npm run dev
+cd ai-product-management/frontend && npm run dev
 
 # 4. Test login and verify cache status in DevTools
 ```
@@ -392,3 +392,4 @@ redis-server
 ### Next Phase
 
 Phase 3 will identify and migrate user preferences (theme, settings, etc.) to use the unified cache with appropriate TTL and namespace separation.
+

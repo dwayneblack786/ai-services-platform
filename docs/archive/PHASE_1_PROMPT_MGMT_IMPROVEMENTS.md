@@ -8,7 +8,7 @@ Phase 1 implements UI/UX improvements to the Project Admin Prompt Management pag
 ### 1. New Shared Components
 
 #### VersionStatus Component
-**File:** [product-management/frontend/src/components/VersionStatus.tsx](../product-management/frontend/src/components/VersionStatus.tsx)
+**File:** [ai-product-management/frontend/src/components/VersionStatus.tsx](../ai-product-management/frontend/src/components/VersionStatus.tsx)
 
 - Reusable status badge component
 - Color-coded state indicators (draft, testing, staging, production, archived)
@@ -18,7 +18,7 @@ Phase 1 implements UI/UX improvements to the Project Admin Prompt Management pag
 - Consistent styling across all pages
 
 #### AnalyticsCard Component
-**File:** [product-management/frontend/src/components/AnalyticsCard.tsx](../product-management/frontend/src/components/AnalyticsCard.tsx)
+**File:** [ai-product-management/frontend/src/components/AnalyticsCard.tsx](../ai-product-management/frontend/src/components/AnalyticsCard.tsx)
 
 - Displays prompt metrics and analysis results
 - Shows scoring with threshold-based color coding
@@ -30,7 +30,7 @@ Phase 1 implements UI/UX improvements to the Project Admin Prompt Management pag
 ### 2. Backend Updates
 
 #### Prompt Service - Version Workflow Logic
-**File:** [product-management/backend-node/src/services/prompt.service.ts](../product-management/backend-node/src/services/prompt.service.ts)
+**File:** [ai-product-management/backend-node/src/services/prompt.service.ts](../ai-product-management/backend-node/src/services/prompt.service.ts)
 
 **Changes:**
 1. **Updated `updateDraft()` method:**
@@ -53,7 +53,7 @@ Phase 1 implements UI/UX improvements to the Project Admin Prompt Management pag
    - Returns updated prompt
 
 #### Prompt Management Routes
-**File:** [product-management/backend-node/src/routes/prompt-management-routes.ts](../product-management/backend-node/src/routes/prompt-management-routes.ts)
+**File:** [ai-product-management/backend-node/src/routes/prompt-management-routes.ts](../ai-product-management/backend-node/src/routes/prompt-management-routes.ts)
 
 **Changes:**
 1. **Updated `PUT /api/pms/prompts/:id`:**
@@ -69,7 +69,7 @@ Phase 1 implements UI/UX improvements to the Project Admin Prompt Management pag
 ### 3. Frontend API Updates
 
 #### Prompt API Service
-**File:** [product-management/frontend/src/services/promptApi.ts](../product-management/frontend/src/services/promptApi.ts)
+**File:** [ai-product-management/frontend/src/services/promptApi.ts](../ai-product-management/frontend/src/services/promptApi.ts)
 
 **Changes:**
 1. **Updated `updateDraft()` signature:**
@@ -82,7 +82,7 @@ Phase 1 implements UI/UX improvements to the Project Admin Prompt Management pag
 ### 4. Prompt Management Page Updates
 
 #### Dashboard Cards Redesign
-**File:** [product-management/frontend/src/pages/PromptManagement.tsx](../product-management/frontend/src/pages/PromptManagement.tsx)
+**File:** [ai-product-management/frontend/src/pages/PromptManagement.tsx](../ai-product-management/frontend/src/pages/PromptManagement.tsx)
 
 **Changes:**
 1. **Professional card layout:**
@@ -109,7 +109,7 @@ Phase 1 implements UI/UX improvements to the Project Admin Prompt Management pag
 ### 5. Prompt Editor Updates
 
 #### Version Workflow Implementation
-**File:** [product-management/frontend/src/pages/PromptEditor.tsx](../product-management/frontend/src/pages/PromptEditor.tsx)
+**File:** [ai-product-management/frontend/src/pages/PromptEditor.tsx](../ai-product-management/frontend/src/pages/PromptEditor.tsx)
 
 **Major Changes:**
 
@@ -230,17 +230,17 @@ Phase 1 implements UI/UX improvements to the Project Admin Prompt Management pag
 ## Files Modified
 
 ### Backend
-1. `product-management/backend-node/src/services/prompt.service.ts`
-2. `product-management/backend-node/src/routes/prompt-management-routes.ts`
+1. `ai-product-management/backend-node/src/services/prompt.service.ts`
+2. `ai-product-management/backend-node/src/routes/prompt-management-routes.ts`
 
 ### Frontend
-3. `product-management/frontend/src/services/promptApi.ts`
-4. `product-management/frontend/src/pages/PromptManagement.tsx`
-5. `product-management/frontend/src/pages/PromptEditor.tsx`
+3. `ai-product-management/frontend/src/services/promptApi.ts`
+4. `ai-product-management/frontend/src/pages/PromptManagement.tsx`
+5. `ai-product-management/frontend/src/pages/PromptEditor.tsx`
 
 ### New Files
-6. `product-management/frontend/src/components/VersionStatus.tsx`
-7. `product-management/frontend/src/components/AnalyticsCard.tsx`
+6. `ai-product-management/frontend/src/components/VersionStatus.tsx`
+7. `ai-product-management/frontend/src/components/AnalyticsCard.tsx`
 
 ## Testing Checklist
 
@@ -306,3 +306,4 @@ Phase 1 implements UI/UX improvements to the Project Admin Prompt Management pag
 - Audit logs capture all state transitions
 - User roles unchanged (PROJECT_ADMIN, TENANT_ADMIN)
 - No breaking API changes (additive only)
+

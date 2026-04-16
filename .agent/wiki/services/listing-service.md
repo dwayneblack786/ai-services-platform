@@ -28,7 +28,7 @@ Repository ownership:
 
 - Git operations for this service belong to the `services-java` repository.
 - Do not combine `.ai/` docs with `services-java` source changes in one repository-local commit.
-- Canonical gRPC protos are shared from `product-management/backend-node/proto/`; each Java service keeps its own local copy.
+- Canonical gRPC protos are shared from `ai-product-management/backend-node/proto/`; each Java service keeps its own local copy.
 
 Pipeline:
 
@@ -46,7 +46,7 @@ Architecture notes:
 Integration boundaries:
 
 - `ai-listing-agent` acts as the UI/API layer and delegates heavy orchestration to this service.
-- `product-management/backend-node/proto/` is the canonical source for shared gRPC contract definitions.
+- `ai-product-management/backend-node/proto/` is the canonical source for shared gRPC contract definitions.
 - External models follow a role split: Claude Sonnet for higher-quality generation and compliance tasks, Claude Haiku for faster classification and routing work.
 
 Operational checks:
@@ -66,6 +66,7 @@ Actionable notes:
 - Uses LangChain4j for orchestration — `services-python/listing-agents/` is a reference stub only.
 - Claude Sonnet for quality tasks (copywriting, compliance); Claude Haiku for speed tasks (classification, routing).
 - All API keys and service URLs must be environment-driven; never hardcoded.
-- gRPC proto source is in `product-management/backend-node/proto/`; each service has its own local copy.
+- gRPC proto source is in `ai-product-management/backend-node/proto/`; each service has its own local copy.
 - New or changed pipeline/service logic requires unit tests under `src/test/java`.
 - Good retrieval path for new work: repo memory note → this service page → one related runbook → source code or deeper docs only if still needed.
+

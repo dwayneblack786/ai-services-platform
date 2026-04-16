@@ -3,7 +3,7 @@ param(
     [string[]]$IncludeRepos = @(
         "ai-listing-agent",
         "ai-product-starter-template",
-        "product-management",
+        "ai-product-management",
         "shared",
         "services-java",
         "services-python"

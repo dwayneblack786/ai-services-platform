@@ -27,7 +27,7 @@ Implemented smart cancel navigation in the PromptEditor component to ensure user
 
 ### 1. PromptEditor.tsx - Smart Navigation Logic
 
-**File:** `product-management/frontend/src/pages/PromptEditor.tsx`
+**File:** `ai-product-management/frontend/src/pages/PromptEditor.tsx`
 
 #### Added `getReturnPath()` Function
 ```typescript
@@ -76,7 +76,7 @@ const handleDiscardConfirmed = () => {
 
 ### 2. TenantPrompts.tsx - Pass Context Parameter
 
-**File:** `product-management/frontend/src/pages/TenantPrompts.tsx`
+**File:** `ai-product-management/frontend/src/pages/TenantPrompts.tsx`
 
 **Before:**
 ```typescript
@@ -98,7 +98,7 @@ const handleEditPrompt = (draftId: string) => {
 
 ### 3. PromptManagement.tsx - Explicit Return Path
 
-**File:** `product-management/frontend/src/pages/PromptManagement.tsx`
+**File:** `ai-product-management/frontend/src/pages/PromptManagement.tsx`
 
 **Before:**
 ```typescript
@@ -200,14 +200,14 @@ const handleEdit = (id: string) => {
 
 ## Files Modified
 
-1. **product-management/frontend/src/pages/PromptEditor.tsx**
+1. **ai-product-management/frontend/src/pages/PromptEditor.tsx**
    - Lines 558-595: Added `getReturnPath()` function
    - Updated `handleCancelClick()` and `handleDiscardConfirmed()`
 
-2. **product-management/frontend/src/pages/TenantPrompts.tsx**
+2. **ai-product-management/frontend/src/pages/TenantPrompts.tsx**
    - Lines 121-123: Updated `handleEditPrompt()` to pass `productId`
 
-3. **product-management/frontend/src/pages/PromptManagement.tsx**
+3. **ai-product-management/frontend/src/pages/PromptManagement.tsx**
    - Lines 351-353: Updated `handleEdit()` to pass `returnTo`
 
 ---
@@ -265,3 +265,4 @@ const handleEdit = (id: string) => {
 - Project admin prompts return to prompt management page
 - Fallback detection from prompt properties
 - Explicit returnTo parameter support for flexibility
+

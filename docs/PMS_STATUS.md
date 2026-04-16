@@ -49,26 +49,26 @@
 ## 🔗 Key Files
 
 ### Backend Services
-- [prompt.service.ts](../product-management/backend-node/src/services/prompt.service.ts) - Core CRUD + promotion
-- [rag.service.ts](../product-management/backend-node/src/services/rag.service.ts) - RAG (scraping, chunking, retrieval)
+- [prompt.service.ts](../ai-product-management/backend-node/src/services/prompt.service.ts) - Core CRUD + promotion
+- [rag.service.ts](../ai-product-management/backend-node/src/services/rag.service.ts) - RAG (scraping, chunking, retrieval)
 
 ### Backend Routes
-- [prompt-management-routes.ts](../product-management/backend-node/src/routes/prompt-management-routes.ts) - Prompt API
-- [rag-routes.ts](../product-management/backend-node/src/routes/rag-routes.ts) - RAG API
+- [prompt-management-routes.ts](../ai-product-management/backend-node/src/routes/prompt-management-routes.ts) - Prompt API
+- [rag-routes.ts](../ai-product-management/backend-node/src/routes/rag-routes.ts) - RAG API
 
 ### Frontend Pages
-- [PromptEditor.tsx](../product-management/frontend/src/pages/PromptEditor.tsx) - Editor + promotion buttons
-- [PromptManagement.tsx](../product-management/frontend/src/pages/PromptManagement.tsx) - PROJECT_ADMIN view
-- [TenantPrompts.tsx](../product-management/frontend/src/pages/TenantPrompts.tsx) - TENANT_ADMIN view
+- [PromptEditor.tsx](../ai-product-management/frontend/src/pages/PromptEditor.tsx) - Editor + promotion buttons
+- [PromptManagement.tsx](../ai-product-management/frontend/src/pages/PromptManagement.tsx) - PROJECT_ADMIN view
+- [TenantPrompts.tsx](../ai-product-management/frontend/src/pages/TenantPrompts.tsx) - TENANT_ADMIN view
 
 ### Frontend Services
-- [promptApi.ts](../product-management/frontend/src/services/promptApi.ts) - Prompt API client
-- [ragApi.ts](../product-management/frontend/src/services/ragApi.ts) - RAG API client
+- [promptApi.ts](../ai-product-management/frontend/src/services/promptApi.ts) - Prompt API client
+- [ragApi.ts](../ai-product-management/frontend/src/services/ragApi.ts) - RAG API client
 
 ### Frontend Components
-- [RAGSourceManager.tsx](../product-management/frontend/src/components/RAGSourceManager.tsx) - RAG config UI
-- [PromptDashboardCard.tsx](../product-management/frontend/src/components/PromptDashboardCard.tsx) - Card layout
-- [TestResultsViewer.tsx](../product-management/frontend/src/components/TestResultsViewer.tsx) - Test results
+- [RAGSourceManager.tsx](../ai-product-management/frontend/src/components/RAGSourceManager.tsx) - RAG config UI
+- [PromptDashboardCard.tsx](../ai-product-management/frontend/src/components/PromptDashboardCard.tsx) - Card layout
+- [TestResultsViewer.tsx](../ai-product-management/frontend/src/components/TestResultsViewer.tsx) - Test results
 
 ## 📋 Optional Phases
 
@@ -108,3 +108,4 @@
 - [NEXT_STEPS.md](./NEXT_STEPS.md) - Deployment guide & optional phases
 - [PHASE_3_COMPLETE.md](./archive/PHASE_3_COMPLETE.md) - Phase 3 details
 - [RAG_ARCHITECTURE.md](./RAG_ARCHITECTURE.md) - RAG design
+

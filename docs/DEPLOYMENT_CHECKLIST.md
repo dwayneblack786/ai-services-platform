@@ -58,7 +58,7 @@ git push --tags
 ### Step 2: Backend Deployment
 
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 
 # Install dependencies (if any new ones)
 npm install
@@ -91,7 +91,7 @@ curl http://localhost:5000/health
 ### Step 3: Frontend Deployment
 
 ```bash
-cd product-management/frontend
+cd ai-product-management/frontend
 
 # Install dependencies (if any new ones)
 npm install
@@ -536,3 +536,4 @@ npm run start
 - [ ] Update release notes
 - [ ] Post in company chat
 - [ ] Update status page
+

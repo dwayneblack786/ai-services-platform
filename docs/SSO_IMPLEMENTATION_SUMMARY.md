@@ -14,21 +14,21 @@ A complete OAuth 2.0 and OIDC-inspired SSO system has been implemented between:
 1. `shared/sso-types.ts` - TypeScript interfaces for SSO tokens, requests, and responses
 
 #### Product-Management (IdP)
-2. `product-management/backend-node/src/services/sso-service.ts` - SSO token generation, verification, revocation (360 lines)
-3. `product-management/backend-node/src/routes/sso-routes.ts` - OIDC-compatible endpoints (280 lines)
+2. `ai-product-management/backend-node/src/services/sso-service.ts` - SSO token generation, verification, revocation (360 lines)
+3. `ai-product-management/backend-node/src/routes/sso-routes.ts` - OIDC-compatible endpoints (280 lines)
 
 #### Prompt-Management (SP)
 4. `prompt-management/backend/src/services/sso-client.ts` - SSO client for IdP communication (170 lines)
 5. `prompt-management/backend/src/utils/logger.ts` - Simple logger utility (55 lines)
 
 #### Documentation
-6. `product-management/docs/SSO_IMPLEMENTATION_GUIDE.md` - Comprehensive 500+ line implementation guide
+6. `ai-product-management/docs/SSO_IMPLEMENTATION_GUIDE.md` - Comprehensive 500+ line implementation guide
 
 ### ✅ Modified Files
 
 #### Product-Management
-- `product-management/backend-node/src/index.ts` - Added SSO routes and initialization
-- `product-management/backend-node/.env.example` - Added SSO configuration variables
+- `ai-product-management/backend-node/src/index.ts` - Added SSO routes and initialization
+- `ai-product-management/backend-node/.env.example` - Added SSO configuration variables
 
 #### Prompt-Management
 - `prompt-management/backend/src/middleware/auth.ts` - Updated authentication with JIT provisioning
@@ -257,7 +257,7 @@ This implementation follows:
 ## Support
 
 For questions or issues:
-1. Check [SSO_IMPLEMENTATION_GUIDE.md](../product-management/docs/SSO_IMPLEMENTATION_GUIDE.md)
+1. Check [SSO_IMPLEMENTATION_GUIDE.md](../ai-product-management/docs/SSO_IMPLEMENTATION_GUIDE.md)
 2. Review logs in both services
 3. Test with provided curl commands
 4. Verify environment configuration
@@ -268,3 +268,4 @@ For questions or issues:
 **Implementation Date:** January 27, 2026
 **Status:** ✅ Complete and Ready for Testing
 **Version:** 1.0.0
+

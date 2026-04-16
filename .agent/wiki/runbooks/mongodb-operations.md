@@ -10,7 +10,7 @@ Context:
 Source file/path:
 
 - `podman-compose.yml`
-- `product-management/backend-node/`
+- `ai-product-management/backend-node/`
 - `ai-listing-agent/backend-node/`
 - `services-java/listing-service/`
 - `.ai/skills/code-changes/senior-data-engineer-database.md`
@@ -175,3 +175,4 @@ Last verified date:
 - `.ai/skills/code-changes/senior-data-engineer-database.md`
 - `.ai/skills/code-changes/senior-devops-infra.md`
 - `.ai/skills/code-review/review-database-data-layer.md`
+

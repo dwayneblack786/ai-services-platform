@@ -22,7 +22,7 @@ Implement and review infrastructure, containerization, and platform operations c
 - **Container runtime:** Podman (not Docker) — all container commands use `podman` or `podman-compose`.
 - **Compose file:** `podman-compose.yml` at workspace root.
 - **MongoDB 7.0:** internal port 27017, exposed on **27018** for local dev. Database name: `ai_platform`.
-- **Redis:** session store for `product-management` backend. Check for port conflicts if changing Redis config.
+- **Redis:** session store for `ai-product-management` backend. Check for port conflicts if changing Redis config.
 - **Services run locally** (not in containers) in development:
   - Product management backend: port 3001
   - Product management frontend: port 5173
@@ -63,7 +63,7 @@ Implement and review infrastructure, containerization, and platform operations c
 
 - Redis is used exclusively for session storage; do not repurpose it for other caching without review.
 - Default configuration is sufficient for local dev; do not add persistence (AOF/RDB) without ops justification.
-- If changing Redis port, update the session store config in `product-management/backend-node` and validate session middleware still functions.
+- If changing Redis port, update the session store config in `ai-product-management/backend-node` and validate session middleware still functions.
 - Key expiry: session TTL is managed by the express-session middleware, not Redis config directly.
 
 ---
@@ -105,3 +105,4 @@ Before merging any infra change:
 - [ ] Port assignments match the service topology table above
 - [ ] Both `start-app.ps1` and `start-app.sh` updated if startup order changed
 - [ ] `.env.example` updated if new environment variables were added
+

@@ -8,7 +8,7 @@ Sections:
 
 - [Glossary](glossary.md)
 - [Service Notes: ai-listing-agent](services/ai-listing-agent.md)
-- [Service Notes: product-management](services/product-management.md)
+- [Service Notes: ai-product-management](services/product-management.md)
 - [Service Notes: listing-service](services/listing-service.md)
 - [Service Notes: va-service](services/va-service.md)
 - [Runbooks](runbooks/README.md)
@@ -24,7 +24,7 @@ Scripts:
 
 Docs:
 
-- All platform docs now live in `docs/` (workspace root). `product-management/docs/` was consolidated here.
+- All platform docs now live in `docs/` (workspace root). `ai-product-management/docs/` was consolidated here.
 
 High-value rules to check from here:
 

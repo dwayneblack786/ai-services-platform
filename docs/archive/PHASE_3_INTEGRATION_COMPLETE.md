@@ -15,7 +15,7 @@ Phase 3 complete: Orchestrator integrated with voice-socket.ts, tenant config ma
 
 ### 1. Tenant Voice Config Service ✅
 
-**[src/services/tenant-voice-config.service.ts](../product-management/backend-node/src/services/tenant-voice-config.service.ts)**
+**[src/services/tenant-voice-config.service.ts](../ai-product-management/backend-node/src/services/tenant-voice-config.service.ts)**
 
 Complete tenant configuration management:
 - Default configs (basic, enterprise tiers)
@@ -56,7 +56,7 @@ Complete tenant configuration management:
 
 ### 2. Orchestrated Voice Socket ✅
 
-**[src/sockets/voice-socket-orchestrated.ts](../product-management/backend-node/src/sockets/voice-socket-orchestrated.ts)**
+**[src/sockets/voice-socket-orchestrated.ts](../ai-product-management/backend-node/src/sockets/voice-socket-orchestrated.ts)**
 
 New WebSocket handler with full orchestrator integration:
 - Session initialization
@@ -84,7 +84,7 @@ New WebSocket handler with full orchestrator integration:
 
 ### 3. Component Strategy Enhancement ✅
 
-**Updated: [src/strategies/component-strategy.ts](../product-management/backend-node/src/strategies/component-strategy.ts)**
+**Updated: [src/strategies/component-strategy.ts](../ai-product-management/backend-node/src/strategies/component-strategy.ts)**
 
 Connected to Java gRPC service:
 - Real Whisper STT via gRPC
@@ -105,7 +105,7 @@ const response = await grpcClient.transcribe(
 
 ### 4. Integration Test Suite ✅
 
-**[tests/integration/voice-orchestrator-integration.test.ts](../product-management/backend-node/tests/integration/voice-orchestrator-integration.test.ts)** - 12 tests
+**[tests/integration/voice-orchestrator-integration.test.ts](../ai-product-management/backend-node/tests/integration/voice-orchestrator-integration.test.ts)** - 12 tests
 
 **Coverage:**
 - End-to-end flow with real audio
@@ -380,7 +380,7 @@ services:
 ## File Structure
 
 ```
-product-management/backend-node/
+ai-product-management/backend-node/
 ├── src/
 │   ├── orchestrator/
 │   │   ├── types.ts                              # PHASE 2
@@ -599,3 +599,4 @@ npm run test:integration:voice
 **Total: 45 tests, ~2000 lines of code, fully working voice orchestration system**
 
 Ready for production deployment with real services.
+

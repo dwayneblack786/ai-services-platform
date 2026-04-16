@@ -9,7 +9,7 @@ Automatic Single Sign-On (SSO) authentication between Product Management and Pro
 
 ## Changes Made
 
-### 1. Product Management Backend (`product-management/backend-node`)
+### 1. Product Management Backend (`ai-product-management/backend-node`)
 
 **File: `src/routes/sso-routes.ts`**
 - Added `GET /api/sso/get-token` endpoint
@@ -21,7 +21,7 @@ Automatic Single Sign-On (SSO) authentication between Product Management and Pro
 - Added `CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:3001`
 - Enables Prompt Management frontend to access SSO endpoints
 
-### 2. Product Management Frontend (`product-management/frontend`)
+### 2. Product Management Frontend (`ai-product-management/frontend`)
 
 **File: `src/components/Sidebar.tsx`**
 - Added "Prompt Management 📝" menu item
@@ -112,11 +112,11 @@ Automatic Single Sign-On (SSO) authentication between Product Management and Pro
 Ensure both applications are running:
 ```bash
 # Product Management Backend (Port 5000)
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 
 # Product Management Frontend (Port 5173)
-cd product-management/frontend  
+cd ai-product-management/frontend  
 npm run dev
 
 # Prompt Management Backend (Port 5001)
@@ -261,7 +261,7 @@ JWT_SECRET=your-shared-secret-minimum-32-chars  # MUST match Product Management
 
 ## Related Documentation
 
-- [SSO Implementation Guide](../product-management/docs/SSO_IMPLEMENTATION_GUIDE.md) - Detailed technical implementation
+- [SSO Implementation Guide](../ai-product-management/docs/SSO_IMPLEMENTATION_GUIDE.md) - Detailed technical implementation
 - [SSO Quick Reference](./SSO_QUICK_REFERENCE.md) - API endpoints and token structure
 - [SSO Setup Guide](./SSO_SETUP_GUIDE.md) - Configuration and troubleshooting
 
@@ -272,3 +272,4 @@ JWT_SECRET=your-shared-secret-minimum-32-chars  # MUST match Product Management
 - **New Components**: 1 SSO button in Sidebar
 - **Environment Variables**: 3 new/updated
 - **Documentation**: 1 comprehensive guide
+

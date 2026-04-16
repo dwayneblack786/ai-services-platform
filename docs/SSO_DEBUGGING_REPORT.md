@@ -123,7 +123,7 @@ The SSO implementation is **90% functional**. All OIDC protocol steps work corre
 The `exchangeCodeForTokens()` function in the OIDC provider queries MongoDB to fetch user details for the ID token:
 
 ```typescript
-// File: product-management/backend-node/src/services/oidc-provider.service.ts
+// File: ai-product-management/backend-node/src/services/oidc-provider.service.ts
 export const exchangeCodeForTokens = async (/* ... */) => {
   // ... authorization code validation ...
   
@@ -168,7 +168,7 @@ User not found error
 **Implementation:** Modify `ensureDevTenant()` to also create a dev user in MongoDB
 
 ```typescript
-// File: product-management/backend-node/src/routes/auth.ts
+// File: ai-product-management/backend-node/src/routes/auth.ts
 
 export const ensureDevTenant = async () => {
   try {
@@ -224,7 +224,7 @@ export const ensureDevTenant = async () => {
 **Implementation:** Check in-memory store before querying database
 
 ```typescript
-// File: product-management/backend-node/src/services/oidc-provider.service.ts
+// File: ai-product-management/backend-node/src/services/oidc-provider.service.ts
 
 import { users } from '../config/passport'; // Import in-memory store
 
@@ -283,7 +283,7 @@ export const exchangeCodeForTokens = async (/* ... */) => {
 
 ### Changes Required
 
-**File:** [product-management/backend-node/src/routes/auth.ts](../product-management/backend-node/src/routes/auth.ts)
+**File:** [ai-product-management/backend-node/src/routes/auth.ts](../ai-product-management/backend-node/src/routes/auth.ts)
 
 **Location:** `ensureDevTenant()` function (lines 20-57)
 
@@ -358,7 +358,7 @@ npm run dev
 
 ### Environment Variables
 
-**product-management/.env:**
+**ai-product-management/.env:**
 ```env
 OIDC_ISSUER=http://localhost:5000
 OIDC_CLIENT_SECRET_PROMPT_MGMT=prompt-mgmt-secret-key-min-32-chars-required
@@ -382,8 +382,8 @@ SSO_REDIRECT_URI=http://localhost:5001/api/auth/sso/callback
 
 ```powershell
 # 1. Start all services
-cd product-management/backend-node && npm run dev  # Terminal 1
-cd product-management/frontend && npm run dev      # Terminal 2
+cd ai-product-management/backend-node && npm run dev  # Terminal 1
+cd ai-product-management/frontend && npm run dev      # Terminal 2
 cd prompt-management/backend && npm run dev         # Terminal 3
 cd prompt-management/frontend && npm run dev        # Terminal 4
 
@@ -399,18 +399,18 @@ Invoke-WebRequest -Uri "http://localhost:5000/api/auth/dev-login" -Method POST -
 
 ### Automated Test Script
 
-Created: [`test-sso-flow.ps1`](../product-management/scripts/test-sso-flow.ps1)
+Created: [`test-sso-flow.ps1`](../ai-product-management/scripts/test-sso-flow.ps1)
 
 ---
 
 ## 📚 Related Documentation
 
-- [OIDC Provider Service](../product-management/backend-node/src/services/oidc-provider.service.ts)
-- [OIDC Client Service (product-mgmt)](../product-management/backend-node/src/services/oidc-client.service.ts)
+- [OIDC Provider Service](../ai-product-management/backend-node/src/services/oidc-provider.service.ts)
+- [OIDC Client Service (product-mgmt)](../ai-product-management/backend-node/src/services/oidc-client.service.ts)
 - [OIDC Client Service (prompt-mgmt)](../prompt-management/backend/src/services/oidc-client.service.ts)
-- [OIDC Routes (IdP)](../product-management/backend-node/src/routes/oidc.ts)
-- [SSO Routes (RP)](../product-management/backend-node/src/routes/sso.ts)
-- [Auth Routes (product-mgmt)](../product-management/backend-node/src/routes/auth.ts)
+- [OIDC Routes (IdP)](../ai-product-management/backend-node/src/routes/oidc.ts)
+- [SSO Routes (RP)](../ai-product-management/backend-node/src/routes/sso.ts)
+- [Auth Routes (product-mgmt)](../ai-product-management/backend-node/src/routes/auth.ts)
 - [Auth Routes (prompt-mgmt)](../prompt-management/backend/src/routes/auth.ts)
 - [Security Audit Report](SECURITY_AUDIT_REPORT.md) (if exists from previous session)
 
@@ -459,3 +459,4 @@ Created: [`test-sso-flow.ps1`](../product-management/scripts/test-sso-flow.ps1)
 ---
 
 *End of Report*
+

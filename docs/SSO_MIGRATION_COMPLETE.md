@@ -100,7 +100,7 @@ Updated both services' OIDC client implementations to use correct endpoint paths
 ```
 
 **Files Updated**:
-- [product-management/backend-node/src/services/oidc-client.service.ts](product-management/backend-node/src/services/oidc-client.service.ts)
+- [ai-product-management/backend-node/src/services/oidc-client.service.ts](ai-product-management/backend-node/src/services/oidc-client.service.ts)
 - [prompt-management/backend/src/services/oidc-client.service.ts](prompt-management/backend/src/services/oidc-client.service.ts)
 
 ### 3. Frontend Configuration
@@ -162,7 +162,7 @@ npm install  # First time only
 npm run dev  # Port 4000
 
 # Terminal 2: Start Product Management Backend
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev  # Port 5000
 
 # Terminal 3: Start Prompt Management Backend
@@ -170,7 +170,7 @@ cd prompt-management/backend
 npm run dev  # Port 5001
 
 # Terminal 4: Start Product Management Frontend
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run dev  # Port 5173
 
 # Terminal 5: Start Prompt Management Frontend
@@ -319,3 +319,4 @@ Both product-management and prompt-management now use the central auth-service f
 - Use Redis for session storage (currently using memory store)
 - Implement token refresh flows
 - Add monitoring and logging for SSO events
+

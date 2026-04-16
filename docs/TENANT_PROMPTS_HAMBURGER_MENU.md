@@ -636,7 +636,7 @@ Delete - Delete prompt
 
 ## Files Modified
 
-1. **product-management/frontend/src/pages/TenantPrompts.tsx**
+1. **ai-product-management/frontend/src/pages/TenantPrompts.tsx**
    - Line 63: Added `menuOpen` state
    - Lines 138-170: Added handler functions
      - `handleDuplicatePrompt()`: Clone prompt
@@ -694,3 +694,4 @@ Delete - Delete prompt
 - Delete: Soft delete with confirmation
 - Professional design with icons
 - Red color for destructive action
+

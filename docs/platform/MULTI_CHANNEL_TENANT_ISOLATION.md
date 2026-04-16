@@ -609,18 +609,18 @@ const clonedPrompt = await promptService.cloneTemplate({
 ## Implementation Files
 
 ### Schema
-- **File**: `product-management/backend-node/src/models/PromptVersion.ts`
+- **File**: `ai-product-management/backend-node/src/models/PromptVersion.ts`
 - **Line 226**: `channelType` enum definition
 - **Line 229**: `tenantId` indexed field
 - **Line 230**: `productId` indexed field
 - **Line 426-431**: Compound index for isolation
 
 ### Service Layer
-- **File**: `product-management/backend-node/src/services/prompt.service.ts`
+- **File**: `ai-product-management/backend-node/src/services/prompt.service.ts`
 - **Line 109-122**: `getActivePrompt()` method with filtering
 
 ### Routes
-- **File**: `product-management/backend-node/src/routes/prompt-management-routes.ts`
+- **File**: `ai-product-management/backend-node/src/routes/prompt-management-routes.ts`
 - **Line 76-102**: GET `/active` endpoint for retrieving active prompts
 
 ---
@@ -699,3 +699,4 @@ const legal = await promptService.getActivePrompt({
 ✅ **Fast Queries**: Compound index ensures <50ms query time
 ✅ **Security**: Multi-layer validation prevents cross-tenant access
 ✅ **Audit Trail**: All access logged for HIPAA/SOC2 compliance
+

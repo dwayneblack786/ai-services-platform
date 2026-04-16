@@ -428,14 +428,14 @@ VITE_API_BASE_URL=http://localhost:5000
 
 ### Backend:
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm install
 npm run dev
 ```
 
 ### Frontend:
 ```bash
-cd product-management/frontend
+cd ai-product-management/frontend
 npm install
 npm run dev
 ```
@@ -708,3 +708,4 @@ The multi-tenant self-service registration system is **fully implemented and rea
 **Implementation Date:** January 2025
 **Status:** ✅ Complete - Ready for Testing
 **Team:** AI Assistant + Development Team
+

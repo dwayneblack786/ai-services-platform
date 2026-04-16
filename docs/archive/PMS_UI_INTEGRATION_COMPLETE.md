@@ -26,7 +26,7 @@ Users can now navigate from the **Assistant Channels** page to the **Prompt Mana
 
 ### 1. **AssistantChannels.tsx** (4 changes)
 
-**File**: `product-management/frontend/src/pages/AssistantChannels.tsx`
+**File**: `ai-product-management/frontend/src/pages/AssistantChannels.tsx`
 
 #### Change 1: Import promptApi
 ```typescript
@@ -88,7 +88,7 @@ onClick={() => navigateToPromptConfig('chat')}
 
 ### 2. **PromptEditor.tsx** (3 changes)
 
-**File**: `product-management/frontend/src/pages/PromptEditor.tsx`
+**File**: `ai-product-management/frontend/src/pages/PromptEditor.tsx`
 
 #### Change 1: Import useSearchParams
 ```typescript
@@ -132,7 +132,7 @@ const [searchParams] = useSearchParams();
 
 ### 3. **PromptManagement.tsx** (2 changes)
 
-**File**: `product-management/frontend/src/pages/PromptManagement.tsx`
+**File**: `ai-product-management/frontend/src/pages/PromptManagement.tsx`
 
 #### Change 1: Import useSearchParams
 ```typescript
@@ -299,3 +299,4 @@ This ensures users are never blocked from creating/editing prompts.
 ---
 
 **Phase 1 Frontend Integration Complete! Ready for testing and feedback.**
+

@@ -156,7 +156,7 @@ socket.emit('voice:error', {
    ```bash
    # Start backend, trigger voice session
    # Check logs/combined.log for structured JSON entries
-   tail -f product-management/backend-node/logs/combined.log
+   tail -f ai-product-management/backend-node/logs/combined.log
    ```
 
 2. **Test buffer timeout:**
@@ -281,3 +281,4 @@ All changes are backward compatible. Existing clients will continue to work.
 
 - [CODE_REVIEW_VOICE_ASSISTANT.md](./CODE_REVIEW_VOICE_ASSISTANT.md) - Original code review findings
 - [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md) - Production readiness checklist
+

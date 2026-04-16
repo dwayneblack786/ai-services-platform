@@ -59,8 +59,8 @@ function Has-RepoChanges {
 $results = New-Object System.Collections.Generic.List[object]
 
 $npmTargets = @(
-    @{ Label = "product-management backend"; Path = "product-management/backend-node" },
-    @{ Label = "product-management frontend"; Path = "product-management/frontend" },
+    @{ Label = "ai-product-management backend"; Path = "ai-product-management/backend-node" },
+    @{ Label = "ai-product-management frontend"; Path = "ai-product-management/frontend" },
     @{ Label = "ai-listing-agent backend"; Path = "ai-listing-agent/backend-node" },
     @{ Label = "ai-listing-agent frontend"; Path = "ai-listing-agent/frontend" },
     @{ Label = "ai-product-starter-template shared"; Path = "ai-product-starter-template/shared" },
@@ -206,3 +206,4 @@ if ($failed.Count -gt 0) {
 }
 
 Write-Host "[done] Validation checks completed successfully."
+

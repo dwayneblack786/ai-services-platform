@@ -37,7 +37,7 @@ Start-Sleep -Seconds 2
 Write-Host "================================================================================================" -ForegroundColor Cyan
 Write-Host "   1️⃣  STARTING PRODUCT MANAGEMENT BACKEND (Port 5000)" -ForegroundColor Cyan
 Write-Host "================================================================================================" -ForegroundColor Cyan
-Push-Location $PSScriptRoot\product-management\backend-node
+Push-Location (Join-Path $PSScriptRoot "../ai-product-management/backend-node")
 Start-Process pwsh -ArgumentList "-NoExit", "-Command", "npm run dev; Read-Host 'Press Enter to close'" -WindowStyle Minimized
 Pop-Location
 Write-Host "✅ Product Management Backend started on http://localhost:5000" -ForegroundColor Green
@@ -62,7 +62,7 @@ Start-Sleep -Seconds 3
 Write-Host "================================================================================================" -ForegroundColor Cyan
 Write-Host "   3️⃣  STARTING PRODUCT MANAGEMENT FRONTEND (Port 5173)" -ForegroundColor Cyan
 Write-Host "================================================================================================" -ForegroundColor Cyan
-Push-Location $PSScriptRoot\product-management\frontend
+Push-Location (Join-Path $PSScriptRoot "../ai-product-management/frontend")
 Start-Process pwsh -ArgumentList "-NoExit", "-Command", "npm run dev; Read-Host 'Press Enter to close'" -WindowStyle Minimized
 Pop-Location
 Write-Host "✅ Product Management Frontend started on http://localhost:5173" -ForegroundColor Green

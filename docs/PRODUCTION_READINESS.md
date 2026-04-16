@@ -53,8 +53,8 @@ All core PMS features (Phases 1-4, 6) are **complete and functional**. The syste
 
 ### 1. Metrics Implementation (Non-Blocking)
 **Files:**
-- [TenantPrompts.tsx:222-225](../product-management/frontend/src/pages/TenantPrompts.tsx#L222-L225)
-- [TenantPrompts.tsx:523-586](../product-management/frontend/src/pages/TenantPrompts.tsx#L523-L586)
+- [TenantPrompts.tsx:222-225](../ai-product-management/frontend/src/pages/TenantPrompts.tsx#L222-L225)
+- [TenantPrompts.tsx:523-586](../ai-product-management/frontend/src/pages/TenantPrompts.tsx#L523-L586)
 
 **Current State:**
 ```tsx
@@ -71,7 +71,7 @@ metrics={{
 
 ### 2. Test Score Integration (Non-Blocking)
 **Files:**
-- [PromptManagement.tsx:463](../product-management/frontend/src/pages/PromptManagement.tsx#L463)
+- [PromptManagement.tsx:463](../ai-product-management/frontend/src/pages/PromptManagement.tsx#L463)
 
 **Current State:**
 ```tsx
@@ -217,13 +217,13 @@ lastScore={undefined} // TODO: Add scoring data when available
 - [pms-implementation-plan.md](../../.claude/plans/pms-implementation-plan.md) - Full plan
 
 ### Test Files
-- [tests/phase1/](../product-management/backend-node/tests/phase1/) - Foundation tests
-- [tests/phase2/](../product-management/backend-node/tests/phase2/) - Testing + RAG tests
+- [tests/phase1/](../ai-product-management/backend-node/tests/phase1/) - Foundation tests
+- [tests/phase2/](../ai-product-management/backend-node/tests/phase2/) - Testing + RAG tests
 
 ### Key Code Locations
-- Backend: `product-management/backend-node/src/`
-- Frontend: `product-management/frontend/src/`
-- Models: `product-management/backend-node/src/models/`
+- Backend: `ai-product-management/backend-node/src/`
+- Frontend: `ai-product-management/frontend/src/`
+- Models: `ai-product-management/backend-node/src/models/`
 
 ---
 
@@ -237,3 +237,4 @@ lastScore={undefined} // TODO: Add scoring data when available
 3. Configure production environment
 4. Deploy to staging for final validation
 5. Go live! 🚀
+

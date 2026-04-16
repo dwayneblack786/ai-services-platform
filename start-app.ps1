@@ -140,7 +140,7 @@ Start-Sleep -Seconds 3
 
 # Start Prod3ct Management Backend (Port 5000) - Tenant Service
 Write-Host "1️⃣  Starting Product Management Backend (Port 5000)..." -ForegroundColor Cyan
-Push-Location product-management\backend-node
+Push-Location ai-product-management\backend-node
 Start-Process pwsh -ArgumentList "-NoExit", "-Command", "npm run dev" -WindowStyle Normal
 Pop-Location
 Write-Host "   ✓ Product Management Backend started" -ForegroundColor Green
@@ -161,7 +161,7 @@ Start-Sleep -Seconds 3
 
 # Start Product Management Frontend (Port 5173)
 Write-Host "3️⃣  Starting Product Management Frontend (Port 5173)..." -ForegroundColor Cyan
-Push-Location product-management\frontend
+Push-Location ai-product-management\frontend
 Start-Process pwsh -ArgumentList "-NoExit", "-Command", "npm run dev" -WindowStyle Normal
 Pop-Location
 Write-Host "   ✓ Product Management Frontend started" -ForegroundColor Green

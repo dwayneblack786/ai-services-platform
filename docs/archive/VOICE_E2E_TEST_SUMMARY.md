@@ -54,14 +54,14 @@ Time: 1.464 s
 
 ### 1. Test Infrastructure
 
-**[tests/e2e/voice-streaming.e2e.test.ts](../product-management/backend-node/tests/e2e/voice-streaming.e2e.test.ts)** (372 lines)
+**[tests/e2e/voice-streaming.e2e.test.ts](../ai-product-management/backend-node/tests/e2e/voice-streaming.e2e.test.ts)** (372 lines)
 - Complete voice workflow test
 - Streaming audio chunks test
 - Format validation tests
 - Error handling tests
 - Saves MP3 output files
 
-**[tests/fixtures/audio/generate-sample.ts](../product-management/backend-node/tests/fixtures/audio/generate-sample.ts)** (224 lines)
+**[tests/fixtures/audio/generate-sample.ts](../ai-product-management/backend-node/tests/fixtures/audio/generate-sample.ts)** (224 lines)
 - Windows TTS audio generation
 - Web download fallback
 - Synthetic beep generation
@@ -73,7 +73,7 @@ Time: 1.464 s
 
 ### 2. Documentation
 
-**[tests/e2e/VOICE_TESTING_GUIDE.md](../product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md)** (565 lines)
+**[tests/e2e/VOICE_TESTING_GUIDE.md](../ai-product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md)** (565 lines)
 - Complete testing guide
 - Prerequisites & setup
 - Troubleshooting
@@ -87,7 +87,7 @@ Time: 1.464 s
 
 ### 3. NPM Scripts
 
-Added to [package.json](../product-management/backend-node/package.json):
+Added to [package.json](../ai-product-management/backend-node/package.json):
 ```json
 {
   "test:e2e:voice": "jest tests/e2e/voice-streaming.e2e.test.ts --verbose",
@@ -164,7 +164,7 @@ cd java-service
 ./gradlew bootRun
 
 # Terminal 2: Run test
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run test:voice
 ```
 
@@ -236,7 +236,7 @@ cd ../../../../../java-service
 ./gradlew bootRun
 
 # 3. Run test
-cd ../product-management/backend-node
+cd ../ai-product-management/backend-node
 npm run test:voice
 ```
 
@@ -295,7 +295,7 @@ Tests cover:
 
 ### Jest Configuration
 
-Already configured in [jest.config.js](../product-management/backend-node/jest.config.js):
+Already configured in [jest.config.js](../ai-product-management/backend-node/jest.config.js):
 ```javascript
 {
   testMatch: [
@@ -377,7 +377,7 @@ This test complements the voice critical fixes:
 ## Support
 
 **Documentation:**
-- [VOICE_TESTING_GUIDE.md](../product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md) - Full guide
+- [VOICE_TESTING_GUIDE.md](../ai-product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md) - Full guide
 - [E2E_VOICE_TEST_SETUP.md](./E2E_VOICE_TEST_SETUP.md) - Quick start
 
 **Troubleshooting:**
@@ -388,3 +388,4 @@ This test complements the voice critical fixes:
 
 **Questions?**
 All test code includes detailed comments and error messages.
+

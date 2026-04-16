@@ -9,14 +9,14 @@ This guide will help you manually test the complete self-service registration fl
 
 ### 1. Start Backend Server
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 ```
 **Expected:** Backend running on `http://localhost:5000`
 
 ### 2. Start Frontend Server
 ```bash
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run dev
 ```
 **Expected:** Frontend running on `http://localhost:5173`
@@ -524,3 +524,4 @@ If you encounter issues:
 **Frontend Errors:** Browser DevTools Console  
 **MongoDB Queries:** Use MongoDB Compass or CLI  
 **Keycloak Admin:** http://localhost:8080/admin
+

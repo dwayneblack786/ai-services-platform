@@ -71,7 +71,7 @@
 ### Files Created
 
 #### 1. Redis Pub/Sub Service ✅
-**File:** [src/services/redis-pubsub.service.ts](../product-management/backend-node/src/services/redis-pubsub.service.ts)
+**File:** [src/services/redis-pubsub.service.ts](../ai-product-management/backend-node/src/services/redis-pubsub.service.ts)
 
 **Key Methods:**
 - `publishCacheInvalidation(event)` - Broadcast invalidation to Redis
@@ -404,3 +404,4 @@ pms_api.report_metrics(version_id, {
 - ⏭️ Day 2 (Morning): Metrics API + frontend
 - ⏭️ Day 2 (Afternoon): Snapshots
 - ⏭️ Day 3: Java/Python examples + testing
+

@@ -149,7 +149,7 @@ Each state has a unique color:
 
 ### 1. Start the Frontend
 ```bash
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run dev
 ```
 
@@ -284,7 +284,7 @@ python -m spacy download en_core_web_sm
 
 ### New Files
 ```
-product-management/frontend/src/
+ai-product-management/frontend/src/
 ├── services/
 │   └── promptApi.ts (247 lines)
 ├── pages/
@@ -294,7 +294,7 @@ product-management/frontend/src/
 
 ### Modified Files
 ```
-product-management/frontend/src/
+ai-product-management/frontend/src/
 └── App.tsx (+35 lines - added routes)
 ```
 
@@ -353,3 +353,4 @@ You can now:
 ---
 
 **Phase 1 Complete! Ready for review and next steps.**
+

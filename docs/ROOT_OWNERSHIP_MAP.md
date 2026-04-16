@@ -31,7 +31,7 @@ The root repository is an umbrella coordinator. Domain folders are prepared to b
 Canonical locations:
 - `docs/` (all platform and product docs consolidated at workspace root)
 - `scripts/` (all shared and operational scripts consolidated at workspace root)
-- `product-management/.github/workflows/` (move to `.github/workflows/` after split)
+- `ai-product-management/.github/workflows/` (move to `.github/workflows/` after split)
 
 ## Future Moves
 
@@ -59,3 +59,4 @@ Root compatibility wrappers are allowed only temporarily. Any wrapper added at r
 1. Delegate to an owning domain path.
 2. Include a deprecation note.
 3. Have a planned removal phase.
+

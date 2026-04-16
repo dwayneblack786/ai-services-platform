@@ -6,7 +6,7 @@ Implement and review database-related changes with the judgment of an experience
 
 ## When to Use
 
-- New or changed Mongoose schemas in `ai-listing-agent/backend-node` or `product-management/backend-node`
+- New or changed Mongoose schemas in `ai-listing-agent/backend-node` or `ai-product-management/backend-node`
 - New MongoDB collections, indexes, or aggregation pipelines
 - Data migration or backfill scripts under `scripts/mongo/`
 - Query optimization or slow-query investigation
@@ -196,3 +196,4 @@ No compilation gate applies directly to Mongoose schema files, but run the tier'
 - Document migration steps and rollback plan.
 - Flag cross-tenant query risks and confirm isolation is preserved.
 - Include `explain()` output or estimated query plan when optimizing existing queries.
+

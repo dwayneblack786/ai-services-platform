@@ -86,11 +86,11 @@ docker run -d -p 6379:6379 redis:latest
 redis-server
 
 # 2. Start backend
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 
 # 3. Start frontend
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run dev
 ```
 
@@ -118,7 +118,7 @@ docker stop $(docker ps -q --filter ancestor=redis)
 taskkill /F /IM redis-server.exe
 
 # 2. Restart backend (should auto-failover)
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 ```
 
@@ -550,10 +550,10 @@ Phase 5 is complete when:
 redis-server
 
 # 2. Start backend
-cd product-management/backend-node && npm run dev
+cd ai-product-management/backend-node && npm run dev
 
 # 3. Start frontend
-cd product-management/frontend && npm run dev
+cd ai-product-management/frontend && npm run dev
 
 # 4. Test login
 # Navigate to http://localhost:5173
@@ -581,3 +581,4 @@ Follow all test sections above systematically.
 ---
 
 **Ready to begin testing!** 🚀
+

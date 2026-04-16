@@ -168,7 +168,7 @@ Note: Product-management backend handles tenant lookup, user profiles, RBAC, and
 
 The following files document legacy architecture and should be considered **historical reference**:
 
-1. `product-management/backend-node/scripts/mongo/CONSOLIDATION_SUMMARY.md` - Legacy consolidation doc
+1. `ai-product-management/backend-node/scripts/mongo/CONSOLIDATION_SUMMARY.md` - Legacy consolidation doc
 2. `SSO_MIGRATION_COMPLETE.md` - Documents old migration
 
 These files are **historical records** and document the previous architecture for reference.
@@ -188,7 +188,7 @@ These files are **historical records** and document the previous architecture fo
 
 3. **Seed tenants:**
    ```powershell
-   npx ts-node product-management/scripts/keycloak/seed-tenants.ts
+   npx ts-node ai-product-management/scripts/keycloak/seed-tenants.ts
    ```
 
 4. **Create Keycloak realms:**
@@ -239,3 +239,4 @@ This will:
 ✅ **Archived:** Old auth-service removed from active scripts
 
 The system is now fully documented and ready for Keycloak-based multi-tenant SSO deployment.
+

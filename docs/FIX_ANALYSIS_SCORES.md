@@ -13,7 +13,7 @@
 ## Fixes Applied
 
 ### 1. Update TenantPromptBinding.lastScore After Tests ✅
-**File:** [src/services/prompt-testing.service.ts](../product-management/backend-node/src/services/prompt-testing.service.ts)
+**File:** [src/services/prompt-testing.service.ts](../ai-product-management/backend-node/src/services/prompt-testing.service.ts)
 
 **Change:** After saving test result, update the tenant binding:
 
@@ -36,7 +36,7 @@ if (prompt.tenantId && prompt.productId) {
 ---
 
 ### 2. Add lastScore to Prompts List API ✅
-**File:** [src/routes/prompt-management-routes.ts](../product-management/backend-node/src/routes/prompt-management-routes.ts)
+**File:** [src/routes/prompt-management-routes.ts](../ai-product-management/backend-node/src/routes/prompt-management-routes.ts)
 
 **Change:** Fetch latest test result for each prompt:
 
@@ -68,7 +68,7 @@ res.json({ prompts: promptsWithScores, total: result.total });
 ### 1. Restart Backend
 ```bash
 # Backend needs restart to load changes
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 ```
 
@@ -138,3 +138,4 @@ curl http://localhost:5000/api/pms/prompts?limit=5
 - **TenantPrompts:** Score updates automatically when test runs
 - **PromptManagement:** Score fetched on page load
 - **Performance:** List endpoint now does N+1 queries (one per prompt) - could optimize with aggregation if needed
+

@@ -33,7 +33,7 @@ curl http://localhost:5000/api/pms/prompt-testing/698361132d59c6b650f2fa1b/test-
 ```
 
 ### 2. Frontend Component
-**File:** [TestResultsViewer.tsx](../product-management/frontend/src/components/TestResultsViewer.tsx)
+**File:** [TestResultsViewer.tsx](../ai-product-management/frontend/src/components/TestResultsViewer.tsx)
 
 **Logic:** ✅ Correctly fetches and renders results
 - Fetches from `/api/pms/prompt-testing/${promptVersionId}/test-results`
@@ -46,7 +46,7 @@ curl http://localhost:5000/api/pms/prompt-testing/698361132d59c6b650f2fa1b/test-
 
 ### Step 1: Check if Analysis Tab is Visible
 
-**Location:** [PromptEditor.tsx:1167](../product-management/frontend/src/pages/PromptEditor.tsx#L1167)
+**Location:** [PromptEditor.tsx:1167](../ai-product-management/frontend/src/pages/PromptEditor.tsx#L1167)
 
 **Code:**
 ```typescript
@@ -241,7 +241,7 @@ console.log({
 
 ```bash
 # Watch backend logs
-tail -f product-management/backend-node/logs/app.log
+tail -f ai-product-management/backend-node/logs/app.log
 
 # Or if using console logging
 # Check terminal where backend is running
@@ -251,7 +251,7 @@ tail -f product-management/backend-node/logs/app.log
 
 ```bash
 # Make sure latest code is running
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run build  # if in production
 # Or restart dev server
 npm run dev
@@ -271,3 +271,4 @@ npm run dev
 5. Results display → Shows score 91%, compliance violation
 
 **If any step fails, check that step specifically.**
+

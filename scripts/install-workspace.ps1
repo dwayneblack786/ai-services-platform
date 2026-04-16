@@ -7,17 +7,17 @@ $ErrorActionPreference = "Stop"
 $RootDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 
 $Repos = @(
-    "ai-listing-agent",
-    "ai-product-starter-template",
-    "services-java",
-    "services-python",
-    "product-management",
-    "shared"
+    @{ Local = "ai-listing-agent"; Remote = "ai-listing-agent" },
+    @{ Local = "ai-product-starter-template"; Remote = "ai-product-starter-template" },
+    @{ Local = "services-java"; Remote = "services-java" },
+    @{ Local = "services-python"; Remote = "services-python" },
+    @{ Local = "ai-product-management"; Remote = "product-management" },
+    @{ Local = "shared"; Remote = "shared" }
 )
 
 $EnvTargets = @(
-    @{ Target = "product-management/backend-node/.env"; Example = "product-management/backend-node/.env.example" },
-    @{ Target = "product-management/frontend/.env"; Example = "product-management/frontend/.env.example" },
+    @{ Target = "ai-product-management/backend-node/.env"; Example = "ai-product-management/backend-node/.env.example" },
+    @{ Target = "ai-product-management/frontend/.env"; Example = "ai-product-management/frontend/.env.example" },
     @{ Target = "ai-listing-agent/backend-node/.env"; Example = "ai-listing-agent/backend-node/.env.example" },
     @{ Target = "ai-listing-agent/frontend/.env"; Example = "ai-listing-agent/frontend/.env.example" },
     @{ Target = "ai-product-starter-template/backend-node/.env"; Example = "ai-product-starter-template/backend-node/.env.example" },
@@ -36,15 +36,17 @@ function Confirm-YesNo {
 function Clone-MissingRepos {
     Write-Host "`n== Clone missing repositories =="
     foreach ($repo in $Repos) {
-        $repoPath = Join-Path $RootDir $repo
+        $localDir = $repo.Local
+        $remoteRepo = $repo.Remote
+        $repoPath = Join-Path $RootDir $localDir
         if (Test-Path (Join-Path $repoPath ".git")) {
-            Write-Host "[skip] $repo already present"
+            Write-Host "[skip] $localDir already present"
             continue
         }
 
-        $repoUrl = "https://github.com/$GitHubOwner/$repo.git"
+        $repoUrl = "https://github.com/$GitHubOwner/$remoteRepo.git"
         Write-Host "[clone] $repoUrl"
-        git -C $RootDir clone $repoUrl $repo
+        git -C $RootDir clone $repoUrl $localDir
     }
 }
 
@@ -140,8 +142,8 @@ function Install-Dependencies {
     Install-MavenDeps -RelativeDir "services-java/va-service" -Label "services-java/va-service"
     Install-MavenDeps -RelativeDir "services-java/common-libs" -Label "services-java/common-libs"
 
-    Install-NpmDeps -RelativeDir "product-management/backend-node" -Label "product-management backend"
-    Install-NpmDeps -RelativeDir "product-management/frontend" -Label "product-management frontend"
+    Install-NpmDeps -RelativeDir "ai-product-management/backend-node" -Label "ai-product-management backend"
+    Install-NpmDeps -RelativeDir "ai-product-management/frontend" -Label "ai-product-management frontend"
 
     Install-NpmDeps -RelativeDir "shared" -Label "shared"
 
@@ -174,3 +176,4 @@ Install-Dependencies
 Show-ComposeInstructions
 
 Write-Host "`nDone."
+

@@ -35,8 +35,8 @@ Required checks:
    - Standard port assignments:
      - MongoDB: 27018 (host) → 27017 (container)
      - Redis: 6379
-     - product-management backend: 3001
-     - product-management frontend: 5173
+   - ai-product-management backend: 3001
+   - ai-product-management frontend: 5173
      - ai-listing-agent backend: 3002
      - ai-listing-agent frontend: 5174
      - Java listing service: 8137

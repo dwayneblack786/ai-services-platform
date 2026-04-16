@@ -50,7 +50,7 @@ Port 5000                         Port 5001
 ### 1. Start Services
 ```powershell
 # Terminal 1
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 
 # Terminal 2
@@ -129,7 +129,7 @@ curl http://localhost:5001/api/health
 
 ## 📚 Documentation Files
 
-1. `product-management/docs/SSO_IMPLEMENTATION_GUIDE.md` - Full guide (500+ lines)
+1. `ai-product-management/docs/SSO_IMPLEMENTATION_GUIDE.md` - Full guide (500+ lines)
 2. `docs/SSO_IMPLEMENTATION_SUMMARY.md` - Implementation summary
 3. `docs/SSO_QUICK_REFERENCE.md` - This file
 
@@ -188,3 +188,4 @@ curl http://localhost:5001/api/health
 ---
 
 **Version:** 1.0.0 | **Last Updated:** Jan 27, 2026
+

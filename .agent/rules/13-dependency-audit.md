@@ -4,8 +4,8 @@ Scope:
 
 - `ai-listing-agent/frontend/package.json`
 - `ai-listing-agent/backend-node/package.json`
-- `product-management/frontend/package.json`
-- `product-management/backend-node/package.json`
+- `ai-product-management/frontend/package.json`
+- `ai-product-management/backend-node/package.json`
 - `services-java/listing-service/pom.xml`
 
 Mandatory trigger:
@@ -45,3 +45,4 @@ Fail handling:
 
 - Do not merge a `package.json` or `pom.xml` change that introduces a high or critical CVE without a documented exception.
 - If an existing high CVE is surfaced unrelated to the current change, file a tracked follow-up before merge — do not silently accept it.
+

@@ -42,7 +42,7 @@ This platform is built to solve that by:
 
 Each folder is part of one end-to-end system:
 
-- `product-management/`: platform control plane for tenant-aware auth, product access, and shared operations
+- `ai-product-management/`: platform control plane for tenant-aware auth, product access, and shared operations
 - `ai-listing-agent/`: ListingLift product workspace (frontend + backend)
 - `services-java/`: Java Spring Boot agent workflow services (listing, CV, IDP, voice)
 - `services-python/`: Python model/inference services (speech, vision, and agent support)

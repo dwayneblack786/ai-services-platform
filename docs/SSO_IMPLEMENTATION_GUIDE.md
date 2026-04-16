@@ -71,7 +71,7 @@ This guide documents the implementation of Keycloak-based multi-tenant authentic
 - [x] `UsageEvent.ts` - Usage tracking schema
 
 ### ✅ Step 3: Implement Tenant Service - COMPLETED
-**File**: `product-management/backend-node/src/services/tenant.service.ts`
+**File**: `ai-product-management/backend-node/src/services/tenant.service.ts`
 
 Features implemented:
 - [x] `lookupTenant()` - Multi-strategy tenant lookup (ID, domain, aliases)
@@ -81,7 +81,7 @@ Features implemented:
   3. Create new user → With Keycloak identity
 
 ### ✅ Step 4: Implement Tenant-First Auth Routes - COMPLETED
-**File**: `product-management/backend-node/src/routes/tenant-auth.ts`
+**File**: `ai-product-management/backend-node/src/routes/tenant-auth.ts`
 
 Routes implemented:
 - [x] POST `/api/auth/tenant/lookup` - Tenant lookup
@@ -98,7 +98,7 @@ Flow:
 7. Session created
 
 ### ✅ Step 5: Implement User Profile API - COMPLETED
-**File**: `product-management/backend-node/src/routes/user-profile.ts`
+**File**: `ai-product-management/backend-node/src/routes/user-profile.ts`
 
 Route implemented:
 - [x] GET `/api/users/me` - Returns MongoDB-based RBAC data
@@ -111,7 +111,7 @@ Response includes:
 - feature_flags, usage_limits
 
 ### ✅ Step 6: Implement Usage Collection - COMPLETED
-**File**: `product-management/backend-node/src/routes/usage.ts`
+**File**: `ai-product-management/backend-node/src/routes/usage.ts`
 
 Routes implemented:
 - [x] POST `/api/usage/events` - Ingest usage events
@@ -123,7 +123,7 @@ Features:
 - Supports aggregation queries
 
 ### ✅ Step 7: Implement Keycloak Auth Middleware - COMPLETED
-**File**: `product-management/backend-node/src/middleware/keycloak-auth.ts`
+**File**: `ai-product-management/backend-node/src/middleware/keycloak-auth.ts`
 
 Middleware implemented:
 - [x] `requireKeycloakAuth` - Validates Keycloak tokens via JWKS
@@ -149,8 +149,8 @@ router.get('/active', requireKeycloakAuth, trackUsage('subscription', 'read'), a
 ```
 
 ### ✅ Step 9: Create Setup Scripts - COMPLETED
-- [x] `product-management/scripts/keycloak/seed-tenants.ts` - Seeds sample tenants
-- [x] `product-management/scripts/keycloak/setup-keycloak.ps1` - Creates Keycloak realms
+- [x] `ai-product-management/scripts/keycloak/seed-tenants.ts` - Seeds sample tenants
+- [x] `ai-product-management/scripts/keycloak/setup-keycloak.ps1` - Creates Keycloak realms
 
 ### ✅ Step 10: Update Startup Scripts - COMPLETED
 - [x] `start-sso-services.ps1` - Updated to check Keycloak
@@ -217,7 +217,7 @@ APP_URL=http://localhost:3001
 
 ### 1. Seed Tenants
 ```powershell
-npx ts-node product-management/scripts/keycloak/seed-tenants.ts
+npx ts-node ai-product-management/scripts/keycloak/seed-tenants.ts
 ```
 
 ### 2. Create Keycloak Realms
@@ -419,7 +419,7 @@ For implementation details, see:
 ### Step 2: Update Product Management to RP/SP
 
 #### 2.1: Add Sub-based Identity Mapping
-**File**: `product-management/backend-node/src/models/User.ts`
+**File**: `ai-product-management/backend-node/src/models/User.ts`
 
 Add field:
 ```typescript
@@ -432,7 +432,7 @@ UserSchema.index({ oidcSub: 1 }, { sparse: true, unique: true });
 ```
 
 #### 2.2: Create SSO Routes
-**File**: `product-management/backend-node/src/routes/sso.ts` (NEW)
+**File**: `ai-product-management/backend-node/src/routes/sso.ts` (NEW)
 
 ```typescript
 import { Router } from 'express';
@@ -533,7 +533,7 @@ export default router;
 ```
 
 #### 2.3: Update auth.ts to Import SSO Routes
-**File**: `product-management/backend-node/src/routes/auth.ts`
+**File**: `ai-product-management/backend-node/src/routes/auth.ts`
 
 Add at top:
 ```typescript
@@ -546,7 +546,7 @@ router.use(ssoRoutes);
 ```
 
 #### 2.4: Update Environment Variables
-**File**: `product-management/backend-node/.env`
+**File**: `ai-product-management/backend-node/.env`
 
 Add:
 ```env
@@ -558,7 +558,7 @@ OIDC_REDIRECT_URI=http://localhost:5000/api/auth/sso/callback
 ```
 
 #### 2.5: Update OIDC Client Service
-**File**: `product-management/backend-node/src/services/oidc-client.service.ts`
+**File**: `ai-product-management/backend-node/src/services/oidc-client.service.ts`
 
 Change line 88-89:
 ```typescript
@@ -589,8 +589,8 @@ const userInfoUrl = `${config.issuer}/userinfo`;
 
 #### 2.6: Remove Old IdP Code
 **Files to Remove/Modify**:
-- `product-management/backend-node/src/routes/oidc.ts` - DELETE (IdP functionality)
-- `product-management/backend-node/src/services/oidc-provider.service.ts` - DELETE
+- `ai-product-management/backend-node/src/routes/oidc.ts` - DELETE (IdP functionality)
+- `ai-product-management/backend-node/src/services/oidc-provider.service.ts` - DELETE
 - Update `src/index.ts` to remove OIDC route mounting
 
 ### Step 3: Update Prompt Management Configuration
@@ -646,7 +646,7 @@ print('✅ Added oidcSub field and index to users collection');
 ### Step 5: Frontend Updates
 
 #### Product Management Frontend
-**File**: `product-management/frontend/.env`
+**File**: `ai-product-management/frontend/.env`
 
 Add:
 ```env
@@ -727,7 +727,7 @@ JWT_SECRET=shared-jwt-secret-all-services
 
 1. Start MongoDB: `mongod`
 2. Start auth-service: `cd auth-service && npm run dev`
-3. Start product-management backend: `cd product-management/backend-node && npm run dev`
+3. Start product-management backend: `cd ai-product-management/backend-node && npm run dev`
 4. Start prompt-management backend: `cd prompt-management/backend && npm run dev`
 5. Start frontends: Product Management (5173), Prompt Management (3002)
 
@@ -750,3 +750,4 @@ curl http://localhost:4000/.well-known/openid-configuration
 ---
 
 **Status**: Implementation guide complete. Ready to execute step-by-step.
+

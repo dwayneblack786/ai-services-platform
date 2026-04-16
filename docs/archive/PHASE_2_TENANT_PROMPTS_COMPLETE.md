@@ -12,7 +12,7 @@ Phase 2 implements the same UI/UX improvements from Phase 1 to the Tenant Admin 
 ### 1. Backend Updates
 
 #### Tenant Prompt Service - Promotion Method
-**File:** [product-management/backend-node/src/services/tenantPrompt.service.ts](../product-management/backend-node/src/services/tenantPrompt.service.ts)
+**File:** [ai-product-management/backend-node/src/services/tenantPrompt.service.ts](../ai-product-management/backend-node/src/services/tenantPrompt.service.ts)
 
 **New Method Added:**
 ```typescript
@@ -35,7 +35,7 @@ async promoteTenantPrompt(
 - Returns both promoted prompt and updated binding
 
 #### Tenant Prompt Routes - Promotion Endpoint
-**File:** [product-management/backend-node/src/routes/tenant-prompt-routes.ts](../product-management/backend-node/src/routes/tenant-prompt-routes.ts)
+**File:** [ai-product-management/backend-node/src/routes/tenant-prompt-routes.ts](../ai-product-management/backend-node/src/routes/tenant-prompt-routes.ts)
 
 **New Endpoint:**
 - `POST /api/pms/tenant-prompts/:productId/:channelType/promote`
@@ -47,7 +47,7 @@ async promoteTenantPrompt(
 ### 2. Frontend Updates
 
 #### TenantPrompts.tsx - Professional Redesign
-**File:** [product-management/frontend/src/pages/TenantPrompts.tsx](../product-management/frontend/src/pages/TenantPrompts.tsx)
+**File:** [ai-product-management/frontend/src/pages/TenantPrompts.tsx](../ai-product-management/frontend/src/pages/TenantPrompts.tsx)
 
 **Major Changes:**
 
@@ -157,11 +157,11 @@ Both Phase 1 (Project Admin) and Phase 2 (Tenant Admin) now share:
 ## Files Modified
 
 ### Backend (2 files)
-1. `product-management/backend-node/src/services/tenantPrompt.service.ts`
-2. `product-management/backend-node/src/routes/tenant-prompt-routes.ts`
+1. `ai-product-management/backend-node/src/services/tenantPrompt.service.ts`
+2. `ai-product-management/backend-node/src/routes/tenant-prompt-routes.ts`
 
 ### Frontend (1 file)
-3. `product-management/frontend/src/pages/TenantPrompts.tsx`
+3. `ai-product-management/frontend/src/pages/TenantPrompts.tsx`
 
 ---
 
@@ -292,3 +292,4 @@ Phase 2 successfully brings the Tenant Prompt page to feature parity with the Pr
 ✅ Ready for version workflow testing
 
 The tenant admin now has a polished, professional interface that matches the quality of the project admin interface while maintaining proper tenant isolation and role-based access control.
+

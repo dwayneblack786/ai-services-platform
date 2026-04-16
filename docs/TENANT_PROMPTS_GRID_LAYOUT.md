@@ -582,7 +582,7 @@ ERROR RATE
 
 ## Files Modified
 
-1. **product-management/frontend/src/pages/TenantPrompts.tsx**
+1. **ai-product-management/frontend/src/pages/TenantPrompts.tsx**
    - Lines 283-516: Complete redesign
    - Header: 4-column grid layout
    - Metrics: Responsive grid with auto-fit
@@ -641,3 +641,4 @@ ERROR RATE
 - Scalable: Add metrics without increasing height
 - Responsive: Auto-wraps on smaller screens
 - Professional: Clean borders, color-coding, typography
+

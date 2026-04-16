@@ -233,7 +233,7 @@ curl http://localhost:5000/api/auth/status -H "Cookie: ai_platform.sid=your-sess
 
 ### Issue: Session cookie not set
 **Cause**: Cookie domain wrong  
-**Solution**: Check session config in product-management/backend-node/src/index.ts  
+**Solution**: Check session config in ai-product-management/backend-node/src/index.ts  
 Should be `domain: undefined` or omitted (defaults to hostname)
 
 ### Issue: Site B can't detect Site A login
@@ -262,3 +262,4 @@ Check /api/auth/status endpoint returns user
 ---
 
 **Status**: Ready for testing! 🎉
+

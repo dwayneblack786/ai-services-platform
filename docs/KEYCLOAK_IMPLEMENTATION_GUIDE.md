@@ -257,7 +257,7 @@ interface User {
 
 ### Environment Variables
 
-**product-management/.env**
+**ai-product-management/.env**
 ```env
 # Keycloak Configuration
 KEYCLOAK_URL=http://localhost:9999
@@ -783,3 +783,4 @@ node scripts/transform-users.js
 
 **Status**: Ready for implementation
 **Last Updated**: January 28, 2026
+

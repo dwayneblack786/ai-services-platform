@@ -104,7 +104,7 @@ interface VoIPConfig {
 - Network quality monitoring
 
 **Already Implemented:**
-- [voice-socket.ts](../product-management/backend-node/src/sockets/voice-socket.ts)
+- [voice-socket.ts](../ai-product-management/backend-node/src/sockets/voice-socket.ts)
 - Rate limiting (100 chunks/sec)
 - Format validation (WebM, Ogg/Opus, MP4)
 - Buffer management with timeout
@@ -133,8 +133,8 @@ interface TestScenario {
 ```
 
 **Already Implemented:**
-- [voice-streaming.e2e.test.ts](../product-management/backend-node/tests/e2e/voice-streaming.e2e.test.ts)
-- [generate-sample.ts](../product-management/backend-node/tests/fixtures/audio/generate-sample.ts)
+- [voice-streaming.e2e.test.ts](../ai-product-management/backend-node/tests/e2e/voice-streaming.e2e.test.ts)
+- [generate-sample.ts](../ai-product-management/backend-node/tests/fixtures/audio/generate-sample.ts)
 - MP3 output for verification
 
 ---
@@ -232,7 +232,7 @@ interface UnifiedProvider {
 - Specific language support
 
 **Current Implementation:**
-- STT: Java service ([voice.proto](../product-management/backend-node/proto/voice.proto))
+- STT: Java service ([voice.proto](../ai-product-management/backend-node/proto/voice.proto))
 - LLM: Assistant service
 - TTS: Azure/Google/ElevenLabs
 
@@ -334,8 +334,8 @@ npm run test:voip-simulation
 ### 4.3 Audio Test Fixtures
 
 **Already Created:**
-- [sample-voice.webm](../product-management/backend-node/tests/fixtures/audio/sample-voice.webm) (45.6 KB)
-- Generator: [generate-sample.ts](../product-management/backend-node/tests/fixtures/audio/generate-sample.ts)
+- [sample-voice.webm](../ai-product-management/backend-node/tests/fixtures/audio/sample-voice.webm) (45.6 KB)
+- Generator: [generate-sample.ts](../ai-product-management/backend-node/tests/fixtures/audio/generate-sample.ts)
 
 **Additional Fixtures Needed:**
 ```
@@ -447,7 +447,7 @@ tests/
 docker-compose up -d mongodb redis
 
 # 2. Start backend
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 
 # 3. Run voice tests
@@ -740,7 +740,7 @@ npm run test:voip:smoke -- --env=production
 ## 13. File Structure
 
 ```
-product-management/backend-node/
+ai-product-management/backend-node/
 ├── src/
 │   ├── voip/                              # NEW
 │   │   ├── gateway.ts                     # VoIP gateway interface
@@ -846,3 +846,4 @@ This architecture enables:
 - ✅ Security and compliance ready
 
 **Ready to implement:** Start with Phase 1 (Test Gateway + VoIP simulation tests)
+

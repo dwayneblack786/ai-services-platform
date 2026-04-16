@@ -100,7 +100,7 @@ Add a **real-time preview panel** to the PromptEditor that shows users exactly h
 
 ### Task 1: Create PromptPreview Component
 
-**File**: `product-management/frontend/src/components/PromptPreview.tsx`
+**File**: `ai-product-management/frontend/src/components/PromptPreview.tsx`
 
 **Requirements:**
 - React component with TypeScript
@@ -134,7 +134,7 @@ interface PromptPreviewProps {
 
 ### Task 2: Create Prompt Assembly Service
 
-**File**: `product-management/frontend/src/services/promptPreview.service.ts`
+**File**: `ai-product-management/frontend/src/services/promptPreview.service.ts`
 
 **Requirements:**
 - Pure service (no React dependencies)
@@ -196,7 +196,7 @@ static countTokens(text: string, model: string): number {
 
 ### Task 3: Update PromptEditor with Split-Pane
 
-**File**: `product-management/frontend/src/pages/PromptEditor.tsx` (modify)
+**File**: `ai-product-management/frontend/src/pages/PromptEditor.tsx` (modify)
 
 **Requirements:**
 - Add `react-split-pane` library for resizable panels
@@ -273,7 +273,7 @@ const PromptEditor: React.FC = () => {
 
 ### Task 4: Add Dependencies
 
-**File**: `product-management/frontend/package.json` (modify)
+**File**: `ai-product-management/frontend/package.json` (modify)
 
 **New Dependencies:**
 ```json
@@ -293,7 +293,7 @@ const PromptEditor: React.FC = () => {
 
 **Installation:**
 ```bash
-cd product-management/frontend
+cd ai-product-management/frontend
 npm install tiktoken @anthropic-ai/sdk react-syntax-highlighter react-split-pane
 npm install --save-dev @types/react-syntax-highlighter @types/react-split-pane
 ```
@@ -443,12 +443,12 @@ You are a helpful healthcare assistant for Acme Healthcare. Your role is to assi
 ## 📁 Files Summary
 
 ### New Files (2)
-1. `product-management/frontend/src/components/PromptPreview.tsx` (250-300 lines)
-2. `product-management/frontend/src/services/promptPreview.service.ts` (150-200 lines)
+1. `ai-product-management/frontend/src/components/PromptPreview.tsx` (250-300 lines)
+2. `ai-product-management/frontend/src/services/promptPreview.service.ts` (150-200 lines)
 
 ### Modified Files (2)
-1. `product-management/frontend/src/pages/PromptEditor.tsx` (+100-150 lines)
-2. `product-management/frontend/package.json` (+4 dependencies)
+1. `ai-product-management/frontend/src/pages/PromptEditor.tsx` (+100-150 lines)
+2. `ai-product-management/frontend/package.json` (+4 dependencies)
 
 ### Total New Code
 - **Estimated**: 500-650 lines
@@ -511,3 +511,4 @@ Phase 1.5 is complete when:
 ---
 
 **Ready to implement? Let's build this!** 🎉
+

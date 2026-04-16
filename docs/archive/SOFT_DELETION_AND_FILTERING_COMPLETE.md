@@ -56,29 +56,29 @@ Successfully implemented comprehensive soft deletion and status filtering functi
 
 ### Backend (4 files modified)
 
-1. **[product-management/backend-node/src/models/PromptVersion.ts](../product-management/backend-node/src/models/PromptVersion.ts)**
+1. **[ai-product-management/backend-node/src/models/PromptVersion.ts](../ai-product-management/backend-node/src/models/PromptVersion.ts)**
    - Added soft deletion fields to TypeScript interface (lines 222-230)
    - Added soft deletion fields to Mongoose schema (lines 432-440)
    - Added index on `isDeleted` field for performance
 
-2. **[product-management/backend-node/src/services/prompt.service.ts](../product-management/backend-node/src/services/prompt.service.ts)**
+2. **[ai-product-management/backend-node/src/services/prompt.service.ts](../ai-product-management/backend-node/src/services/prompt.service.ts)**
    - Added `softDeletePrompt()` method (lines 383-432)
    - Added `restorePrompt()` method (lines 434-481)
    - Added `hardDeletePrompt()` method (lines 483-513)
    - Updated `listPrompts()` to exclude deleted by default (lines 537-539)
 
-3. **[product-management/backend-node/src/routes/prompt-management-routes.ts](../product-management/backend-node/src/routes/prompt-management-routes.ts)**
+3. **[ai-product-management/backend-node/src/routes/prompt-management-routes.ts](../ai-product-management/backend-node/src/routes/prompt-management-routes.ts)**
    - Updated `DELETE /:id` to use `softDeletePrompt()` (lines 186-205)
    - Added `POST /:id/restore` endpoint (lines 207-223)
    - Added `DELETE /:id/hard` endpoint (lines 225-245)
    - Updated `GET /` to support `includeDeleted` param (line 262)
 
-4. **[product-management/backend-node/src/routes/tenant-prompt-routes.ts](../product-management/backend-node/src/routes/tenant-prompt-routes.ts)**
+4. **[ai-product-management/backend-node/src/routes/tenant-prompt-routes.ts](../ai-product-management/backend-node/src/routes/tenant-prompt-routes.ts)**
    - No changes needed (inherits soft deletion through main prompt service)
 
 ### Frontend (2 files modified)
 
-5. **[product-management/frontend/src/services/promptApi.ts](../product-management/frontend/src/services/promptApi.ts)**
+5. **[ai-product-management/frontend/src/services/promptApi.ts](../ai-product-management/frontend/src/services/promptApi.ts)**
    - Added soft deletion fields to `IPromptVersion` interface (lines 64-71)
    - Added `includeDeleted` to `IListPromptsParams` (line 133)
    - Added `softDeletePrompt()` method (lines 210-214)
@@ -87,7 +87,7 @@ Successfully implemented comprehensive soft deletion and status filtering functi
    - Updated `deleteDraft()` to alias `softDeletePrompt()` (lines 231-236)
    - Updated `listPrompts()` to pass `includeDeleted` param (line 248)
 
-6. **[product-management/frontend/src/pages/PromptManagement.tsx](../product-management/frontend/src/pages/PromptManagement.tsx)**
+6. **[ai-product-management/frontend/src/pages/PromptManagement.tsx](../ai-product-management/frontend/src/pages/PromptManagement.tsx)**
    - Added `includeDeleted` state and URL sync (lines 305, 318, 346)
    - Added "Include Deleted" checkbox in filters (lines 623-634)
    - Updated `handleDelete()` to use soft delete (lines 356-371)
@@ -420,7 +420,7 @@ All changes are backward compatible:
 
 1. **Deploy Backend First:**
    ```bash
-   cd product-management/backend-node
+   cd ai-product-management/backend-node
    npm install  # If new dependencies added
    npm run build
    npm run start
@@ -437,7 +437,7 @@ All changes are backward compatible:
 
 3. **Deploy Frontend:**
    ```bash
-   cd product-management/frontend
+   cd ai-product-management/frontend
    npm install  # If new dependencies added
    npm run build
    npm run preview
@@ -690,3 +690,4 @@ Soft deletion and status filtering have been successfully implemented across the
 **Document Version:** 1.0
 **Date:** 2026-02-06
 **Author:** AI Assistant (Claude Sonnet 4.5)
+

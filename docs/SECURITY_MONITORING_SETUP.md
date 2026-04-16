@@ -15,7 +15,7 @@ This guide covers the installation and configuration of:
 ### Backend Dependencies
 
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm install --save helmet @sentry/node @sentry/profiling-node applicationinsights
 ```
 
@@ -28,7 +28,7 @@ npm install --save helmet @sentry/node @sentry/profiling-node applicationinsight
 ### Frontend Dependencies
 
 ```bash
-cd product-management/frontend
+cd ai-product-management/frontend
 npm install --save @sentry/react
 ```
 
@@ -46,7 +46,7 @@ npm install --save @sentry/replay  # For session replay feature
 
 ### Backend (.env)
 
-Add these variables to `product-management/backend-node/.env`:
+Add these variables to `ai-product-management/backend-node/.env`:
 
 ```env
 # Sentry Configuration
@@ -71,7 +71,7 @@ KEYCLOAK_MASTER_REALM=master
 
 ### Frontend (.env)
 
-Add these variables to `product-management/frontend/.env`:
+Add these variables to `ai-product-management/frontend/.env`:
 
 ```env
 # Sentry Configuration
@@ -216,11 +216,11 @@ For production, ensure:
 1. **Start the application:**
    ```bash
    # Terminal 1 - Backend
-   cd product-management/backend-node
+   cd ai-product-management/backend-node
    npm run dev
 
    # Terminal 2 - Frontend
-   cd product-management/frontend
+   cd ai-product-management/frontend
    npm run dev
    ```
 
@@ -579,3 +579,4 @@ Cost: Free tier (< 5 GB)
 **Total Implementation Time:** ~2 hours
 **Ongoing Maintenance:** ~1 hour/week
 **Estimated Monthly Cost:** $0-50 (depending on usage)
+

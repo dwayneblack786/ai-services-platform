@@ -68,7 +68,7 @@ Architecture notes:
 Integration boundaries:
 
 - This backend is the UI/API delegation layer; orchestration logic lives in `services-java/listing-service`.
-- Auth and tenancy are provided by the shared platform (`product-management` backend on port 3001 / platform management on port 5000).
+- Auth and tenancy are provided by the shared platform (`ai-product-management` backend on port 3001 / platform management on port 5000).
 - MongoDB is shared with the platform; use `tenantId` on all tenant-scoped documents.
 
 Operational checks:
@@ -80,7 +80,7 @@ Operational checks:
 
 Actionable notes:
 
-- Test framework is Vitest — different from `product-management` backend which uses Jest.
+- Test framework is Vitest — different from `ai-product-management` backend which uses Jest.
 - `src/config/env.ts` is the config gateway — centralize all env access there.
 - Circuit breaker tests are the safety net for service fault tolerance; keep them green.
 - Good retrieval path for new work: repo memory → this service page → one runbook → source code only if still needed.

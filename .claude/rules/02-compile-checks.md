@@ -4,8 +4,8 @@ Scope:
 
 - `ai-listing-agent/frontend`
 - `ai-listing-agent/backend-node`
-- `product-management/frontend`
-- `product-management/backend-node`
+- `ai-product-management/frontend`
+- `ai-product-management/backend-node`
 - `services-java/listing-service`
 
 Mandatory trigger:
@@ -19,10 +19,10 @@ Required commands:
   - `Set-Location ai-listing-agent/frontend; npm run build`
 - ai-listing-agent backend build:
   - `Set-Location ai-listing-agent/backend-node; npm run build`
-- product-management frontend build:
-  - `Set-Location product-management/frontend; npm run build`
-- product-management backend build:
-  - `Set-Location product-management/backend-node; npm run build`
+- ai-product-management frontend build:
+  - `Set-Location ai-product-management/frontend; npm run build`
+- ai-product-management backend build:
+  - `Set-Location ai-product-management/backend-node; npm run build`
 - Java listing service compile/package verification:
   - `Set-Location services-java/listing-service; ./mvnw clean install -DskipTests`
 - Java va-service compile/package verification:
@@ -37,3 +37,4 @@ Fail handling:
 
 - Fix compile errors before writing follow-up features.
 - If failure comes from unrelated pre-existing issues, document it clearly in the work summary.
+

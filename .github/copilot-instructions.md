@@ -8,7 +8,7 @@ This workspace contains several **independent product repositories** plus a work
 
 | Path | Type | Port |
 |---|---|---|
-| `product-management/` | React frontend + Express/MongoDB backend | 5173 / 3001 |
+| `ai-product-management/` | React frontend + Express/MongoDB backend | 5173 / 3001 |
 | `ai-listing-agent/` | React frontend + Express/MongoDB backend | 5174 / 3002 |
 | `services-java/listing-service` | Spring Boot 4 agentic service (LangChain4j) | 8137 |
 | `services-java/va-service` | Spring Boot 4 voice-assistant service | 8136 |
@@ -78,8 +78,8 @@ Before writing code, check in this order (stop when you have enough context):
 # TypeScript syntax
 Set-Location ai-listing-agent/frontend; npx tsc --noEmit -p tsconfig.json
 Set-Location ai-listing-agent/backend-node; npx tsc --noEmit -p tsconfig.json
-Set-Location product-management/frontend; npx tsc --noEmit -p tsconfig.json
-Set-Location product-management/backend-node; npx tsc --noEmit -p tsconfig.json
+Set-Location ai-product-management/frontend; npx tsc --noEmit -p tsconfig.json
+Set-Location ai-product-management/backend-node; npx tsc --noEmit -p tsconfig.json
 
 # Java compile
 Set-Location services-java/listing-service; ./mvnw -q -DskipTests compile
@@ -114,4 +114,5 @@ Full rules in `.ai/rules/`. High-priority ones:
 - `10-repository-boundaries-and-change-scope.md` — git scope per repo
 - `11-database-data-layer-standards.md` — MongoDB schema, indexes, migrations
 - `15-no-secrets-in-git.md` — secret scan patterns and hook procedure
+
 

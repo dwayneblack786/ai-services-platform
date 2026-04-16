@@ -10,7 +10,7 @@ $HookSource = Join-Path $WorkspaceRoot ".claude\hooks\pre-commit"
 $Repos = @(
   $WorkspaceRoot,                                      # workspace root
   (Join-Path $WorkspaceRoot "services-java"),
-  (Join-Path $WorkspaceRoot "product-management"),
+  (Join-Path $WorkspaceRoot "ai-product-management"),
   (Join-Path $WorkspaceRoot "ai-listing-agent"),
   (Join-Path $WorkspaceRoot "shared")
 )

@@ -30,7 +30,7 @@ Fixed routing issue where clicking "Configure Prompts" in Assistant Channels was
 
 ### 1. Added Standalone Route for TenantPrompts
 
-**File:** `product-management/frontend/src/App.tsx`
+**File:** `ai-product-management/frontend/src/App.tsx`
 
 #### Added Import
 ```typescript
@@ -62,7 +62,7 @@ import TenantPrompts from './pages/TenantPrompts';
 
 ### 2. Updated AssistantChannels Navigation
 
-**File:** `product-management/frontend/src/pages/AssistantChannels.tsx`
+**File:** `ai-product-management/frontend/src/pages/AssistantChannels.tsx`
 
 #### Before (Line 142-144)
 ```typescript
@@ -92,7 +92,7 @@ const navigateToPromptConfig = (channelType: 'voice' | 'chat') => {
 
 ### 3. Removed "Prompts" Tab from VirtualAssistantConfig
 
-**File:** `product-management/frontend/src/pages/VirtualAssistantConfig.tsx`
+**File:** `ai-product-management/frontend/src/pages/VirtualAssistantConfig.tsx`
 
 #### Removed Import
 ```typescript
@@ -143,7 +143,7 @@ case 'assistant-chat':
 
 ### 4. Updated TenantPrompts to Support Both Use Cases
 
-**File:** `product-management/frontend/src/pages/TenantPrompts.tsx`
+**File:** `ai-product-management/frontend/src/pages/TenantPrompts.tsx`
 
 #### Before (Line 41-44)
 ```typescript
@@ -282,20 +282,20 @@ If users have bookmarked old URLs:
 
 ## Files Modified
 
-1. **product-management/frontend/src/App.tsx**
+1. **ai-product-management/frontend/src/App.tsx**
    - Added TenantPrompts import
    - Added `/tenant-prompts` route with ProtectedRoute and Layout
 
-2. **product-management/frontend/src/pages/AssistantChannels.tsx**
+2. **ai-product-management/frontend/src/pages/AssistantChannels.tsx**
    - Lines 140-144: Updated `navigateToPromptConfig()` to use `/tenant-prompts`
 
-3. **product-management/frontend/src/pages/VirtualAssistantConfig.tsx**
+3. **ai-product-management/frontend/src/pages/VirtualAssistantConfig.tsx**
    - Line 8: Removed TenantPrompts import
    - Line 14: Updated TabType to remove 'prompts'
    - Lines 108-116: Removed prompts from tabs array
    - Lines 241-242: Removed prompts case from switch statement
 
-4. **product-management/frontend/src/pages/TenantPrompts.tsx**
+4. **ai-product-management/frontend/src/pages/TenantPrompts.tsx**
    - Lines 41-46: Updated to support productId from both props and query params
 
 ---
@@ -383,3 +383,4 @@ Add "Tenant Prompts" link to sidebar navigation when viewing product context.
 - Made TenantPrompts component flexible for both embedded and standalone use
 - Improved user experience with dedicated full-page layout
 - Cleaner architecture and better URL structure
+

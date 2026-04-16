@@ -22,7 +22,7 @@ ai-services-platform/
 │   ├── keycloak-client.ts                   📦 OIDC client library
 │   └── keycloak-middleware.ts               🛡️ Express authentication middleware
 │
-├── product-management/
+├── ai-product-management/
 │   └── backend-node/
 │       ├── .env.keycloak.example            📝 Environment template
 │       └── src/
@@ -417,3 +417,4 @@ DEFAULT_TENANT_ID=default
 **Status:** Production-ready
 **Last Updated:** January 28, 2026
 **Version:** 1.0.0
+

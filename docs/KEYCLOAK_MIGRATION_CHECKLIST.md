@@ -13,7 +13,7 @@
 
 Add Keycloak sub field to User model:
 
-**File:** `product-management/backend-node/src/models/User.ts`
+**File:** `ai-product-management/backend-node/src/models/User.ts`
 
 ```typescript
 export interface IUser extends Document {
@@ -48,7 +48,7 @@ db.users.updateMany(
 
 ### 3. Install Dependencies
 
-**product-management/backend-node:**
+**ai-product-management/backend-node:**
 
 ```bash
 npm install jwks-rsa
@@ -85,7 +85,7 @@ cp .env.keycloak.example .env
 
 ### 6. Update Backend Routes
 
-**File:** `product-management/backend-node/src/index.ts`
+**File:** `ai-product-management/backend-node/src/index.ts`
 
 ```typescript
 import keycloakAuthRoutes from './routes/keycloak-auth';
@@ -96,7 +96,7 @@ app.use('/api/auth', keycloakAuthRoutes);
 
 ### 7. Update Frontend Login Flow
 
-**File:** `product-management/frontend/src/pages/LoginPage.tsx`
+**File:** `ai-product-management/frontend/src/pages/LoginPage.tsx`
 
 ```typescript
 const handleKeycloakLogin = () => {
@@ -341,3 +341,4 @@ router.get('/login', async (req, res) => {
 **Status:** Ready to execute step-by-step
 **Estimated Time:** 2-3 hours for full migration
 **Risk Level:** Low (backward compatible, can rollback)
+

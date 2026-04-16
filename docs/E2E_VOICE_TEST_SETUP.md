@@ -10,7 +10,7 @@
 Complete end-to-end testing infrastructure for voice streaming:
 
 ### 1. Test File ✅
-**[tests/e2e/voice-streaming.e2e.test.ts](../product-management/backend-node/tests/e2e/voice-streaming.e2e.test.ts)**
+**[tests/e2e/voice-streaming.e2e.test.ts](../ai-product-management/backend-node/tests/e2e/voice-streaming.e2e.test.ts)**
 
 Tests complete voice workflow:
 - Load/generate audio input
@@ -22,7 +22,7 @@ Tests complete voice workflow:
 - Verify audio quality
 
 ### 2. Audio Generator ✅
-**[tests/fixtures/audio/generate-sample.ts](../product-management/backend-node/tests/fixtures/audio/generate-sample.ts)**
+**[tests/fixtures/audio/generate-sample.ts](../ai-product-management/backend-node/tests/fixtures/audio/generate-sample.ts)**
 
 Generates sample audio files using:
 - Windows TTS (if available)
@@ -30,7 +30,7 @@ Generates sample audio files using:
 - Synthetic beep (fallback)
 
 ### 3. Testing Guide ✅
-**[tests/e2e/VOICE_TESTING_GUIDE.md](../product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md)**
+**[tests/e2e/VOICE_TESTING_GUIDE.md](../ai-product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md)**
 
 Complete documentation:
 - Prerequisites
@@ -54,7 +54,7 @@ Added to package.json:
 
 ### Step 1: Generate Sample Audio
 ```bash
-cd product-management/backend-node/tests/fixtures/audio
+cd ai-product-management/backend-node/tests/fixtures/audio
 npx ts-node generate-sample.ts
 ```
 
@@ -76,7 +76,7 @@ cd path/to/java-service
 
 ### Step 3: Run Tests
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run test:voice
 ```
 
@@ -340,17 +340,17 @@ tests/
 
 ## Related Documentation
 
-- [Voice Testing Guide](../product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md) - Detailed guide
+- [Voice Testing Guide](../ai-product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md) - Detailed guide
 - [Voice Critical Fixes](./VOICE_CRITICAL_FIXES.md) - Recent improvements
-- [Voice Socket Implementation](../product-management/backend-node/src/sockets/voice-socket.ts)
-- [gRPC Proto Definition](../product-management/backend-node/proto/voice.proto)
+- [Voice Socket Implementation](../ai-product-management/backend-node/src/sockets/voice-socket.ts)
+- [gRPC Proto Definition](../ai-product-management/backend-node/proto/voice.proto)
 
 ---
 
 ## Support
 
 **Need Help?**
-1. Check [VOICE_TESTING_GUIDE.md](../product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md)
+1. Check [VOICE_TESTING_GUIDE.md](../ai-product-management/backend-node/tests/e2e/VOICE_TESTING_GUIDE.md)
 2. Review service logs
 3. Test services individually
 4. Verify audio file format
@@ -360,3 +360,4 @@ tests/
 - Check gRPC connectivity
 - Verify audio file is valid
 - Review test output for specific errors
+

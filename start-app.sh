@@ -115,10 +115,10 @@ fi
 start_service "Whisper Server" "$ROOT_DIR/services-python/whisper-server" "$PYTHON_CMD server.py" "$LOG_DIR/whisper-server.log"
 sleep 3
 
-start_service "Product Management Backend" "$ROOT_DIR/product-management/backend-node" "npm run dev" "$LOG_DIR/product-management-backend.log"
+start_service "Product Management Backend" "$ROOT_DIR/ai-product-management/backend-node" "npm run dev" "$LOG_DIR/product-management-backend.log"
 sleep 3
 
-start_service "Product Management Frontend" "$ROOT_DIR/product-management/frontend" "npm run dev" "$LOG_DIR/product-management-frontend.log"
+start_service "Product Management Frontend" "$ROOT_DIR/ai-product-management/frontend" "npm run dev" "$LOG_DIR/product-management-frontend.log"
 sleep 3
 
 start_service "AI Listing Agent Backend" "$ROOT_DIR/ai-listing-agent/backend-node" "npm run dev" "$LOG_DIR/ai-listing-agent-backend.log"
@@ -163,3 +163,4 @@ done
 echo
 echo "Ready to test SSO."
 echo "Tip: use 'tail -f .run-logs/<service>.log' to watch startup logs."
+

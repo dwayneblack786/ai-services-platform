@@ -15,7 +15,7 @@ Repository boundaries:
 **Product repositories** (each is independent with its own history, branches, and PR lifecycle):
 
 - `services-java`
-- `product-management`
+- `ai-product-management`
 - `ai-listing-agent`
 - `shared`
 
@@ -35,7 +35,7 @@ Verification examples:
 
 - `Set-Location "C:/Users/Owner/Documents/ai-services-platform"; git status --short` (workspace root)
 - `Set-Location ai-listing-agent; git status --short`
-- `Set-Location product-management; git status --short`
+- `Set-Location ai-product-management; git status --short`
 - `Set-Location services-java; git status --short`
 - `Set-Location shared; git status --short`
 

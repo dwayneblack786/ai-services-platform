@@ -222,7 +222,7 @@ All admin endpoints require authentication + ADMIN/PROJECT_ADMIN role:
 
 ### Frontend Protection
 
-**File:** [frontend/src/App.tsx](product-management/frontend/src/App.tsx#L61-L69)
+**File:** [frontend/src/App.tsx](ai-product-management/frontend/src/App.tsx#L61-L69)
 
 ```tsx
 <Route
@@ -245,7 +245,7 @@ All admin endpoints require authentication + ADMIN/PROJECT_ADMIN role:
 
 ### Backend Protection
 
-**File:** [backend-node/src/routes/admin.routes.ts](product-management/backend-node/src/routes/admin.routes.ts#L1-L13)
+**File:** [backend-node/src/routes/admin.routes.ts](ai-product-management/backend-node/src/routes/admin.routes.ts#L1-L13)
 
 ```typescript
 import { requireRole } from '../middleware/rbac';
@@ -266,7 +266,7 @@ router.use(requireRole(UserRole.ADMIN, UserRole.PROJECT_ADMIN));
 
 ### Navigation Protection
 
-**File:** [frontend/src/components/Sidebar.tsx](product-management/frontend/src/components/Sidebar.tsx#L5-L25)
+**File:** [frontend/src/components/Sidebar.tsx](ai-product-management/frontend/src/components/Sidebar.tsx#L5-L25)
 
 ```tsx
 const { user, hasAnyRole } = useAuth();
@@ -474,9 +474,9 @@ npm run dev
 
 - [Authentication Architecture](AUTHENTICATION_ARCHITECTURE.md)
 - [Registration System](LOCAL_TESTING_AND_OAUTH.md)
-- [RBAC Middleware](product-management/backend-node/src/middleware/rbac.ts)
-- [Admin Routes](product-management/backend-node/src/routes/admin.routes.ts)
-- [Admin Dashboard Component](product-management/frontend/src/pages/AdminDashboard.tsx)
+- [RBAC Middleware](ai-product-management/backend-node/src/middleware/rbac.ts)
+- [Admin Routes](ai-product-management/backend-node/src/routes/admin.routes.ts)
+- [Admin Dashboard Component](ai-product-management/frontend/src/pages/AdminDashboard.tsx)
 
 ---
 
@@ -524,3 +524,4 @@ npm run dev
 - Non-admin users cannot see or access the dashboard
 
 **First user of each tenant automatically becomes ADMIN** with full access to the admin dashboard.
+

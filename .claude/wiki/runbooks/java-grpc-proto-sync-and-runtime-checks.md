@@ -3,7 +3,7 @@
 Context:
 
 - Use this when a Java service compiles but fails at runtime after gRPC or protobuf changes, or when proto contract drift is suspected.
-- Especially useful for services under `services-java/` that depend on shared proto definitions from `product-management/backend-node/proto/`.
+- Especially useful for services under `services-java/` that depend on shared proto definitions from `ai-product-management/backend-node/proto/`.
 
 Source file/path:
 
@@ -34,14 +34,14 @@ Symptoms:
 Actionable notes:
 
 - Start by confirming whether the problem is build-time or runtime. Do not assume a generated-class issue if compile already passes.
-- Canonical shared proto definitions live in `product-management/backend-node/proto/`; local Java service copies must stay aligned.
+- Canonical shared proto definitions live in `ai-product-management/backend-node/proto/`; local Java service copies must stay aligned.
 - Verify protobuf options such as `java_multiple_files`, `java_package`, and any outer classname settings before changing Spring wiring.
 - If a runtime error mentions a generated class, inspect generated output and classpath before refactoring service beans.
 
 Verification sequence:
 
 1. Re-run compile in the affected Java service.
-2. Check the local proto file against the canonical proto definition in `product-management/backend-node/proto/`.
+2. Check the local proto file against the canonical proto definition in `ai-product-management/backend-node/proto/`.
 3. Verify generated classes exist in the expected package path under `target/generated-sources/` and `target/classes/`.
 4. If compile passes, inspect dependency and runtime wiring before assuming proto generation failed.
 5. If the issue persists, review bean wiring, package imports, and dependency tree for protobuf or gRPC mismatches.

@@ -7,22 +7,22 @@
 Phase 3 goals were to add version control workflow and promotion UI. Upon inspection:
 
 ### Backend ✅
-- **Promotion methods**: [prompt.service.ts:275-371](../product-management/backend-node/src/services/prompt.service.ts#L275-L371)
+- **Promotion methods**: [prompt.service.ts:275-371](../ai-product-management/backend-node/src/services/prompt.service.ts#L275-L371)
   - `promotePrompt()` handles state transitions
   - Archives old versions on production promotion
   - Creates audit logs for all transitions
 
-- **API endpoints**: [prompt-management-routes.ts:143-166](../product-management/backend-node/src/routes/prompt-management-routes.ts#L143-L166)
+- **API endpoints**: [prompt-management-routes.ts:143-166](../ai-product-management/backend-node/src/routes/prompt-management-routes.ts#L143-L166)
   - `POST /api/pms/prompts/:id/promote` with targetState
   - `POST /api/pms/prompts/:id/versions` for duplicating
   - Version history at `GET /api/pms/prompts/:promptId/versions`
 
 ### Frontend ✅
-- **API client**: [promptApi.ts:197-200](../product-management/frontend/src/services/promptApi.ts#L197-L200)
+- **API client**: [promptApi.ts:197-200](../ai-product-management/frontend/src/services/promptApi.ts#L197-L200)
   - `promotePrompt(id, targetState)` method exists
   - `createNewVersion(id)` for duplication
 
-- **PromptEditor**: [PromptEditor.tsx:1096-1123](../product-management/frontend/src/pages/PromptEditor.tsx#L1096-L1123)
+- **PromptEditor**: [PromptEditor.tsx:1096-1123](../ai-product-management/frontend/src/pages/PromptEditor.tsx#L1096-L1123)
   - "Promote to Testing" button (shown when state=draft)
   - "Promote to Production" button (shown when state=testing)
   - Version warning modal on first save
@@ -55,13 +55,14 @@ See [pms-implementation-plan.md](../../.claude/plans/pms-implementation-plan.md)
 ## Files Verified
 ```
 Backend:
-- product-management/backend-node/src/services/prompt.service.ts
-- product-management/backend-node/src/routes/prompt-management-routes.ts
+- ai-product-management/backend-node/src/services/prompt.service.ts
+- ai-product-management/backend-node/src/routes/prompt-management-routes.ts
 
 Frontend:
-- product-management/frontend/src/services/promptApi.ts
-- product-management/frontend/src/pages/PromptEditor.tsx
-- product-management/frontend/src/pages/PromptManagement.tsx
-- product-management/frontend/src/pages/TenantPrompts.tsx
-- product-management/frontend/src/components/PromptDashboardCard.tsx
+- ai-product-management/frontend/src/services/promptApi.ts
+- ai-product-management/frontend/src/pages/PromptEditor.tsx
+- ai-product-management/frontend/src/pages/PromptManagement.tsx
+- ai-product-management/frontend/src/pages/TenantPrompts.tsx
+- ai-product-management/frontend/src/components/PromptDashboardCard.tsx
 ```
+

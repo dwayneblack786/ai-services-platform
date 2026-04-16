@@ -52,7 +52,8 @@ venv/
 # Standalone repos extracted from monorepo (managed independently)
 ai-listing-agent/
 ai-product-starter-template/
-product-management/
+ai-product-management/
+_ai-product-management/
 services-java/
 services-python/
 shared/

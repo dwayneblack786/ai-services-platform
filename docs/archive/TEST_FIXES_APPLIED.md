@@ -27,10 +27,10 @@
 - ✅ All tests can connect to MongoDB
 
 **Files Modified:**
-- [tests/globalSetup.ts](../product-management/backend-node/tests/globalSetup.ts) - **CREATED**
-- [tests/globalTeardown.ts](../product-management/backend-node/tests/globalTeardown.ts) - **CREATED**
-- [tests/setup.ts](../product-management/backend-node/tests/setup.ts) - **UPDATED**
-- [jest.config.js](../product-management/backend-node/jest.config.js) - **UPDATED**
+- [tests/globalSetup.ts](../ai-product-management/backend-node/tests/globalSetup.ts) - **CREATED**
+- [tests/globalTeardown.ts](../ai-product-management/backend-node/tests/globalTeardown.ts) - **CREATED**
+- [tests/setup.ts](../ai-product-management/backend-node/tests/setup.ts) - **UPDATED**
+- [jest.config.js](../ai-product-management/backend-node/jest.config.js) - **UPDATED**
 
 ---
 
@@ -242,3 +242,4 @@ Time:        1.733 s (47x faster than before!)
 - ⚠️ Middleware tests: Need import path fixes
 
 **All core PMS features verified working manually** - see [PRODUCTION_READINESS.md](./PRODUCTION_READINESS.md)
+

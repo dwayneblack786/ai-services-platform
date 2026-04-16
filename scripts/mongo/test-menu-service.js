@@ -134,7 +134,7 @@ async function testMenuService() {
 
     console.log('✅ TEST PASSED: Menu system is properly configured!');
     console.log('\n💡 Next Steps:');
-    console.log('   1. Start backend: cd product-management/backend-node && npm start');
+    console.log('   1. Start backend: cd ai-product-management/backend-node && npm start');
     console.log('   2. Open frontend chat UI');
     console.log('   3. Initialize chat session with productId:', TEST_CONFIG.productId);
     console.log('   4. Verify', options.length, 'option bubbles appear');
@@ -149,3 +149,4 @@ async function testMenuService() {
 }
 
 testMenuService();
+

@@ -511,7 +511,7 @@ await user.save();
 ### Run Seed Script
 
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npx ts-node ../../scripts/keycloak/seed-tenants.ts
 ```
 
@@ -538,7 +538,7 @@ db.tenants.insertOne({
 ### 1. Seed Tenants
 
 ```bash
-npx ts-node product-management/scripts/keycloak/seed-tenants.ts
+npx ts-node ai-product-management/scripts/keycloak/seed-tenants.ts
 ```
 
 ### 2. Test Tenant Lookup
@@ -593,7 +593,7 @@ mongo ai_platform
 db.tenants.find()
 
 # Seed tenants
-npx ts-node product-management/scripts/keycloak/seed-tenants.ts
+npx ts-node ai-product-management/scripts/keycloak/seed-tenants.ts
 ```
 
 ### Issue: "Tenant context missing"
@@ -698,3 +698,4 @@ function validateTenantIdentifier(identifier: string): boolean {
 
 **Status:** Production-ready
 **Last Updated:** January 28, 2026
+

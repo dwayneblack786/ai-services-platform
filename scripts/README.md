@@ -4,7 +4,7 @@
 
 > **Agent rule:** Check this file before creating any new script. If a script for the task already exists, use or extend it rather than creating a duplicate.
 
-All scripts live under `scripts/` (workspace root). The former `product-management/scripts/` has been consolidated here. Python service helper scripts remain co-located with their service in `services-python/` (see section below).
+All scripts live under `scripts/` (workspace root). The former `ai-product-management/scripts/` has been consolidated here. Python service helper scripts remain co-located with their service in `services-python/` (see section below).
 
 ---
 
@@ -25,7 +25,7 @@ All scripts live under `scripts/` (workspace root). The former `product-manageme
 | Script | Purpose |
 |--------|---------|
 | `kill-dev-ports.ps1` | Kill processes occupying dev ports (3001, 3002, 5173, 5174, 8136, 8137) |
-| `extract-product-management-repo.ps1` | Extract product-management repo files for standalone use |
+| `extract-ai-product-management-repo.ps1` | Extract ai-product-management repo files for standalone use |
 | `cleanup-localstorage.html` | Browser tool to clear localStorage for dev/test sessions |
 | `check-user.js` | Check a MongoDB user document by email or ID |
 
@@ -48,7 +48,7 @@ All scripts live under `scripts/` (workspace root). The former `product-manageme
 | Script | Purpose |
 |--------|---------|
 | `mongo/setup-database.js` | Create collections, indexes, and defaults for `ai_platform` DB |
-| `mongo/create-pms-collections.js` | Create product-management-specific collections |
+| `mongo/create-pms-collections.js` | Create ai-product-management-specific collections |
 | `mongo/seed-product-prompts.js` | Seed default product prompt configurations |
 | `mongo/seed-session-menu-test-data.js` | Seed session and menu test data |
 | `mongo/consolidate-ai-services.js` | Consolidate AI service config documents |

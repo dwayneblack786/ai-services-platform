@@ -2,7 +2,7 @@
 
 ## Step 1: Environment Variables
 
-Update `.env` in `product-management/backend-node`:
+Update `.env` in `ai-product-management/backend-node`:
 
 ```env
 # MongoDB
@@ -34,7 +34,7 @@ NODE_ENV=development
 ## Step 2: Install Dependencies
 
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm install jwks-rsa axios
 ```
 
@@ -449,7 +449,7 @@ router.post('/projects', requireKeycloakAuth, async (req, res) => {
 ## Troubleshooting
 
 ### "Tenant not found"
-- Run: `npx ts-node product-management/scripts/keycloak/seed-tenants.ts`
+- Run: `npx ts-node ai-product-management/scripts/keycloak/seed-tenants.ts`
 - Verify MongoDB connection
 
 ### "Realm not found in Keycloak"
@@ -470,3 +470,4 @@ router.post('/projects', requireKeycloakAuth, async (req, res) => {
 
 **Integration Complete**
 All components wired and ready for testing.
+

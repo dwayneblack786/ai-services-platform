@@ -8,7 +8,7 @@ Verified that all backend services are correctly configured to use the `ai_platf
 
 ### ✅ Node.js Backend
 
-**File**: [product-management/backend-node/.env](../product-management/backend-node/.env#L23)
+**File**: [ai-product-management/backend-node/.env](../ai-product-management/backend-node/.env#L23)
 
 ```env
 MONGODB_URI=mongodb://localhost:27017/ai_platform
@@ -18,7 +18,7 @@ MONGODB_URI=mongodb://localhost:27017/ai_platform
 - **Port**: 27017
 - **Connection string**: Correctly formatted
 
-**File**: [product-management/backend-node/src/config/database.ts](../product-management/backend-node/src/config/database.ts)
+**File**: [ai-product-management/backend-node/src/config/database.ts](../ai-product-management/backend-node/src/config/database.ts)
 
 - No hardcoded database names ✅
 - Uses Mongoose connection which reads from `.env`
@@ -106,3 +106,4 @@ All backend services are already correctly configured to use the `ai_platform` d
 - Phase 5: End-to-End Testing (User manual verification)
 - Verify application starts without errors
 - Test that prompts load correctly from `ai_platform` database
+

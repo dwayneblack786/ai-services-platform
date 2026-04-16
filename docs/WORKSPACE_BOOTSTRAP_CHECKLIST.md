@@ -21,8 +21,8 @@ Use this checklist when preparing a fresh local environment for AI Services Plat
   - [ ] `services-java/.env.example`
   - [ ] `services-java/va-service/.env.example`
   - [ ] `services-python/.env.example`
-  - [ ] `product-management/.env.example`
-  - [ ] `product-management/frontend/.env.example`
+  - [ ] `ai-product-management/.env.example`
+  - [ ] `ai-product-management/frontend/.env.example`
   - [ ] `shared/.env.example`
 - [ ] Create real `.env` files from examples where missing
 - [ ] Replace all dummy secrets and API keys
@@ -61,3 +61,4 @@ Use this checklist when preparing a fresh local environment for AI Services Plat
 - [ ] Verify key health endpoints return success
 - [ ] Verify login flow against Keycloak
 - [ ] Confirm no missing env vars at runtime
+

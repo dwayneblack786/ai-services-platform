@@ -10,16 +10,16 @@ This guide provides comprehensive testing instructions for the new version manag
 ### Start the Servers
 ```bash
 # Terminal 1 - Backend
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 
 # Terminal 2 - Frontend
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run dev
 ```
 
 ### Environment Variables
-Ensure these are set in `product-management/backend-node/.env`:
+Ensure these are set in `ai-product-management/backend-node/.env`:
 ```env
 MONGODB_URI=mongodb://localhost:27017/ai-services
 PORT=5000
@@ -578,7 +578,7 @@ brew services start mongodb-community
 
 **Issue: TypeScript errors**
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run build
 
 # Check for errors
@@ -587,7 +587,7 @@ npm run build
 **Issue: Frontend not showing changes**
 ```bash
 # Clear cache
-cd product-management/frontend
+cd ai-product-management/frontend
 rm -rf node_modules/.vite
 npm run dev
 ```
@@ -649,3 +649,4 @@ npm run dev
    - User guides
    - Admin documentation
    - API changelog
+

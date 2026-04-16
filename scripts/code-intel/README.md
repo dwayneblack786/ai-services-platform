@@ -24,7 +24,7 @@ Default scan targets:
 
 - `ai-listing-agent`
 - `ai-product-starter-template`
-- `product-management`
+- `ai-product-management`
 - `shared`
 - `services-java`
 - `services-python`
@@ -39,7 +39,7 @@ Optional examples:
 
 ```powershell
 # Scan only selected repos
-./scripts/code-intel/build-knowledge-graph.ps1 -IncludeRepos @('product-management','shared')
+./scripts/code-intel/build-knowledge-graph.ps1 -IncludeRepos @('ai-product-management','shared')
 
 # Increase graph edge cap
 ./scripts/code-intel/build-knowledge-graph.ps1 -MaxEdges 1200

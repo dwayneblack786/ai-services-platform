@@ -10,7 +10,7 @@
 ### 1. Backend Infrastructure
 
 #### Redis Pub/Sub Service ✅
-**File:** [src/services/redis-pubsub.service.ts](../product-management/backend-node/src/services/redis-pubsub.service.ts)
+**File:** [src/services/redis-pubsub.service.ts](../ai-product-management/backend-node/src/services/redis-pubsub.service.ts)
 
 **Features:**
 - Publishes cache invalidation events to Redis channel `pms:cache:invalidate`
@@ -19,11 +19,11 @@
 - Separate pub/sub clients (Redis requirement)
 
 **Integration:**
-- Initialized in [src/index.ts](../product-management/backend-node/src/index.ts) on startup
+- Initialized in [src/index.ts](../ai-product-management/backend-node/src/index.ts) on startup
 - Works in both production and development modes
 
 #### Enhanced Metrics Model ✅
-**File:** [src/models/PromptVersion.ts](../product-management/backend-node/src/models/PromptVersion.ts)
+**File:** [src/models/PromptVersion.ts](../ai-product-management/backend-node/src/models/PromptVersion.ts)
 
 **Schema Extended:**
 ```typescript
@@ -43,7 +43,7 @@ metrics: {
 ```
 
 #### Metrics Service ✅
-**File:** [src/services/metrics.service.ts](../product-management/backend-node/src/services/metrics.service.ts)
+**File:** [src/services/metrics.service.ts](../ai-product-management/backend-node/src/services/metrics.service.ts)
 
 **Capabilities:**
 - `recordInvocations(versionId, invocations[])` - Aggregate metrics from Java/Python
@@ -53,7 +53,7 @@ metrics: {
 - Percentile calculations (p95, p99)
 
 #### Metrics API Routes ✅
-**File:** [src/routes/metrics-routes.ts](../product-management/backend-node/src/routes/metrics-routes.ts)
+**File:** [src/routes/metrics-routes.ts](../ai-product-management/backend-node/src/routes/metrics-routes.ts)
 
 **Endpoints:**
 - `POST /api/pms/metrics/report` - Java/Python reports invocations
@@ -63,7 +63,7 @@ metrics: {
 **Registered:** `/api/pms/metrics/*`
 
 #### Prompt Snapshot Model ✅
-**File:** [src/models/PromptSnapshot.ts](../product-management/backend-node/src/models/PromptSnapshot.ts)
+**File:** [src/models/PromptSnapshot.ts](../ai-product-management/backend-node/src/models/PromptSnapshot.ts)
 
 **Purpose:** Capture exact prompt used in each AI session for debugging
 
@@ -82,7 +82,7 @@ metrics: {
 ```
 
 #### Snapshot API Routes ✅
-**File:** [src/routes/snapshot-routes.ts](../product-management/backend-node/src/routes/snapshot-routes.ts)
+**File:** [src/routes/snapshot-routes.ts](../ai-product-management/backend-node/src/routes/snapshot-routes.ts)
 
 **Endpoints:**
 - `POST /api/pms/snapshots` - Create session snapshot
@@ -94,7 +94,7 @@ metrics: {
 ### 2. Frontend Integration
 
 #### Metrics API Client ✅
-**File:** [src/services/promptApi.ts](../product-management/frontend/src/services/promptApi.ts)
+**File:** [src/services/promptApi.ts](../ai-product-management/frontend/src/services/promptApi.ts)
 
 **Added:**
 ```typescript
@@ -146,7 +146,7 @@ lastScore={undefined} // TODO: Add scoring data when available
 
 ### 2. Add Cache Invalidation Hooks (High Priority)
 
-**File:** [src/services/prompt.service.ts](../product-management/backend-node/src/services/prompt.service.ts)
+**File:** [src/services/prompt.service.ts](../ai-product-management/backend-node/src/services/prompt.service.ts)
 
 **Add to:**
 1. `promotePrompt()` - After promoting to production
@@ -326,3 +326,4 @@ curl http://localhost:5000/api/pms/snapshots/session-123
 - [PHASE_7_IMPLEMENTATION.md](./PHASE_7_IMPLEMENTATION.md) - This file
 - [TEST_STATUS.md](./TEST_STATUS.md) - Test infrastructure status
 - [TEST_FIXES_APPLIED.md](./TEST_FIXES_APPLIED.md) - MongoDB test optimizations
+

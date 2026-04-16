@@ -482,7 +482,7 @@ interface PromptMetrics {
 
 ## Files Modified
 
-1. **product-management/frontend/src/pages/TenantPrompts.tsx**
+1. **ai-product-management/frontend/src/pages/TenantPrompts.tsx**
    - Lines 5: Removed unused AnalyticsCard import
    - Lines 284-452: Completely redesigned detail view
    - Table-based layout with compact rows
@@ -599,3 +599,4 @@ Edit values directly in table:
 - Compact buttons and empty states
 - Professional table layout
 - 2× more cards visible on screen
+

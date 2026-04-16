@@ -325,7 +325,7 @@ interface Session {
 
 **Evidence:**
 ```typescript
-// product-management/backend-node/src/routes/keycloak-auth.ts:174
+// ai-product-management/backend-node/src/routes/keycloak-auth.ts:174
 router.post('/keycloak/refresh', async (req: Request, res: Response) => {
   const refreshToken = req.session.keycloakRefreshToken;
   if (!refreshToken) {
@@ -365,7 +365,7 @@ router.post('/keycloak/refresh', async (req: Request, res: Response) => {
 
 **Evidence:**
 ```typescript
-// product-management/backend-node/src/routes/keycloak-auth.ts:36
+// ai-product-management/backend-node/src/routes/keycloak-auth.ts:36
 catch (error: any) {
   console.error('Keycloak login initiation failed:', error);
   res.redirect(`/login?error=${encodeURIComponent('auth_init_failed')}`);
@@ -428,7 +428,7 @@ catch (error: any) {
 
 **Evidence:**
 ```typescript
-// product-management/backend-node/src/routes/tenant-auth.ts
+// ai-product-management/backend-node/src/routes/tenant-auth.ts
 // Tenant context stored in session but:
 // - No cryptographic binding
 // - No tampering detection
@@ -669,7 +669,7 @@ The improvement plan is divided into **4 phases** over 8-12 weeks:
 
 **Backend Changes:**
 
-**File:** `product-management/backend-node/src/middleware/keycloak-auth.ts`
+**File:** `ai-product-management/backend-node/src/middleware/keycloak-auth.ts`
 
 ```typescript
 export async function requireKeycloakAuth(req: Request, res: Response, next: NextFunction) {
@@ -712,7 +712,7 @@ export async function requireKeycloakAuth(req: Request, res: Response, next: Nex
 
 **Frontend Changes:**
 
-**File:** `product-management/frontend/src/services/apiClient.ts`
+**File:** `ai-product-management/frontend/src/services/apiClient.ts`
 
 ```typescript
 import axios from 'axios';
@@ -760,7 +760,7 @@ export default apiClient;
 
 **Backend Changes:**
 
-**File:** `product-management/backend-node/src/middleware/session-timeout.ts` (NEW)
+**File:** `ai-product-management/backend-node/src/middleware/session-timeout.ts` (NEW)
 
 ```typescript
 import { Request, Response, NextFunction } from 'express';
@@ -840,7 +840,7 @@ export function sessionTimeoutMiddleware(req: Request, res: Response, next: Next
 
 **Integration:**
 
-**File:** `product-management/backend-node/src/index.ts`
+**File:** `ai-product-management/backend-node/src/index.ts`
 
 ```typescript
 // Add after session middleware
@@ -849,7 +849,7 @@ app.use(sessionTimeoutMiddleware);
 
 #### 1.3 Rate Limiting on Auth Endpoints
 
-**File:** `product-management/backend-node/src/middleware/auth-rate-limiter.ts` (NEW)
+**File:** `ai-product-management/backend-node/src/middleware/auth-rate-limiter.ts` (NEW)
 
 ```typescript
 import rateLimit from 'express-rate-limit';
@@ -918,7 +918,7 @@ export const authRateLimiter = rateLimit({
 
 **Apply to Routes:**
 
-**File:** `product-management/backend-node/src/routes/keycloak-auth.ts`
+**File:** `ai-product-management/backend-node/src/routes/keycloak-auth.ts`
 
 ```typescript
 import { loginRateLimiter, tokenRateLimiter, authRateLimiter } from '../middleware/auth-rate-limiter';
@@ -943,7 +943,7 @@ router.get('/keycloak/status', authRateLimiter, async (req: Request, res: Respon
 
 #### 1.4 Standardized Error Handling
 
-**File:** `product-management/backend-node/src/utils/auth-errors.ts` (NEW)
+**File:** `ai-product-management/backend-node/src/utils/auth-errors.ts` (NEW)
 
 ```typescript
 export class AuthError extends Error {
@@ -1069,7 +1069,7 @@ router.get('/keycloak/callback', async (req: Request, res: Response) => {
 
 **Schema:**
 
-**File:** `product-management/backend-node/src/models/AuditLog.ts` (NEW)
+**File:** `ai-product-management/backend-node/src/models/AuditLog.ts` (NEW)
 
 ```typescript
 import mongoose, { Schema, Document } from 'mongoose';
@@ -1120,7 +1120,7 @@ export default AuditLog;
 
 **Service:**
 
-**File:** `product-management/backend-node/src/services/audit-logger.service.ts` (NEW)
+**File:** `ai-product-management/backend-node/src/services/audit-logger.service.ts` (NEW)
 
 ```typescript
 import AuditLog from '../models/AuditLog';
@@ -1257,7 +1257,7 @@ router.get('/keycloak/callback', async (req: Request, res: Response) => {
 
 **Schema Update:**
 
-**File:** `product-management/backend-node/src/models/User.ts`
+**File:** `ai-product-management/backend-node/src/models/User.ts`
 
 ```typescript
 // Add to UserSchema
@@ -1339,7 +1339,7 @@ router.get('/keycloak/callback', async (req: Request, res: Response) => {
 
 **Schema:**
 
-**File:** `product-management/backend-node/src/models/RevokedToken.ts` (NEW)
+**File:** `ai-product-management/backend-node/src/models/RevokedToken.ts` (NEW)
 
 ```typescript
 import mongoose, { Schema, Document } from 'mongoose';
@@ -1369,7 +1369,7 @@ export default RevokedToken;
 
 **Revocation Service:**
 
-**File:** `product-management/backend-node/src/services/token-revocation.service.ts` (NEW)
+**File:** `ai-product-management/backend-node/src/services/token-revocation.service.ts` (NEW)
 
 ```typescript
 import RevokedToken from '../models/RevokedToken';
@@ -1654,3 +1654,4 @@ This comprehensive improvement plan addresses all critical security gaps, enhanc
 **Last Updated:** 2026-01-29
 **Author:** Senior Backend Engineer
 **Status:** Pending Approval
+

@@ -1,4 +1,4 @@
-# Service: product-management
+# Service: ai-product-management
 
 Context:
 
@@ -9,9 +9,9 @@ Context:
 
 Source file/path:
 
-- `product-management/CLAUDE.md`
-- `product-management/backend-node/`
-- `product-management/frontend/`
+- `ai-product-management/CLAUDE.md`
+- `ai-product-management/backend-node/`
+- `ai-product-management/frontend/`
 - `.ai/skills/code-changes/senior-backend-node-architecture.md`
 - `.ai/skills/code-changes/senior-frontend-react-ui-node.md`
 - `.ai/skills/code-review/review-backend-express-ts.md`
@@ -23,18 +23,18 @@ Last verified date:
 
 Verified commands:
 
-- `cd product-management/backend-node && npx tsc --noEmit -p tsconfig.json`
-- `cd product-management/backend-node && npm run build`
-- `cd product-management/backend-node && npm test`
-- `cd product-management/backend-node && npm run test:coverage`
-- `cd product-management/frontend && npx tsc --noEmit -p tsconfig.json`
-- `cd product-management/frontend && npm run build`
+- `cd ai-product-management/backend-node && npx tsc --noEmit -p tsconfig.json`
+- `cd ai-product-management/backend-node && npm run build`
+- `cd ai-product-management/backend-node && npm test`
+- `cd ai-product-management/backend-node && npm run test:coverage`
+- `cd ai-product-management/frontend && npx tsc --noEmit -p tsconfig.json`
+- `cd ai-product-management/frontend && npm run build`
 
 Repository ownership:
 
-- Git operations for this service belong to the `product-management` repository.
+- Git operations for this service belong to the `ai-product-management` repository.
 - Workspace root (`.ai/`, `docs/`, `plans/`) is a separate repo — do not mix commits.
-- Canonical gRPC proto definitions live in `product-management/backend-node/proto/` and are the shared source for all Java and Python services.
+- Canonical gRPC proto definitions live in `ai-product-management/backend-node/proto/` and are the shared source for all Java and Python services.
 
 Stack:
 
@@ -66,7 +66,7 @@ Architecture notes:
 
 Integration boundaries:
 
-- `ai-listing-agent` delegates orchestration work to `services-java/listing-service` and uses `product-management/backend-node/proto/` for gRPC contracts.
+- `ai-listing-agent` delegates orchestration work to `services-java/listing-service` and uses `ai-product-management/backend-node/proto/` for gRPC contracts.
 - Proto changes here affect all Java and Python service consumers — treat as a breaking-change risk.
 - MongoDB is the primary data store for all platform services; Redis holds session state.
 
@@ -83,5 +83,6 @@ Actionable notes:
 - Session and auth middleware order is critical — keep security middleware before protected routes.
 - MongoDB port 27018 (Podman-exposed) vs. 27017 (internal) — use 27018 in local dev connection strings.
 - gRPC proto source is the canonical reference shared with all downstream services.
-- Canonical scripts are in `scripts/` at workspace root; `product-management/scripts/` has been removed.
-- Canonical docs are in `docs/` at workspace root; `product-management/docs/` has been consolidated.
+- Canonical scripts are in `scripts/` at workspace root; `ai-product-management/scripts/` has been removed.
+- Canonical docs are in `docs/` at workspace root; `ai-product-management/docs/` has been consolidated.
+

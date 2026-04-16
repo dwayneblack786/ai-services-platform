@@ -82,7 +82,7 @@ Invoke-RestMethod -Uri "http://localhost:5000/api/auth/tenant/lookup" `
 
 If this FAILS, you need to seed tenants:
 ```powershell
-cd product-management\backend-node
+cd ai-product-management\backend-node
 npx ts-node scripts\seed-tenants.ts
 ```
 
@@ -201,7 +201,7 @@ Now you can login with:
 ### Issue: "tenant not found"
 **Fix:** Run tenant seed script:
 ```powershell
-cd product-management\backend-node
+cd ai-product-management\backend-node
 npx ts-node scripts\seed-tenants.ts
 ```
 
@@ -235,3 +235,4 @@ SESSION_SECRET=prompt-mgmt-session-secret-key-minimum-32-chars-change-in-product
 ---
 
 **Next:** Once all tests pass, we'll move to Phase 1 security enhancements!
+

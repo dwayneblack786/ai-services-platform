@@ -20,7 +20,7 @@ The session menu system has been fully configured for product `69728bdb0959e1a2d
 
 ### ✅ Test Results
 
-**Script:** `product-management/scripts/mongo/test-menu-service.js`
+**Script:** `ai-product-management/scripts/mongo/test-menu-service.js`
 
 **Output:**
 ```json
@@ -62,7 +62,7 @@ The session menu system has been fully configured for product `69728bdb0959e1a2d
 ### Step 1: Start the Backend
 
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm start
 ```
 
@@ -258,16 +258,16 @@ socket.emit('chat:send-message', {
    - Verify: `productId: "69728bdb0959e1a2da517684"`
 
 3. **Database bindings missing**
-   - Run: `node product-management/scripts/mongo/check-product-prompts.js`
+   - Run: `node ai-product-management/scripts/mongo/check-product-prompts.js`
    - Verify: 2 chat bindings with activeProductionId set
 
 **Fix:**
 ```bash
 # Re-run seeding script
-node product-management/scripts/mongo/seed-product-prompts.js
+node ai-product-management/scripts/mongo/seed-product-prompts.js
 
 # Verify configuration
-node product-management/scripts/mongo/test-menu-service.js
+node ai-product-management/scripts/mongo/test-menu-service.js
 ```
 
 ### Issue: Options Appear but Click Doesn't Work
@@ -294,7 +294,7 @@ console.log('Setting promptId:', option.id);
 **Verify:**
 ```bash
 # Check backend logs
-grep "promptId" product-management/backend-node/logs/*.log
+grep "promptId" ai-product-management/backend-node/logs/*.log
 
 # Check if Java is receiving context
 # (Look in Java service logs)
@@ -326,17 +326,17 @@ grep "promptId" product-management/backend-node/logs/*.log
 
 ### Check Database Configuration
 ```bash
-node product-management/scripts/mongo/check-product-prompts.js
+node ai-product-management/scripts/mongo/check-product-prompts.js
 ```
 
 ### Test Menu Service Logic
 ```bash
-node product-management/scripts/mongo/test-menu-service.js
+node ai-product-management/scripts/mongo/test-menu-service.js
 ```
 
 ### Reseed Data (if needed)
 ```bash
-node product-management/scripts/mongo/seed-product-prompts.js
+node ai-product-management/scripts/mongo/seed-product-prompts.js
 ```
 
 ---
@@ -421,3 +421,4 @@ Response returns to user
 
 **Last Updated:** 2026-02-12
 **Status:** Ready for Testing ✅
+

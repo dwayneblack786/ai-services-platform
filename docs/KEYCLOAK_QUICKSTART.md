@@ -30,7 +30,7 @@ This creates:
 **Product Management:**
 
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 cp .env.keycloak.example .env
 ```
 
@@ -53,7 +53,7 @@ Edit and add client secret for prompt-management.
 
 ```bash
 # Product Management
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm install jwks-rsa
 
 # Prompt Management
@@ -63,7 +63,7 @@ npm install jwks-rsa
 
 ### Step 4: Update User Model (Manual)
 
-**File:** `product-management/backend-node/src/models/User.ts`
+**File:** `ai-product-management/backend-node/src/models/User.ts`
 
 Add one field:
 
@@ -79,7 +79,7 @@ UserSchema.index({ keycloakSub: 1 }, { sparse: true, unique: true });
 
 ### Step 5: Register Routes (1 minute)
 
-**File:** `product-management/backend-node/src/index.ts`
+**File:** `ai-product-management/backend-node/src/index.ts`
 
 Add these imports:
 
@@ -97,11 +97,11 @@ app.use('/api/auth', keycloakAuthRoutes);
 
 ```bash
 # Terminal 1: Backend
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 
 # Terminal 2: Frontend  
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run dev
 ```
 
@@ -502,3 +502,4 @@ For issues or questions:
 **Status:** Ready to use
 **Time to Complete:** 5 minutes
 **Difficulty:** Easy (automated scripts)
+

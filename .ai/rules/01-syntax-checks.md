@@ -4,8 +4,8 @@ Scope:
 
 - `ai-listing-agent/frontend`
 - `ai-listing-agent/backend-node`
-- `product-management/frontend`
-- `product-management/backend-node`
+- `ai-product-management/frontend`
+- `ai-product-management/backend-node`
 - `services-java/listing-service`
 
 Mandatory trigger:
@@ -19,10 +19,10 @@ Required commands:
   - `Set-Location ai-listing-agent/frontend; npx tsc --noEmit -p tsconfig.json`
 - ai-listing-agent backend Node (TypeScript):
   - `Set-Location ai-listing-agent/backend-node; npx tsc --noEmit -p tsconfig.json`
-- product-management frontend (TypeScript):
-  - `Set-Location product-management/frontend; npx tsc --noEmit -p tsconfig.json`
-- product-management backend Node (TypeScript):
-  - `Set-Location product-management/backend-node; npx tsc --noEmit -p tsconfig.json`
+- ai-product-management frontend (TypeScript):
+  - `Set-Location ai-product-management/frontend; npx tsc --noEmit -p tsconfig.json`
+- ai-product-management backend Node (TypeScript):
+  - `Set-Location ai-product-management/backend-node; npx tsc --noEmit -p tsconfig.json`
 - Java listing service:
   - `Set-Location services-java/listing-service; ./mvnw -q -DskipTests compile`
 - Java va-service:
@@ -36,3 +36,4 @@ Pass criteria:
 Fail handling:
 
 - Do not continue to compile, test, or merge until syntax failures are resolved.
+

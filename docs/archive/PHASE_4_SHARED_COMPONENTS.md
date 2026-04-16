@@ -19,7 +19,7 @@ The shared component library ensures:
 ## Component 1: VersionStatus
 
 ### Location
-`product-management/frontend/src/components/VersionStatus.tsx`
+`ai-product-management/frontend/src/components/VersionStatus.tsx`
 
 ### Purpose
 Displays prompt state with color-coded badges, version numbers, and helpful tooltips.
@@ -132,7 +132,7 @@ The component uses:
 ## Component 2: AnalyticsCard
 
 ### Location
-`product-management/frontend/src/components/AnalyticsCard.tsx`
+`ai-product-management/frontend/src/components/AnalyticsCard.tsx`
 
 ### Purpose
 Displays prompt metrics, scoring results, and analysis status in a consistent, professional format.
@@ -733,3 +733,4 @@ The shared component library provides a solid foundation for:
 2. Create Storybook stories
 3. Document in wiki
 4. Plan future components
+

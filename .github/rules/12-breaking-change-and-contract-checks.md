@@ -2,9 +2,9 @@
 
 Scope:
 
-- `product-management/backend-node/proto/` — canonical gRPC proto definitions
+- `ai-product-management/backend-node/proto/` — canonical gRPC proto definitions
 - Any `.proto` file in `services-java/` or `services-python/`
-- Public REST API routes in `product-management/backend-node/` and `ai-listing-agent/backend-node/`
+- Public REST API routes in `ai-product-management/backend-node/` and `ai-listing-agent/backend-node/`
 - Mongoose schema fields that are consumed by downstream services or serialized in API responses
 - Shared TypeScript types in `shared/`
 
@@ -31,7 +31,7 @@ Required checks:
 
 3. **Shared TypeScript type changes:**
    - Run syntax checks for all tiers that import from `shared/` after a type change.
-   - A required field removal or rename is breaking — coordinate across `ai-listing-agent` and `product-management` consumers.
+   - A required field removal or rename is breaking — coordinate across `ai-listing-agent` and `ai-product-management` consumers.
 
 Pass criteria:
 
@@ -45,3 +45,4 @@ Fail handling:
 - Do not silently remove a REST route or rename a response field used by the frontend.
 - If the change is cross-repo, document the dependency order and merge sequence in PR notes before merging any side.
 - Apply the contract review skill before merging: `.ai/skills/code-review/review-contract-and-breaking-change.md`
+

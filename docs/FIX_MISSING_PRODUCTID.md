@@ -38,7 +38,7 @@ The prompt `698361132d59c6b650f2fa1b` has:
 Run the verification script to check data integrity:
 
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 
 # Run verification script
 npx ts-node src/scripts/verifyPromptData.ts
@@ -113,3 +113,4 @@ navigate(`/tenant-prompts?channel=voice`);
 **Problem:** Missing `productId` in URL
 **Solution:** Use `?productId=69728bdb0959e1a2da517684&channel=voice`
 **Script:** Run `verifyPromptData.ts` to check/fix data
+

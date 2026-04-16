@@ -69,7 +69,7 @@ This index helps select the right skill quickly.
 
 ## Repository Scope Rules
 
-- Treat `services-java`, `product-management`, `ai-listing-agent`, and `shared` as separate git repositories.
+- Treat `services-java`, `ai-product-management`, `ai-listing-agent`, and `shared` as separate git repositories.
 - Run `git status`, `git diff`, staging, commits, and pushes from the owning repository path.
 - Keep commits repository-local; do not combine file changes from multiple repositories in one commit.
 - Run quality gates in the owning repository for changed tiers only.

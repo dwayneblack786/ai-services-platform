@@ -26,8 +26,8 @@ Successfully renamed MenuService to PromptService for semantic clarity and consi
 - **New**: `export const promptService = new PromptService()`
 
 ### 5. Imports Updated
-- [chat-socket.ts](../product-management/backend-node/src/sockets/chat-socket.ts): Updated import and usage
-- [chat-routes.ts](../product-management/backend-node/src/routes/chat-routes.ts): Updated import
+- [chat-socket.ts](../ai-product-management/backend-node/src/sockets/chat-socket.ts): Updated import and usage
+- [chat-routes.ts](../ai-product-management/backend-node/src/routes/chat-routes.ts): Updated import
 
 ### 6. Documentation Updated
 - Updated JSDoc comments to reference "prompts" instead of "menu"
@@ -78,3 +78,4 @@ User should manually test the application to verify:
 - Prompt options display correctly
 - Prompt selection and validation works
 - Voice DTMF mapping works (if applicable)
+

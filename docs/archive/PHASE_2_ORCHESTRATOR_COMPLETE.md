@@ -15,7 +15,7 @@ Phase 2 complete: Orchestrator with strategy routing, health monitoring, and thr
 
 ### 1. Orchestrator Core ✅
 
-**[src/orchestrator/types.ts](../product-management/backend-node/src/orchestrator/types.ts)**
+**[src/orchestrator/types.ts](../ai-product-management/backend-node/src/orchestrator/types.ts)**
 - Strategy types (unified, component, hybrid)
 - Tenant voice configuration
 - Voice request/response interfaces
@@ -23,7 +23,7 @@ Phase 2 complete: Orchestrator with strategy routing, health monitoring, and thr
 - Service health structures
 - Metrics tracking
 
-**[src/orchestrator/voice-orchestrator.ts](../product-management/backend-node/src/orchestrator/voice-orchestrator.ts)**
+**[src/orchestrator/voice-orchestrator.ts](../ai-product-management/backend-node/src/orchestrator/voice-orchestrator.ts)**
 - Main orchestration layer
 - Tenant registration
 - Request processing with fallback
@@ -39,7 +39,7 @@ Phase 2 complete: Orchestrator with strategy routing, health monitoring, and thr
 
 ### 2. Health Monitoring ✅
 
-**[src/orchestrator/health-monitor.ts](../product-management/backend-node/src/orchestrator/health-monitor.ts)**
+**[src/orchestrator/health-monitor.ts](../ai-product-management/backend-node/src/orchestrator/health-monitor.ts)**
 - Service health checks
 - Configurable intervals
 - Circuit breaker pattern
@@ -63,7 +63,7 @@ Phase 2 complete: Orchestrator with strategy routing, health monitoring, and thr
 
 ### 3. Strategy Selection ✅
 
-**[src/orchestrator/strategy-selector.ts](../product-management/backend-node/src/orchestrator/strategy-selector.ts)**
+**[src/orchestrator/strategy-selector.ts](../ai-product-management/backend-node/src/orchestrator/strategy-selector.ts)**
 - Multi-criteria routing
 - Health-based selection
 - Fallback chain creation
@@ -79,7 +79,7 @@ Phase 2 complete: Orchestrator with strategy routing, health monitoring, and thr
 ### 4. Strategy Implementations ✅
 
 #### Unified Strategy
-**[src/strategies/unified-strategy.ts](../product-management/backend-node/src/strategies/unified-strategy.ts)**
+**[src/strategies/unified-strategy.ts](../ai-product-management/backend-node/src/strategies/unified-strategy.ts)**
 - Single model (GPT-4o Realtime, Gemini Live)
 - STT + LLM + TTS in one call
 - Lowest latency (~1200ms)
@@ -87,7 +87,7 @@ Phase 2 complete: Orchestrator with strategy routing, health monitoring, and thr
 - Mock implementation ready for real API
 
 #### Component Strategy
-**[src/strategies/component-strategy.ts](../product-management/backend-node/src/strategies/component-strategy.ts)**
+**[src/strategies/component-strategy.ts](../ai-product-management/backend-node/src/strategies/component-strategy.ts)**
 - Three-step pipeline: STT → LLM → TTS
 - Best-of-breed services
 - Lower cost ($0.05/min)
@@ -95,21 +95,21 @@ Phase 2 complete: Orchestrator with strategy routing, health monitoring, and thr
 - Mock implementation for each stage
 
 #### Hybrid Strategy
-**[src/strategies/hybrid-strategy.ts](../product-management/backend-node/src/strategies/hybrid-strategy.ts)**
+**[src/strategies/hybrid-strategy.ts](../ai-product-management/backend-node/src/strategies/hybrid-strategy.ts)**
 - Try unified first, fallback to component
 - Timeout protection
 - Automatic strategy switching
 - Best of both worlds
 - Tiered based on availability
 
-**[src/strategies/base-strategy.ts](../product-management/backend-node/src/strategies/base-strategy.ts)**
+**[src/strategies/base-strategy.ts](../ai-product-management/backend-node/src/strategies/base-strategy.ts)**
 - Abstract base class
 - Common interface
 - Response helper methods
 
 ### 5. Test Suite ✅
 
-**[tests/orchestrator/voice-orchestrator.test.ts](../product-management/backend-node/tests/orchestrator/voice-orchestrator.test.ts)** - 12 tests
+**[tests/orchestrator/voice-orchestrator.test.ts](../ai-product-management/backend-node/tests/orchestrator/voice-orchestrator.test.ts)** - 12 tests
 
 **Test Coverage:**
 - Tenant registration (unified, component, hybrid)
@@ -121,7 +121,7 @@ Phase 2 complete: Orchestrator with strategy routing, health monitoring, and thr
 
 ### 6. NPM Scripts ✅
 
-Added to [package.json](../product-management/backend-node/package.json):
+Added to [package.json](../ai-product-management/backend-node/package.json):
 ```json
 {
   "test:orchestrator": "jest tests/orchestrator --verbose"
@@ -425,7 +425,7 @@ healthMonitor.on('service:healthy', (event) => {
 ## File Structure
 
 ```
-product-management/backend-node/
+ai-product-management/backend-node/
 ├── src/
 │   ├── orchestrator/
 │   │   ├── types.ts                       # Type definitions
@@ -542,3 +542,4 @@ Phase 2 complete. Orchestrator with three strategies ready for integration.
 - Automatic fallback working
 
 **Ready for Phase 3:** Integration with voice-socket.ts and real service endpoints.
+

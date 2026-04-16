@@ -18,7 +18,7 @@ The SSO implementation allows users to automatically authenticate between Produc
 
 ### Product Management Backend
 
-**File: `product-management/backend-node/.env`**
+**File: `ai-product-management/backend-node/.env`**
 
 ```env
 # CORS Origins - Must include prompt-management frontend URL
@@ -137,11 +137,11 @@ JWT_SECRET=your-shared-secret-minimum-32-chars  # MUST match product-management
 1. **Start both applications:**
    ```bash
    # Terminal 1: Product Management Backend
-   cd product-management/backend-node
+   cd ai-product-management/backend-node
    npm run dev
 
    # Terminal 2: Product Management Frontend
-   cd product-management/frontend
+   cd ai-product-management/frontend
    npm run dev
 
    # Terminal 3: Prompt Management Backend
@@ -178,7 +178,7 @@ JWT_SECRET=your-shared-secret-minimum-32-chars  # MUST match product-management
 
 **Solution:**
 ```bash
-# Verify CORS in product-management/.env
+# Verify CORS in ai-product-management/.env
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:3001
 ```
 
@@ -193,7 +193,7 @@ CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:3001
 **Solution:**
 ```bash
 # Verify JWT secrets match
-# product-management/backend-node/.env
+# ai-product-management/backend-node/.env
 JWT_SECRET=your-shared-secret
 
 # prompt-management/backend/.env
@@ -292,7 +292,8 @@ For production, update the following:
 
 ## References
 
-- [SSO Implementation Guide](../product-management/docs/SSO_IMPLEMENTATION_GUIDE.md) - Detailed implementation
+- [SSO Implementation Guide](../ai-product-management/docs/SSO_IMPLEMENTATION_GUIDE.md) - Detailed implementation
 - [SSO Quick Reference](./SSO_QUICK_REFERENCE.md) - API endpoints and token structure
 - [OAuth 2.0 RFC 6749](https://tools.ietf.org/html/rfc6749)
 - [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html)
+

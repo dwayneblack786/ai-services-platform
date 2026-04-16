@@ -49,8 +49,8 @@
 13. **Result**: User automatically logged into Site B without seeing login page! ✅
 
 **Key Files:**
-- Session config: `product-management/backend-node/src/index.ts` (lines 224-277)
-- IdP authorize endpoint: `product-management/backend-node/src/routes/oidc.ts` (lines 44-70)
+- Session config: `ai-product-management/backend-node/src/index.ts` (lines 224-277)
+- IdP authorize endpoint: `ai-product-management/backend-node/src/routes/oidc.ts` (lines 44-70)
 - SP SSO flow: `prompt-management/frontend/src/pages/LoginPage.tsx` (lines 256-276)
 
 ---
@@ -169,7 +169,7 @@ Prompt Management:
 
 ### Code Implementation:
 ```typescript
-// product-management/backend-node/src/routes/oidc.ts (lines 52-64)
+// ai-product-management/backend-node/src/routes/oidc.ts (lines 52-64)
 const isAuthenticated = req.isAuthenticated && req.isAuthenticated() && req.user;
 
 if (prompt === 'none' && !isAuthenticated) {
@@ -248,7 +248,7 @@ Product Management (Site A) is the IdP but doesn't check its own session when us
 Implement SSO self-check in Product Management frontend:
 
 ```tsx
-// product-management/frontend/src/pages/Login.tsx
+// ai-product-management/frontend/src/pages/Login.tsx
 
 useEffect(() => {
   const checkIdPSession = async () => {
@@ -359,4 +359,5 @@ VITE_PRODUCT_MGMT_URL=http://localhost:5000
 - Fix: Add session check in Product Management Login.tsx (5 lines of code)
 
 **Overall**: The architecture is **sound and follows OAuth2/OIDC best practices**. The session cookie is properly global, tokens are properly local, and prompt=none enables cross-app session detection. 🎉
+
 

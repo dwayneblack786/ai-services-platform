@@ -3,7 +3,7 @@
 Scope:
 
 - `ai-listing-agent/backend-node` — Mongoose schemas, models, queries, migrations
-- `product-management/backend-node` — Mongoose schemas, models, queries, migrations
+- `ai-product-management/backend-node` — Mongoose schemas, models, queries, migrations
 - `services-java/listing-service` — Spring Data MongoDB repositories and queries
 - `scripts/mongo/` — migration and backfill scripts
 
@@ -58,3 +58,4 @@ Fail handling:
 - Do not merge queries lacking `tenantId` scoping on tenant collections.
 - Do not merge incomplete migrations (no idempotency, no batch logic).
 - Apply the review skill before merging: `.ai/skills/code-review/review-database-data-layer.md`
+

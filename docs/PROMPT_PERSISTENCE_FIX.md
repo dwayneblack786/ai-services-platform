@@ -6,7 +6,7 @@ After a user selected a prompt from the menu, the `selectedPromptId` was being c
 
 ## Root Cause
 
-**File**: [AssistantChat.tsx](../product-management/frontend/src/components/AssistantChat.tsx)
+**File**: [AssistantChat.tsx](../ai-product-management/frontend/src/components/AssistantChat.tsx)
 
 **Line 494** (before fix):
 ```typescript
@@ -127,6 +127,7 @@ All messages in the session should use the same prompt configuration.
 
 ## Files Modified
 
-- [product-management/frontend/src/components/AssistantChat.tsx](../product-management/frontend/src/components/AssistantChat.tsx)
+- [ai-product-management/frontend/src/components/AssistantChat.tsx](../ai-product-management/frontend/src/components/AssistantChat.tsx)
   - Line ~494: Changed from clearing `selectedPromptId` to clearing `optionSelected`
   - Line ~508: Added `promptId` to REST API context
+

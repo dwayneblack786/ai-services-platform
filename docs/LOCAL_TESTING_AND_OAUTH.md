@@ -39,11 +39,11 @@ Users can now register using:
 
 ```bash
 # Terminal 1 - Backend
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 
 # Terminal 2 - Frontend  
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run dev
 ```
 
@@ -373,3 +373,4 @@ C:\Users\Owner\Documents\ai-services-platform\product-management\backend-node\em
 ```
 
 Open files in browser (HTML) or text editor (TXT) to get codes and test links!
+

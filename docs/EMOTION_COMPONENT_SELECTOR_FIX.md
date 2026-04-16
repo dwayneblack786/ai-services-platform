@@ -51,7 +51,7 @@ Instead of using component selectors (which require Babel plugin configuration),
 
 ### Implementation
 
-**File:** `product-management/frontend/src/components/VersionStatus.tsx`
+**File:** `ai-product-management/frontend/src/components/VersionStatus.tsx`
 
 #### Before (Broken)
 ```typescript
@@ -245,7 +245,7 @@ const [isHovered, setIsHovered] = useState(false);
 
 ## Files Modified
 
-1. **product-management/frontend/src/components/VersionStatus.tsx**
+1. **ai-product-management/frontend/src/components/VersionStatus.tsx**
    - Lines 45-53: Updated TooltipContainer with CSS class selector
    - Lines 55-81: Removed component selector from Tooltip
    - Line 135: Added className="tooltip" to JSX
@@ -321,3 +321,4 @@ To prevent this issue in future:
 - All tests passing
 
 The fix is simple, performant, and follows CSS best practices while avoiding the need for additional Babel plugin configuration.
+

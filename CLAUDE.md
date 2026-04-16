@@ -22,8 +22,8 @@ Multi-tenant SaaS platform for AI-powered real estate products. See `.github/cop
 ## Run
 ```bash
 podman-compose up -d                                        # MongoDB + Redis
-cd product-management/backend-node && npm run dev          # API (3001)
-cd product-management/frontend && npm run dev              # UI (5173)
+cd ai-product-management/backend-node && npm run dev          # API (3001)
+cd ai-product-management/frontend && npm run dev              # UI (5173)
 cd services-java/va-service && ./mvnw spring-boot:run      # VA Service (8136)
 cd services-python/whisper-server && python server.py      # Whisper (8000)
 cd services-python/vision-server && python server.py       # Vision (8001)
@@ -64,3 +64,4 @@ All plans use the conductor init format defined in `.ai/rules/08-plan-output-rul
 - `plans/phase-1-dinov2-training-pipeline.md` — PropVision DINOv2 training (on hold)
 - `plans/phase-b-node-grpc-socketio.md` — Node gRPC client + Socket.io (next after Phase A)
 - `plans/phase-c-ui-realtime.md` — UI real-time pipeline view (after Phase B)
+

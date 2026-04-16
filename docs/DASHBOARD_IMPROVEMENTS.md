@@ -121,7 +121,7 @@ The Tenant Prompts page uses a **different design pattern** than Prompt Manageme
 
 ### File Modified
 
-**[product-management/frontend/src/pages/PromptManagement.tsx](../product-management/frontend/src/pages/PromptManagement.tsx)**
+**[ai-product-management/frontend/src/pages/PromptManagement.tsx](../ai-product-management/frontend/src/pages/PromptManagement.tsx)**
 
 **Changes Made:**
 
@@ -477,3 +477,4 @@ Dashboard improvements successfully implemented:
 **Document Version:** 1.0
 **Date:** 2026-02-06
 **Author:** AI Assistant (Claude Sonnet 4.5)
+

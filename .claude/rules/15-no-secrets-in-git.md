@@ -2,7 +2,7 @@
 
 Scope:
 
-- All repositories in this workspace: `ai-services-platform` (root), `services-java`, `product-management`, `ai-listing-agent`, `shared`
+- All repositories in this workspace: `ai-services-platform` (root), `services-java`, `ai-product-management`, `ai-listing-agent`, `shared`
 
 Mandatory trigger:
 

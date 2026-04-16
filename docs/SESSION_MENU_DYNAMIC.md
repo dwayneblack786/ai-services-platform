@@ -302,7 +302,7 @@ setSelectedPromptId(null);
 ### 1. Seed Test Data
 
 ```bash
-node product-management/scripts/mongo/seed-session-menu-test-data.js
+node ai-product-management/scripts/mongo/seed-session-menu-test-data.js
 ```
 
 Creates:
@@ -313,7 +313,7 @@ Creates:
 ### 2. Verify Data
 
 ```bash
-node product-management/scripts/mongo/inspect-collections.js
+node ai-product-management/scripts/mongo/inspect-collections.js
 ```
 
 Should show:
@@ -361,9 +361,9 @@ Should show:
 - ✅ `src/components/AssistantChat.tsx` - Option bubbles UI, selection handling
 
 ### Scripts
-- ✅ `product-management/scripts/mongo/seed-session-menu-test-data.js` (NEW)
-- ✅ `product-management/scripts/mongo/inspect-collections.js` (NEW)
-- ✅ `product-management/scripts/mongo/test-session-menu.js` (NEW)
+- ✅ `ai-product-management/scripts/mongo/seed-session-menu-test-data.js` (NEW)
+- ✅ `ai-product-management/scripts/mongo/inspect-collections.js` (NEW)
+- ✅ `ai-product-management/scripts/mongo/test-session-menu.js` (NEW)
 
 ---
 
@@ -426,10 +426,10 @@ Should show:
 **Fix:**
 ```bash
 # Reseed test data
-node product-management/scripts/mongo/seed-session-menu-test-data.js
+node ai-product-management/scripts/mongo/seed-session-menu-test-data.js
 
 # Verify
-node product-management/scripts/mongo/inspect-collections.js
+node ai-product-management/scripts/mongo/inspect-collections.js
 ```
 
 ### Invalid Menu Selection Error
@@ -451,3 +451,4 @@ node product-management/scripts/mongo/inspect-collections.js
 The session menu system successfully loads available prompts **dynamically from the database**, presenting them as clickable option bubbles in the chat UI. When a user selects an option, the `promptId` is passed to the backend and included in the assistant context, allowing the Java VA service to use the specific prompt configuration.
 
 This implementation is **fully integrated with the PMS (Prompt Management System)** and automatically reflects changes when prompts are promoted to production or archived.
+

@@ -164,7 +164,7 @@ You need to register `prompt-management` as a client in each Keycloak realm:
 1. Start all services:
    ```powershell
    # Terminal 1: Start Product Management backend
-   cd product-management/backend-node
+   cd ai-product-management/backend-node
    npm run dev
 
    # Terminal 2: Start Prompt Management backend
@@ -251,7 +251,7 @@ You need to register `prompt-management` as a client in each Keycloak realm:
 
 **Solution:**
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npx ts-node scripts/seed-tenants.ts
 ```
 
@@ -377,3 +377,4 @@ useEffect(() => {
 **Next Step:** Test the migration and report any issues!
 
 🔐 **Happy SSO!**
+

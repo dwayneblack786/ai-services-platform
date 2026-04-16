@@ -42,13 +42,13 @@ All core PMS features (Phases 1-4, 6) are **complete and tested**. The system is
 **What's Missing:**
 - Backend doesn't track prompt usage yet
 - UI shows "Not available" for metrics
-- Affects: [TenantPrompts.tsx:222-225](../product-management/frontend/src/pages/TenantPrompts.tsx#L222-L225)
+- Affects: [TenantPrompts.tsx:222-225](../ai-product-management/frontend/src/pages/TenantPrompts.tsx#L222-L225)
 
 **Recommendation:**
 Wait for Phase 7 (Java/Python integration) when services actually use prompts and generate real metrics. Implement placeholder metrics only if needed for demos.
 
 **Quick Win Option:**
-Add `lastScore` field to prompt list API response - affects [PromptManagement.tsx:463](../product-management/frontend/src/pages/PromptManagement.tsx#L463)
+Add `lastScore` field to prompt list API response - affects [PromptManagement.tsx:463](../ai-product-management/frontend/src/pages/PromptManagement.tsx#L463)
 
 ---
 
@@ -132,9 +132,9 @@ Add `lastScore` field to prompt list API response - affects [PromptManagement.ts
 ## Quick Wins (< 1 day each)
 
 1. **Add lastScore to list API**
-   - Modify [prompt-management-routes.ts](../product-management/backend-node/src/routes/prompt-management-routes.ts)
+   - Modify [prompt-management-routes.ts](../ai-product-management/backend-node/src/routes/prompt-management-routes.ts)
    - Add lastScore aggregation to GET /api/pms/prompts endpoint
-   - Update [PromptManagement.tsx:463](../product-management/frontend/src/pages/PromptManagement.tsx#L463)
+   - Update [PromptManagement.tsx:463](../ai-product-management/frontend/src/pages/PromptManagement.tsx#L463)
 
 2. **Add health check endpoints**
    - Create `/health` and `/ready` endpoints
@@ -160,7 +160,7 @@ Add `lastScore` field to prompt list API response - affects [PromptManagement.ts
 1. **Smoke Test Workflow** (30 min)
    ```bash
    # Run existing automated tests
-   cd product-management/backend-node
+   cd ai-product-management/backend-node
    npm test
 
    # Expected: 39 tests passing
@@ -202,11 +202,11 @@ Add `lastScore` field to prompt list API response - affects [PromptManagement.ts
 - `tests/phase2/` - 13 testing + RAG tests
 
 ### Key Code Locations
-- Backend: `product-management/backend-node/src/`
-- Frontend: `product-management/frontend/src/`
-- Models: `product-management/backend-node/src/models/`
-- Services: `product-management/backend-node/src/services/`
-- Routes: `product-management/backend-node/src/routes/`
+- Backend: `ai-product-management/backend-node/src/`
+- Frontend: `ai-product-management/frontend/src/`
+- Models: `ai-product-management/backend-node/src/models/`
+- Services: `ai-product-management/backend-node/src/services/`
+- Routes: `ai-product-management/backend-node/src/routes/`
 
 ---
 
@@ -218,3 +218,4 @@ Add `lastScore` field to prompt list API response - affects [PromptManagement.ts
 - A/B testing → Phase 8
 
 All core features are working, tested, and ready for real-world use.
+

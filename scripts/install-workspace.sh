@@ -7,16 +7,16 @@ DEFAULT_OWNER="dwayneblack786"
 GITHUB_OWNER="${GITHUB_OWNER:-$DEFAULT_OWNER}"
 
 REPOS=(
-  "ai-listing-agent"
-  "services-java"
-  "services-python"
-  "product-management"
-  "shared"
+  "ai-listing-agent:ai-listing-agent"
+  "services-java:services-java"
+  "services-python:services-python"
+  "ai-product-management:product-management"
+  "shared:shared"
 )
 
 ENV_TARGETS=(
-  "product-management/backend-node/.env:product-management/backend-node/.env.example"
-  "product-management/frontend/.env:product-management/frontend/.env.example"
+  "ai-product-management/backend-node/.env:ai-product-management/backend-node/.env.example"
+  "ai-product-management/frontend/.env:ai-product-management/frontend/.env.example"
   "ai-listing-agent/backend-node/.env:ai-listing-agent/backend-node/.env.example"
   "ai-listing-agent/frontend/.env:ai-listing-agent/frontend/.env.example"
   "services-java/va-service/.env:services-java/va-service/.env.example"
@@ -32,14 +32,16 @@ confirm() {
 clone_missing_repos() {
   echo
   echo "== Clone missing repositories =="
-  for repo in "${REPOS[@]}"; do
-    local repo_path="$ROOT_DIR/$repo"
-    local repo_url="https://github.com/$GITHUB_OWNER/$repo.git"
+  for repo_map in "${REPOS[@]}"; do
+    local local_dir="${repo_map%%:*}"
+    local remote_repo="${repo_map##*:}"
+    local repo_path="$ROOT_DIR/$local_dir"
+    local repo_url="https://github.com/$GITHUB_OWNER/$remote_repo.git"
     if [[ -d "$repo_path/.git" ]]; then
-      echo "[skip] $repo already present"
+      echo "[skip] $local_dir already present"
     else
       echo "[clone] $repo_url"
-      git -C "$ROOT_DIR" clone "$repo_url" "$repo"
+      git -C "$ROOT_DIR" clone "$repo_url" "$local_dir"
     fi
   done
 }
@@ -118,8 +120,8 @@ install_dependencies() {
   install_java_deps "services-java/va-service" "services-java/va-service"
   install_java_deps "services-java/common-libs" "services-java/common-libs"
 
-  install_npm_deps "product-management/backend-node" "product-management backend"
-  install_npm_deps "product-management/frontend" "product-management frontend"
+  install_npm_deps "ai-product-management/backend-node" "ai-product-management backend"
+  install_npm_deps "ai-product-management/frontend" "ai-product-management frontend"
 
   install_npm_deps "shared" "shared"
 
@@ -156,3 +158,4 @@ main() {
 }
 
 main "$@"
+

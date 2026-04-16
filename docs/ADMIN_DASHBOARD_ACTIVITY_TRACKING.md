@@ -258,7 +258,7 @@ Indexes:
 ### Backend Testing
 ```bash
 # Start backend server
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm start
 
 # Test admin stats endpoint
@@ -382,3 +382,4 @@ The solution is:
 - Maintainable (well-structured code)
 - Extensible (easy to add new event types)
 - Production-ready (error handling, logging)
+

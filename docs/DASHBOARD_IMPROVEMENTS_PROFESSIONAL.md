@@ -29,7 +29,7 @@ Enhanced both TenantPrompts and PromptManagement dashboards with professional ca
 ## New Component: PromptDashboardCard
 
 ### File
-`product-management/frontend/src/components/PromptDashboardCard.tsx`
+`ai-product-management/frontend/src/components/PromptDashboardCard.tsx`
 
 ### Features
 
@@ -104,7 +104,7 @@ Features:
 ## TenantPrompts Dashboard
 
 ### File
-`product-management/frontend/src/pages/TenantPrompts.tsx`
+`ai-product-management/frontend/src/pages/TenantPrompts.tsx`
 
 ### Changes Made
 
@@ -142,7 +142,7 @@ Shows both Voice and Chat prompts in grid:
 ## PromptManagement Dashboard
 
 ### File
-`product-management/frontend/src/pages/PromptManagement.tsx`
+`ai-product-management/frontend/src/pages/PromptManagement.tsx`
 
 ### Changes Made
 
@@ -469,17 +469,17 @@ const getScoreColor = (score: number, threshold: number): string => {
 
 ## Files Modified
 
-1. **product-management/frontend/src/components/PromptDashboardCard.tsx** (NEW)
+1. **ai-product-management/frontend/src/components/PromptDashboardCard.tsx** (NEW)
    - Complete dashboard card component
    - 350+ lines with styling and logic
 
-2. **product-management/frontend/src/pages/TenantPrompts.tsx**
+2. **ai-product-management/frontend/src/pages/TenantPrompts.tsx**
    - Added view state and toggle (lines 51-53)
    - Added view toggle buttons (lines 196-212)
    - Added dashboard rendering (lines 247-277)
    - Wrapped detail view in conditional (line 280)
 
-3. **product-management/frontend/src/pages/PromptManagement.tsx**
+3. **ai-product-management/frontend/src/pages/PromptManagement.tsx**
    - Added PromptDashboardCard import (line 18)
    - Replaced dashboard rendering with new cards (lines 469-487)
    - Simplified from grouped structure to flat grid
@@ -567,3 +567,4 @@ Side-by-side comparison of:
 - Professional card design with hover effects
 - Responsive grid layout for all screen sizes
 - Color-coded status and performance indicators
+

@@ -195,18 +195,18 @@ Draft → Testing → Production
 ## Files Changed Summary
 
 ### Created (2 files)
-1. `product-management/frontend/src/components/VersionStatus.tsx` - 150 lines
-2. `product-management/frontend/src/components/AnalyticsCard.tsx` - 200 lines
+1. `ai-product-management/frontend/src/components/VersionStatus.tsx` - 150 lines
+2. `ai-product-management/frontend/src/components/AnalyticsCard.tsx` - 200 lines
 
 ### Modified (8 files)
-1. `product-management/backend-node/src/services/prompt.service.ts` - ~300 lines changed
-2. `product-management/backend-node/src/routes/prompt-management-routes.ts` - ~50 lines changed
-3. `product-management/backend-node/src/services/tenantPrompt.service.ts` - ~100 lines changed
-4. `product-management/backend-node/src/routes/tenant-prompt-routes.ts` - ~50 lines changed
-5. `product-management/frontend/src/services/promptApi.ts` - ~30 lines changed
-6. `product-management/frontend/src/pages/PromptManagement.tsx` - ~200 lines changed
-7. `product-management/frontend/src/pages/PromptEditor.tsx` - ~300 lines changed
-8. `product-management/frontend/src/pages/TenantPrompts.tsx` - ~250 lines changed
+1. `ai-product-management/backend-node/src/services/prompt.service.ts` - ~300 lines changed
+2. `ai-product-management/backend-node/src/routes/prompt-management-routes.ts` - ~50 lines changed
+3. `ai-product-management/backend-node/src/services/tenantPrompt.service.ts` - ~100 lines changed
+4. `ai-product-management/backend-node/src/routes/tenant-prompt-routes.ts` - ~50 lines changed
+5. `ai-product-management/frontend/src/services/promptApi.ts` - ~30 lines changed
+6. `ai-product-management/frontend/src/pages/PromptManagement.tsx` - ~200 lines changed
+7. `ai-product-management/frontend/src/pages/PromptEditor.tsx` - ~300 lines changed
+8. `ai-product-management/frontend/src/pages/TenantPrompts.tsx` - ~250 lines changed
 
 **Total Lines of Code:** ~1,630 lines (added/modified)
 
@@ -523,7 +523,7 @@ return { prompt: updatedPrompt, isNewVersion: false };
 
 2. **Deploy Backend:**
    ```bash
-   cd product-management/backend-node
+   cd ai-product-management/backend-node
    npm install
    npm run build
    npm run start
@@ -531,7 +531,7 @@ return { prompt: updatedPrompt, isNewVersion: false };
 
 3. **Deploy Frontend:**
    ```bash
-   cd product-management/frontend
+   cd ai-product-management/frontend
    npm install
    npm run build
    npm run preview
@@ -747,3 +747,4 @@ The system is now ready for user acceptance testing, feedback collection, and pr
 **Document Version:** 1.0
 **Last Updated:** 2026-02-06
 **Next Review:** After user testing and feedback collection
+

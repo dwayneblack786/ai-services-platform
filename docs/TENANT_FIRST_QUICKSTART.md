@@ -3,7 +3,7 @@
 ## 1. Seed Tenants
 
 ```bash
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npx ts-node ../../scripts/keycloak/seed-tenants.ts
 ```
 
@@ -124,7 +124,7 @@ mongo ai_platform
 db.keycloaktenants.find()
 
 # Re-seed if needed
-npx ts-node product-management/scripts/keycloak/seed-tenants.ts
+npx ts-node ai-product-management/scripts/keycloak/seed-tenants.ts
 ```
 
 ### "Realm not found in Keycloak"
@@ -148,3 +148,4 @@ npx ts-node product-management/scripts/keycloak/seed-tenants.ts
 - Enable HTTPS in production
 
 See [TENANT_FIRST_LOGIN_FLOW.md](./TENANT_FIRST_LOGIN_FLOW.md) for complete documentation.
+

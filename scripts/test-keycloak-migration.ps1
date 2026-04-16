@@ -105,7 +105,7 @@ if (Test-Endpoint -Url "http://localhost:5000/health" -TestName "Product Managem
 } else {
     $testsFailed++
     Write-Host "`n  💡 TIP: Start with:" -ForegroundColor Yellow
-    Write-Host "     cd product-management/backend-node" -ForegroundColor Gray
+    Write-Host "     cd ai-product-management/backend-node" -ForegroundColor Gray
     Write-Host "     npm run dev`n" -ForegroundColor Gray
 }
 
@@ -141,7 +141,7 @@ if ($tenantsResult -eq $true) {
 } elseif ($tenantsResult -eq $false) {
     $testsFailed++
     Write-Host "`n  💡 TIP: Seed tenants with:" -ForegroundColor Yellow
-    Write-Host "     cd product-management/backend-node" -ForegroundColor Gray
+    Write-Host "     cd ai-product-management/backend-node" -ForegroundColor Gray
     Write-Host "     npx ts-node scripts/seed-tenants.ts`n" -ForegroundColor Gray
 }
 
@@ -243,3 +243,4 @@ if ($testsFailed -eq 0) {
 
 Write-Host "=" * 80 -ForegroundColor Cyan
 Write-Host "`n"
+

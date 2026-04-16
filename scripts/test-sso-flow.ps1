@@ -1,12 +1,12 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Tests the complete SSO flow between product-management (IdP) and prompt-management (RP)
+    Tests the complete SSO flow between ai-product-management (IdP) and prompt-management (RP)
 
 .DESCRIPTION
     This script simulates the OIDC Authorization Code Flow with PKCE:
     1. Initiates SSO login from prompt-management
-    2. Redirects to product-management authorization endpoint
+    2. Redirects to ai-product-management authorization endpoint
     3. User authenticates (simulated with session cookie)
     4. Authorization code is issued
     5. Prompt-management exchanges code for tokens
@@ -27,7 +27,7 @@ $RP = "http://localhost:5001"
 $ClientId = "prompt-management-client"
 $ClientSecret = "prompt-mgmt-secret-key-min-32-chars-required"
 
-# Test user credentials (for product-management IdP)
+# Test user credentials (for ai-product-management IdP)
 $TestEmail = "admin@acmehealth.com"
 $TestPassword = "secure123"
 

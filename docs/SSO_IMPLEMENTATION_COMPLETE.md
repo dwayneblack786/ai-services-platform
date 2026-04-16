@@ -324,8 +324,8 @@ APP_URL=http://localhost:3001
 
 2. **Seed Tenants:**
    ```powershell
-   cd product-management/backend-node
-   npx ts-node product-management/scripts/keycloak/seed-tenants.ts
+   cd ai-product-management/backend-node
+   npx ts-node ai-product-management/scripts/keycloak/seed-tenants.ts
    ```
 
 3. **Create Keycloak Realms:**
@@ -342,7 +342,7 @@ APP_URL=http://localhost:3001
 ### Manual Startup
 ```powershell
 # 1. Start Product Management Backend
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 
 # 2. Start Prompt Management Backend
@@ -350,7 +350,7 @@ cd prompt-management/backend
 npm run dev
 
 # 3. Start Product Management Frontend
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run dev
 
 # 4. Start Prompt Management Frontend
@@ -451,7 +451,7 @@ curl -X POST http://localhost:5000/api/usage/events \
 ### "Tenant not found" Error
 **Symptom:** POST /tenant/lookup returns 404
 **Solution:** 
-- Run seed script: `npx ts-node product-management/scripts/keycloak/seed-tenants.ts`
+- Run seed script: `npx ts-node ai-product-management/scripts/keycloak/seed-tenants.ts`
 - Verify tenant exists in MongoDB `keycloak_tenants` collection
 
 ### "Invalid realm" Error
@@ -793,7 +793,7 @@ cd auth-service
 npm start
 
 # 2. Start Product Management Backend
-cd product-management/backend-node
+cd ai-product-management/backend-node
 npm run dev
 
 # 3. Start Prompt Management Backend
@@ -801,7 +801,7 @@ cd prompt-management/backend
 npm run dev
 
 # 4. Start Product Management Frontend
-cd product-management/frontend
+cd ai-product-management/frontend
 npm run dev
 
 # 5. Start Prompt Management Frontend
@@ -925,3 +925,4 @@ For issues or questions, check:
 2. Auth-service terminal for IdP logs
 3. Backend terminals for callback errors
 4. MongoDB for user data issues
+

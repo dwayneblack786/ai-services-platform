@@ -15,13 +15,13 @@ Phase 1 of VoIP integration complete: Gateway infrastructure, Test Gateway for d
 
 ### 1. Core Infrastructure ✅
 
-**[src/voip/types.ts](../product-management/backend-node/src/voip/types.ts)**
+**[src/voip/types.ts](../ai-product-management/backend-node/src/voip/types.ts)**
 - VoIP configuration interfaces
 - Call metadata structures
 - Audio chunk definitions
 - Event types and handlers
 
-**[src/voip/gateway.ts](../product-management/backend-node/src/voip/gateway.ts)**
+**[src/voip/gateway.ts](../ai-product-management/backend-node/src/voip/gateway.ts)**
 - Base gateway class (abstract)
 - Event emitter integration
 - Call registration/lifecycle management
@@ -29,7 +29,7 @@ Phase 1 of VoIP integration complete: Gateway infrastructure, Test Gateway for d
 
 ### 2. Test Gateway ✅
 
-**[src/voip/providers/test-gateway.ts](../product-management/backend-node/src/voip/providers/test-gateway.ts)**
+**[src/voip/providers/test-gateway.ts](../ai-product-management/backend-node/src/voip/providers/test-gateway.ts)**
 - Complete implementation for development testing
 - No VoIP provider required
 - Simulates incoming audio
@@ -46,7 +46,7 @@ Phase 1 of VoIP integration complete: Gateway infrastructure, Test Gateway for d
 
 ### 3. Twilio Adapter ✅
 
-**[src/voip/providers/twilio-adapter.ts](../product-management/backend-node/src/voip/providers/twilio-adapter.ts)**
+**[src/voip/providers/twilio-adapter.ts](../ai-product-management/backend-node/src/voip/providers/twilio-adapter.ts)**
 - Foundation for production VoIP
 - SIP/WebRTC integration points
 - Twilio Media Streams support
@@ -58,7 +58,7 @@ Phase 1 of VoIP integration complete: Gateway infrastructure, Test Gateway for d
 
 ### 4. Codec Converter ✅
 
-**[src/voip/codec-converter.ts](../product-management/backend-node/src/voip/codec-converter.ts)**
+**[src/voip/codec-converter.ts](../ai-product-management/backend-node/src/voip/codec-converter.ts)**
 - G.711 µ-law ↔ PCM conversion
 - G.711 A-law ↔ PCM conversion
 - µ-law ↔ A-law conversion
@@ -74,7 +74,7 @@ Phase 1 of VoIP integration complete: Gateway infrastructure, Test Gateway for d
 
 ### 5. Test Suite ✅
 
-**[tests/voip/voip-simulation.test.ts](../product-management/backend-node/tests/voip/voip-simulation.test.ts)** - 9 tests
+**[tests/voip/voip-simulation.test.ts](../ai-product-management/backend-node/tests/voip/voip-simulation.test.ts)** - 9 tests
 - Call lifecycle (accept, hangup)
 - Multiple concurrent calls
 - Audio streaming bidirectional
@@ -83,7 +83,7 @@ Phase 1 of VoIP integration complete: Gateway infrastructure, Test Gateway for d
 - Error handling
 - Performance benchmarks
 
-**[tests/voip/codec-test.test.ts](../product-management/backend-node/tests/voip/codec-test.test.ts)** - 12 tests
+**[tests/voip/codec-test.test.ts](../ai-product-management/backend-node/tests/voip/codec-test.test.ts)** - 12 tests
 - Codec pair support validation
 - PCM ↔ µ-law conversion
 - PCM ↔ A-law conversion
@@ -93,7 +93,7 @@ Phase 1 of VoIP integration complete: Gateway infrastructure, Test Gateway for d
 
 ### 6. Audio Fixtures ✅
 
-**[tests/fixtures/audio/generate-codecs.ts](../product-management/backend-node/tests/fixtures/audio/generate-codecs.ts)**
+**[tests/fixtures/audio/generate-codecs.ts](../ai-product-management/backend-node/tests/fixtures/audio/generate-codecs.ts)**
 - Generates test audio fixtures
 - 440Hz sine wave (2 seconds)
 - Multiple codec formats
@@ -110,7 +110,7 @@ tests/fixtures/audio/codecs/
 
 ### 7. NPM Scripts ✅
 
-Added to [package.json](../product-management/backend-node/package.json):
+Added to [package.json](../ai-product-management/backend-node/package.json):
 ```json
 {
   "test:voip": "jest tests/voip --verbose",
@@ -194,7 +194,7 @@ Tests: 9 passed
 ## File Structure
 
 ```
-product-management/backend-node/
+ai-product-management/backend-node/
 ├── src/
 │   └── voip/
 │       ├── types.ts                       # Type definitions
@@ -379,3 +379,4 @@ Phase 1 complete. VoIP gateway infrastructure ready for Phase 2 (Orchestrator + 
 **Lines of code:** ~1,200
 **Tests created:** 21
 **All tests passing:** ✅
+
