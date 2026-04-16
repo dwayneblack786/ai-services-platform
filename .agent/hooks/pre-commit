@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# AI hook: pre-commit secret scanner
+# Canonical location: .ai/hooks/pre-commit
+# Installed into each repo as .git/hooks/pre-commit by scripts/install-hooks.ps1
+
+set -e
+
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+STAGED=$(git diff --cached --name-only 2>/dev/null)
+
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+FAIL=0
+
+# ---- Pattern checks ----
+check_pattern() {
+  local label="$1"
+  local pattern="$2"
+  local matches
+  matches=$(git diff --cached -U0 | grep '^\+' | grep -v '^\+\+\+' | grep -iE "$pattern" 2>/dev/null || true)
+  if [ -n "$matches" ]; then
+    echo -e "${RED}[BLOCKED] Possible secret detected - $label${NC}"
+    echo "$matches" | head -5
+    FAIL=1
+  fi
+}
+
+check_pattern "OpenAI/Anthropic API key"            'sk-[a-zA-Z0-9]{20,}'
+check_pattern "AWS access key"                       'AKIA[0-9A-Z]{16}'
+check_pattern "MongoDB URI with credentials"         'mongodb\+srv://[^$\{][^@]*:[^@]*@'
+check_pattern "PEM private key"                      '-----BEGIN.*(PRIVATE|RSA) KEY-----'
+check_pattern "OAuth client_secret literal"          'client_secret\s*[=:]\s*[^$\{"\x27 ]'
+check_pattern "Inline password assignment"           'password\s*[=:]\s*[^$\{"\x27<({#]'
+check_pattern "Inline secret assignment"             '"secret"\s*:\s*"[^$\{]'
+check_pattern "Stripe secret key"                    'sk_live_[a-zA-Z0-9]{24,}'
+check_pattern "Generic bearer token"                 'Bearer [a-zA-Z0-9\-_.]{40,}'
+
+# ---- .env file check ----
+for f in $STAGED; do
+  basename_f=$(basename "$f")
+  if [[ "$basename_f" == ".env" || ("$basename_f" == .env.* && "$basename_f" != ".env.example") ]]; then
+    echo -e "${RED}[BLOCKED] .env file staged: $f${NC}"
+    echo -e "${YELLOW}  .env files must never be committed. Add to .gitignore.${NC}"
+    FAIL=1
+  fi
+done
+
+# ---- PEM/key file check ----
+for f in $STAGED; do
+  case "$f" in
+    *.pem|*.key|*.p12|*.pfx|*.jks)
+      echo -e "${RED}[BLOCKED] Private key or certificate file staged: $f${NC}"
+      FAIL=1
+      ;;
+  esac
+done
+
+if [ "$FAIL" -eq 1 ]; then
+  echo ""
+  echo -e "${RED}Commit blocked. Remove secrets before committing.${NC}"
+  echo "See .ai/rules/15-no-secrets-in-git.md for guidance."
+  echo "If a secret was already committed, rotate it immediately."
+  exit 1
+fi
+
+exit 0

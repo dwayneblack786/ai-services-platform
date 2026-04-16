@@ -49,7 +49,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "session",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -177,8 +177,12 @@
       "bases:Create new base": false
     }
   },
-  "active": "18cb0e80adb3814a",
+  "active": "2ffaaa1246b0de4a",
   "lastOpenFiles": [
+    "plans/phase-a-java-grpc-agents-v2.md",
+    "docs/README.md",
+    "ai-listing-agent/node_modules/color-convert/README.md",
+    "product-management/backend-node/node_modules/@opentelemetry/otlp-grpc-exporter-base/node_modules/@opentelemetry/core/README.md",
     "scripts/validate-ai-governance-sync.ps1",
     "scripts/sync-ai-governance.ps1",
     "scripts/install-hooks.ps1",
@@ -208,7 +212,6 @@
     "scripts/test-sso-flow.ps1",
     "scripts/test-keycloak-migration.ps1",
     "scripts/start-sso-system.ps1",
-    "scripts/kill-dev-ports.ps1",
     "services-java/va-service/CLAUDE.md",
     "Untitled.canvas",
     "ai-services-platfrom/create a link.md",
