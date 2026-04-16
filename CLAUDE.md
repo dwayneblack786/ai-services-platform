@@ -1,88 +1,109 @@
 # AI Services Platform
 
-## What This Is
-A multi-tenant SaaS platform for AI-powered products targeting real estate SMBs. The platform provides shared infrastructure (auth, billing, usage tracking, RAG) and hosts multiple AI products as integrated modules.
+Multi-tenant SaaS platform for AI-powered real estate products. Shared infrastructure (auth, billing, usage tracking, RAG) hosts multiple AI products as integrated modules.
 
-## Architecture
-
-### Monorepo Layout
+## Monorepo Layout
 ```
 ai-services-platform/
-├── product-management/
-│   ├── frontend/          # React + Vite + TypeScript (port 5173)
-│   └── backend-node/      # Express + MongoDB + TypeScript (port 3001)
-├── services-java/
-│   ├── listing-service/   # ListingLift agent pipeline — Spring Boot + LangChain4j
-│   ├── cv-service/        # Computer Vision gateway — Spring Boot
-│   ├── fieldvoice-service/ # FieldVoice agentic workflow — Spring Boot (planned)
-│   ├── idp-service/       # Identity Provider — Spring Boot
-│   └── common-libs/       # Shared Java utilities
-├── services-python/
-│   ├── whisper-server/    # Speech-to-text — Flask + Whisper (port 8000)
-│   ├── vision-server/     # PropVision DINOv2 — Flask + PyTorch (port 8001)
-│   └── listing-agents/    # LangGraph multi-agent pipeline (port 8002)
+├── product-management/    # React frontend (5173) + Express/MongoDB backend (3001)
+├── services-java/         # Spring Boot 4.0.1 agentic services (LangChain4j)
+├── services-python/       # Flask ML inference services
 ├── plans/                 # Implementation plans by phase
 └── podman-compose.yml     # MongoDB 7.0 (port 27018), Redis
 ```
 
-### Key Decisions
-- **Standalone product architecture** — Each product follows a consistent stack: React + Vite + TypeScript frontend, Express + MongoDB + TypeScript backend, linked to a Java Spring Boot service for agentic workflow fulfillment. Products are hosted as integrated modules sharing platform infrastructure (auth, billing, usage tracking, RAG).
-- **ListingLift is NOT a standalone app.** It was originally in `ai-realestate/listinglift/` (Next.js) but is being integrated into this platform as a product. All ListingLift features become routes/services within the platform backend + frontend.
-- **LangChain4j (Java)** for agent orchestration within Java services. The `services-python/listing-agents/` directory is a reference stub only.
-- **Chat VA removed.** The `va-service` (chat-based virtual assistant) is being removed from `product-management`. The voice virtual assistant is converted into **FieldVoice** — a dedicated agentic AI workflow product following the standard product stack pattern. Details TBD at implementation time.
-- **DINOv2 ViT-B/14** for property photo classification (PropVision). Trained locally on RTX 3090 Ti (24GB VRAM).
-- **MongoDB** is the default data store. The listing pipeline supports configurable data stores (MongoDB, PostgreSQL, S3) per tenant.
-- **Human-in-the-loop** review gates in the listing agent pipeline (after auto-fill and after compliance).
+Each tier has its own `CLAUDE.md` with stack-specific details.
 
-### Product Suite (Real Estate AI)
-1. **ListingLift** — Photo staging + listing content generation
-2. **PropVision** — Computer vision property attribute classification (also standalone API)
-3. **PropBrief** — Market intelligence reports
-4. **ComplianceGuard** — Fair Housing compliance
-5. **DealDesk** — Commercial real estate document processing
-6. **FieldVoice** — Agentic AI voice workflow for inbound call handling, lead qualification, and appointment scheduling (voice VA converted to agentic pipeline)
-7. **TenantLoop** — Property manager AI assistant
+## Rules
 
-### Listing Pipeline (Sequential Multi-Agent)
+Repository-wide development and quality rules are defined in:
+
+- `.claude/rules/README.md`
+
+Post-edit quality gate order:
+
+1. Syntax checks
+2. Compile/build checks
+3. Tests
+4. Coverage checks (when code changed)
+5. Security checklist review
+
+Tier-specific and operational rule files:
+
+- `.claude/rules/01-syntax-checks.md`
+- `.claude/rules/02-compile-checks.md`
+- `.claude/rules/03-coding-conventions-by-tier.md`
+- `.claude/rules/04-security-standards.md`
+- `.claude/rules/05-tech-stack-standards.md`
+- `.claude/rules/06-testing-standards-by-tier.md`
+- `.claude/rules/07-test-coverage-gates.md`
+- `.claude/rules/08-plan-output-rules.md`
+- `.claude/rules/09-ai-wiki-knowledge-rules.md`
+
+## Skills
+
+Skill definitions for implementation and review workflows are organized in:
+
+- `.claude/skills/README.md`
+
+Skill categories:
+
+- `.claude/skills/code-changes/` (senior implementation skills)
+- `.claude/skills/code-review/` (review and quality gate skills)
+
+## Rule Compliance Checklist (PR Template)
+
+Copy this into PRs when code is added or changed:
+
+```md
+### Rule Compliance Checklist
+
+- [ ] Syntax checks passed for affected tiers
+	- Frontend: `cd ai-listing-agent/frontend && npx tsc --noEmit -p tsconfig.json`
+	- Backend: `cd ai-listing-agent/backend-node && npx tsc --noEmit -p tsconfig.json`
+	- Java: `cd services-java/listing-service && ./mvnw -q -DskipTests compile`
+- [ ] Compile/build checks passed for affected tiers
+	- Frontend: `cd ai-listing-agent/frontend && npm run build`
+	- Backend: `cd ai-listing-agent/backend-node && npm run build`
+	- Java: `cd services-java/listing-service && ./mvnw clean install -DskipTests`
+- [ ] Tests run and passed for affected tiers
+	- Frontend: `cd ai-listing-agent/frontend && npm test`
+	- Backend: `cd ai-listing-agent/backend-node && npm test`
+	- Java: `cd services-java/listing-service && ./mvnw test`
+- [ ] Coverage requirement satisfied for changed logic paths
+	- Backend coverage: `cd ai-listing-agent/backend-node && npm run coverage`
+- [ ] Security checklist reviewed (auth, tenant boundaries, input validation, sensitive logging)
+- [ ] Tech stack and conventions followed for touched tier(s)
+- [ ] Plan output format followed (if plan was requested)
+- [ ] AI wiki/knowledge docs updated if behavior or architecture changed
 ```
-Photos → Ingest → Vision → Auto-Fill → [HUMAN REVIEW] → Copywriter → Compliance → [HUMAN REVIEW] → Accept & Store
-```
 
-### External Services
-- **Claude API** (Anthropic) — LLM backbone (Sonnet for quality, Haiku for speed)
-- **OpenAI API** — Embeddings for RAG
-- **Replicate API** — Flux 1.1 Pro for virtual staging
-- **Stripe** — Payments
+## Products
+1. ListingLift — photo staging + listing content generation
+2. PropVision — computer vision property classification
+3. PropBrief — market intelligence reports
+4. ComplianceGuard — Fair Housing compliance
+5. DealDesk — commercial RE document processing
+6. FieldVoice — agentic voice workflow (planned)
+7. TenantLoop — property manager AI assistant
+
+## External Services
+- **Claude API** — LLM (Sonnet for quality, Haiku for speed)
+- **OpenAI API** — embeddings for RAG
+- **Replicate API** — Flux 1.1 Pro virtual staging
+- **Stripe** — payments
 - **Keycloak** — SSO/identity
-- **Sentry** — Error tracking
+- **Sentry** — error tracking
 
-## Conventions
-- Python services follow the `whisper-server` pattern: Flask + base64 I/O + `/health` endpoint
-- gRPC protos go in `product-management/backend-node/proto/` and each Python service's `proto/` dir
-- Java services use Spring Boot 4.0.1
-- Node.js backend uses Express + Mongoose + TypeScript
-- Frontend uses React + Vite + TypeScript + Emotion CSS-in-JS
-- Container orchestration via Podman Compose
-
-## Running Locally
+## Run
 ```bash
-# MongoDB
-podman-compose up -d
-
-# Node.js backend
-cd product-management/backend-node && npm run dev
-
-# React frontend
-cd product-management/frontend && npm run dev
-
-# Whisper server
-cd services-python/whisper-server && python server.py
-
-# Vision server (once trained)
-cd services-python/vision-server && python server.py
+podman-compose up -d                                        # MongoDB + Redis
+cd product-management/backend-node && npm run dev          # API (3001)
+cd product-management/frontend && npm run dev              # UI (5173)
+cd services-python/whisper-server && python server.py      # Whisper (8000)
+cd services-python/vision-server && python server.py       # Vision (8001)
 ```
 
 ## Plans
-Implementation plans are stored in `plans/` directory, broken down by phase:
-- `plans/phase-1-dinov2-training-pipeline.md` — DINOv2 model training
+- `plans/phase-1-dinov2-training-pipeline.md`
 - Master plan: `.claude/plans/curried-bouncing-dolphin.md`
