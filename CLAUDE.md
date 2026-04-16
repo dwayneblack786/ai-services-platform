@@ -55,5 +55,11 @@ Model-agnostic governance workflow:
 - Validation command: `./scripts/validate-ai-governance-sync.ps1`
 
 ## Plans
-- `plans/phase-1-dinov2-training-pipeline.md`
-- Master plan: `.claude/plans/curried-bouncing-dolphin.md`
+
+All plans use the conductor init format defined in `.ai/rules/08-plan-output-rules.md`.
+
+- Master plan: `plans/curried-bouncing-dolphin.md`
+- **Active:** `plans/phase-a-java-grpc-agents-v2.md` — Java gRPC server + live agent wiring (listing-service)
+- `plans/phase-1-dinov2-training-pipeline.md` — PropVision DINOv2 training (on hold)
+- `plans/phase-b-node-grpc-socketio.md` — Node gRPC client + Socket.io (next after Phase A)
+- `plans/phase-c-ui-realtime.md` — UI real-time pipeline view (after Phase B)

@@ -1,8 +1,20 @@
 # Rule 8: Plan Output Format Rules
 
-When producing implementation plans, follow this exact structure derived from:
+Scope:
 
-- `C:/Users/Owner/Documents/project-work-cli/out-prompt-context/output-context.txt`
+- Every implementation plan produced in this workspace, regardless of tier or tool.
+
+Mandatory trigger:
+
+- Any time a plan, task breakdown, or phased implementation document is created or updated.
+- Applies to plans stored in `plans/` (workspace root) and any plan produced on request in chat.
+
+Canonical plan location:
+
+- All durable plans must be saved to `plans/` at the workspace root.
+- Name files descriptively: `phase-a-java-grpc-agents-v2.md`, `phase-b-node-grpc-socketio.md`, etc.
+- Do not store plans in product repo subdirectories or `.claude/plans/` (that path is legacy).
+- Reference active plans from `CLAUDE.md` and `curried-bouncing-dolphin.md`.
 
 Required format:
 
@@ -25,3 +37,10 @@ Field rules:
 - `Depends on` references task numbers or `nothing`.
 - `Verify` is exactly one shell command.
 - Do not add intros, summaries, or text outside the numbered task list.
+
+Enforcement:
+
+- Reject any plan that uses prose paragraphs, narrative descriptions, or unstructured bullet lists as the primary format.
+- Reject any plan missing `Files`, `Done when`, or `Depends on` fields on any task.
+- Reject any plan stored outside `plans/` without explicit justification.
+- When rewriting an existing plan, save the new version as `<name>-v2.md` (or increment version) and update all references in `CLAUDE.md` and `curried-bouncing-dolphin.md`.
