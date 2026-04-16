@@ -67,6 +67,14 @@ Skill categories:
 
 - `.claude/skills/code-changes/` (senior implementation skills)
 - `.claude/skills/code-review/` (review and quality gate skills)
+- `.claude/skills/security-audit/` (tier-specific security audit checklists)
+
+Recommended skill workflow:
+
+1. Pick the implementation skill that matches the tier being changed.
+2. If the change touches auth, secrets, external input, APIs, data access, or external calls, run the matching skill from `.claude/skills/security-audit/`.
+3. Run one or more focused review skills from `.claude/skills/code-review/`.
+4. Finish with `.claude/skills/code-review/review-gate-enforcer.md`.
 
 ## Rule Compliance Checklist (PR Template)
 
@@ -90,6 +98,7 @@ Copy this into PRs when code is added or changed:
 - [ ] Coverage requirement satisfied for changed logic paths
 	- Backend coverage: `cd ai-listing-agent/backend-node && npm run coverage`
 - [ ] Security checklist reviewed (auth, tenant boundaries, input validation, sensitive logging)
+	- Security audit skills: `.claude/skills/security-audit/README.md`
 - [ ] Tech stack and conventions followed for touched tier(s)
 - [ ] Plan output format followed (if plan was requested)
 - [ ] AI wiki/knowledge docs updated if behavior or architecture changed
