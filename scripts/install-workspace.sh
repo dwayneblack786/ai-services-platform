@@ -10,7 +10,7 @@ REPOS=(
   "ai-listing-agent:ai-listing-agent"
   "services-java:services-java"
   "services-python:services-python"
-  "ai-product-management:product-management"
+  "ai-product-management:ai-product-management"
   "shared:shared"
 )
 

@@ -11,7 +11,7 @@ $Repos = @(
     @{ Local = "ai-product-starter-template"; Remote = "ai-product-starter-template" },
     @{ Local = "services-java"; Remote = "services-java" },
     @{ Local = "services-python"; Remote = "services-python" },
-    @{ Local = "ai-product-management"; Remote = "product-management" },
+    @{ Local = "ai-product-management"; Remote = "ai-product-management" },
     @{ Local = "shared"; Remote = "shared" }
 )
 
