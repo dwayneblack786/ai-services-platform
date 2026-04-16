@@ -1,9 +1,5 @@
 # AI Agent Platform for Real Estate
 
-Note: this is a documentation name update only. The repository name will be changed later.
-
-Work in progress: this README is actively being updated and will evolve as architecture and product documentation are refined.
-
 This project is a vertical AI integration for real estate teams. Instead of one generic AI tool, it delivers a connected set of products that share the same foundation for identity, tenancy, data, and agent orchestration.
 
 All products in this platform are agentic products, designed around specialized workflow agents rather than generic chat-only interfaces.
@@ -265,10 +261,10 @@ The following capabilities are implemented and already operating across the work
 - completed environment and setup documentation for faster onboarding and repeatable local startup
 - completed branding and product narrative refresh for clearer external positioning
 
-#### product-management completed milestones
+#### ai-product-management completed milestones
 
 - completed standalone extraction and shared-auth integration for independent operation
-- completed migration cleanup and documentation normalization under product-management ownership
+- completed migration cleanup and documentation normalization under ai-product-management ownership
 - completed broad UI modernization across shell, high-traffic pages, and utility screens
 - completed subscriptions, payments, and admin dashboard refinements with responsive card and grid behavior
 - completed management-plane rebrand documentation aligned to Infero Agents positioning
@@ -292,10 +288,10 @@ Recent commits show continued execution momentum and architectural consistency.
 - `ea88618`: phase-1 login experience modernization
 - `55ec403`: default tenant bootstrap login fix
 
-#### product-management recent delivered changes
+#### ai-product-management recent delivered changes
 
 - `1e641fd`: subscriptions, payments, and admin dashboard UI refinement
-- `0a1a3ed`: broad product-management UI system modernization
+- `0a1a3ed`: broad ai-product-management UI system modernization
 - `a46bbeb`: README rebrand to Infero Agents management plane
 - `6a71a96`: README rewrite with FieldVoice migration framing
 - `f4a75fc`: ListingLift integration as subscription-gated platform product
@@ -352,7 +348,7 @@ Optional: if your repositories are under a different GitHub owner, pass it expli
 
 What this script does:
 
-- clones missing sibling repos in this workspace (`ai-listing-agent`, `ai-product-starter-template`, `services-java`, `services-python`, `product-management`, `shared`)
+- clones missing sibling repos in this workspace (`ai-listing-agent`, `ai-product-management`, `ai-product-starter-template`, `services-java`, `services-python`, `shared`)
 - creates missing `.env` files from `.env.example` templates (with prompt/confirmation)
 - installs Java dependencies using Maven wrapper offline dependency fetch
 - installs Node.js dependencies for active modules (`npm ci` when lockfile exists, otherwise `npm install`)
