@@ -18,6 +18,7 @@ Rule files:
 12. `12-breaking-change-and-contract-checks.md`
 13. `13-dependency-audit.md`
 14. `14-infrastructure-change-standards.md`
+15. `15-no-secrets-in-git.md`
 
 Execution order after code edits:
 
@@ -32,6 +33,5 @@ Additional gate triggers by change type:
 - Schema / query / index / migration change → apply Rule 11 + `review-database-data-layer.md`
 - Proto file, public REST route, or shared type change → apply Rule 12 + `review-contract-and-breaking-change.md`
 - `package.json` or `pom.xml` dependency change → apply Rule 13 (`npm audit --audit-level=high`)
-- `podman-compose.yml`, startup script, port, or env var change → apply Rule 14 + `senior-devops-infra.md`
 - `podman-compose.yml`, startup script, port, or env var change → apply Rule 14 + `senior-devops-infra.md`
 - Before every `git commit` → Rule 15 pre-commit hook runs automatically; manual secret checklist required before merge

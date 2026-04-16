@@ -31,24 +31,26 @@ Do not commit any of the following:
 - Docker/Podman compose files referencing env vars via `${VAR_NAME}` — never inline values
 - Spring `application.yml` using `${VAR:default}` — default must not be a real credential
 
-## Pre-commit Hook
+## Claude Hook (Pre-commit)
 
-A pre-commit hook is installed at `scripts/hooks/pre-commit`. It runs automatically on `git commit` and blocks commits containing secret patterns.
+Canonical hook source is `.claude/hooks/pre-commit`.
 
-To install the hook for a repo, run from within that repo's directory:
+Installed hook target in each repo is `.git/hooks/pre-commit`. It runs automatically on `git commit` and blocks commits containing secret patterns.
 
-```powershell
-# Windows (PowerShell)
-Copy-Item "../scripts/hooks/pre-commit" ".git/hooks/pre-commit"
-# Or for Git Bash / WSL
-# cp ../scripts/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
-```
-
-Or use the install script (installs to all repos):
+To install the hook into all repos in this workspace:
 
 ```powershell
 Set-Location "C:\Users\Owner\Documents\ai-services-platform"
 .\scripts\install-hooks.ps1
+```
+
+To install manually for a single repo, run from workspace root:
+
+```powershell
+# Windows (PowerShell)
+Copy-Item ".claude/hooks/pre-commit" ".git/hooks/pre-commit"
+# Or for Git Bash / WSL
+# cp .claude/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 ```
 
 ## Pre-commit Scan Patterns

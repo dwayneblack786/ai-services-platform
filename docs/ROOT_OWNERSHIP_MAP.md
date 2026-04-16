@@ -21,18 +21,16 @@ The root repository is an umbrella coordinator. Domain folders are prepared to b
 - `docs/` (platform-wide docs only)
 - `plans/` (platform roadmap)
 - `examples/` (cross-domain examples)
-- `scripts/` (umbrella scripts + temporary wrappers only)
+- `scripts/` (canonical cross-platform utility and operational scripts)
 - `package.json`, `package-lock.json` (root-level utilities only)
 
 ## Move To Product Management
 
-- Product-management-only docs and operational runbooks
-- Product-management-only scripts and local utilities
 - Product-management workflow/CI definitions
 
 Canonical locations:
-- `product-management/docs/`
-- `product-management/scripts/`
+- `docs/` (all platform and product docs consolidated at workspace root)
+- `scripts/` (all shared and operational scripts consolidated at workspace root)
 - `product-management/.github/workflows/` (move to `.github/workflows/` after split)
 
 ## Future Moves

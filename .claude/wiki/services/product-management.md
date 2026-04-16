@@ -83,3 +83,5 @@ Actionable notes:
 - Session and auth middleware order is critical — keep security middleware before protected routes.
 - MongoDB port 27018 (Podman-exposed) vs. 27017 (internal) — use 27018 in local dev connection strings.
 - gRPC proto source is the canonical reference shared with all downstream services.
+- Canonical scripts are in `scripts/` at workspace root; `product-management/scripts/` has been removed.
+- Canonical docs are in `docs/` at workspace root; `product-management/docs/` has been consolidated.

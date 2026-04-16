@@ -1,23 +1,19 @@
 <#
 .SYNOPSIS
-    Compatibility wrapper for Keycloak setup.
+    Canonical Keycloak setup script.
 
 .DESCRIPTION
-    Delegates to product-management local script:
-    product-management/scripts/keycloak/setup-keycloak.ps1
+    Runs the tenant seed script from the consolidated scripts location.
 #>
 
 $ErrorActionPreference = "Stop"
 
-$target = Join-Path $PSScriptRoot "..\..\product-management\scripts\keycloak\setup-keycloak.ps1"
-$target = [System.IO.Path]::GetFullPath($target)
+$seedScript = Join-Path $PSScriptRoot "seed-tenants.ts"
 
-if (-not (Test-Path $target)) {
-    Write-Error "Target script not found: $target"
+if (-not (Test-Path $seedScript)) {
+    Write-Error "Seed script not found: $seedScript"
     exit 1
 }
 
-Write-Host "[migration] scripts/keycloak/setup-keycloak.ps1 is deprecated." -ForegroundColor Yellow
-Write-Host "[migration] Delegating to $target" -ForegroundColor Yellow
-
-& $target @args
+Write-Host "Running Keycloak tenant seed from consolidated scripts path..." -ForegroundColor Cyan
+npx ts-node $seedScript @args

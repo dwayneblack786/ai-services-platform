@@ -99,7 +99,7 @@ Write-Host "   5. Redirects back to app - logged in!" -ForegroundColor White
 Write-Host "   6. Visit the OTHER app - auto-login via Keycloak SSO!" -ForegroundColor White
 Write-Host ""
 Write-Host "🧪 Testing Instructions:" -ForegroundColor Cyan
-Write-Host "   1. Seed tenants: npx ts-node product-management/scripts/keycloak/seed-tenants.ts" -ForegroundColor Yellow
+Write-Host "   1. Seed tenants: npx ts-node scripts/keycloak/seed-tenants.ts" -ForegroundColor Yellow
 Write-Host "   2. Visit Product Management: http://localhost:5173" -ForegroundColor Yellow
 Write-Host "   3. Enter tenant: 'acme-corp'" -ForegroundColor Yellow
 Write-Host "   4. Login at Keycloak: testuser@example.com / Test123!" -ForegroundColor Yellow

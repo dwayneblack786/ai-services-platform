@@ -10,6 +10,12 @@ Runbooks:
 - [Repository Boundaries and Change Flow](repo-boundaries-and-change-flow.md)
 - [Listing Service Change Verification](listing-service-change-verification.md)
 - [Java gRPC Proto Sync and Runtime Checks](java-grpc-proto-sync-and-runtime-checks.md)
+- [MongoDB Operations — Connection Failures, Slow Queries, Index Maintenance](mongodb-operations.md)
+
+Canonical locations:
+
+- Docs: `docs/` (workspace root)
+- Scripts: `scripts/` (workspace root)
 
 Entry template:
 

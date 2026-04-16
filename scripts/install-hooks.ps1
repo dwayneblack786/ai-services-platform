@@ -5,7 +5,7 @@
 
 $ErrorActionPreference = 'Stop'
 $WorkspaceRoot = $PSScriptRoot | Split-Path -Parent
-$HookSource = Join-Path $PSScriptRoot "hooks\pre-commit"
+$HookSource = Join-Path $WorkspaceRoot ".claude\hooks\pre-commit"
 
 $Repos = @(
   $WorkspaceRoot,                                      # workspace root

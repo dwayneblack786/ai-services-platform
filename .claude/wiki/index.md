@@ -22,6 +22,10 @@ Scripts:
 
 - All platform scripts live in `scripts/` (workspace root). See `scripts/README.md` for the full inventory before creating any new script.
 
+Docs:
+
+- All platform docs now live in `docs/` (workspace root). `product-management/docs/` was consolidated here.
+
 High-value rules to check from here:
 
 - `../rules/04-security-standards.md` — auth, secrets, tenant boundaries, input validation
@@ -33,8 +37,7 @@ High-value rules to check from here:
 - `../rules/12-breaking-change-and-contract-checks.md` — proto, REST route, and shared type breaking-change gate
 - `../rules/13-dependency-audit.md` — npm audit and pom.xml dependency security gate
 - `../rules/14-infrastructure-change-standards.md` — Podman, ports, env vars, and startup script standards
-- `../rules/14-infrastructure-change-standards.md` — Podman, ports, env vars, and startup script standards
-- `../rules/15-no-secrets-in-git.md` — pre-commit hook, secret patterns, rotation procedure
+- `../rules/15-no-secrets-in-git.md` — Claude pre-commit hook, secret patterns, rotation procedure
 
 Session startup path:
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# pre-commit hook — blocks commits containing secrets
-# Install: copy to .git/hooks/pre-commit and chmod +x
-# Part of Rule 15: No Secrets in Git
+# Claude hook: pre-commit secret scanner
+# Canonical location: .claude/hooks/pre-commit
+# Installed into each repo as .git/hooks/pre-commit by scripts/install-hooks.ps1
 
 set -e
 
@@ -24,7 +24,7 @@ check_pattern() {
   local matches
   matches=$(git diff --cached -U0 | grep '^\+' | grep -v '^\+\+\+' | grep -iE "$pattern" 2>/dev/null || true)
   if [ -n "$matches" ]; then
-    echo -e "${RED}[BLOCKED] Possible secret detected — $label${NC}"
+    echo -e "${RED}[BLOCKED] Possible secret detected - $label${NC}"
     echo "$matches" | head -5
     FAIL=1
   fi
