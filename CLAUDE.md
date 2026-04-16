@@ -59,6 +59,10 @@ Tier-specific and operational rule files:
 - `.claude/rules/07-test-coverage-gates.md`
 - `.claude/rules/08-plan-output-rules.md`
 - `.claude/rules/09-ai-wiki-knowledge-rules.md`
+- `.claude/rules/11-database-data-layer-standards.md`
+- `.claude/rules/12-breaking-change-and-contract-checks.md`
+- `.claude/rules/13-dependency-audit.md`
+- `.claude/rules/14-infrastructure-change-standards.md`
 
 ## Skills
 
@@ -87,22 +91,35 @@ Copy this into PRs when code is added or changed:
 ### Rule Compliance Checklist
 
 - [ ] Syntax checks passed for affected tiers
-	- Frontend: `cd ai-listing-agent/frontend && npx tsc --noEmit -p tsconfig.json`
-	- Backend: `cd ai-listing-agent/backend-node && npx tsc --noEmit -p tsconfig.json`
+	- ai-listing-agent frontend: `cd ai-listing-agent/frontend && npx tsc --noEmit -p tsconfig.json`
+	- ai-listing-agent backend: `cd ai-listing-agent/backend-node && npx tsc --noEmit -p tsconfig.json`
+	- product-management frontend: `cd product-management/frontend && npx tsc --noEmit -p tsconfig.json`
+	- product-management backend: `cd product-management/backend-node && npx tsc --noEmit -p tsconfig.json`
 	- Java: `cd services-java/listing-service && ./mvnw -q -DskipTests compile`
+	- Java va-service: `cd services-java/va-service && ./mvnw -q -DskipTests compile`
 - [ ] Compile/build checks passed for affected tiers
-	- Frontend: `cd ai-listing-agent/frontend && npm run build`
-	- Backend: `cd ai-listing-agent/backend-node && npm run build`
+	- ai-listing-agent frontend: `cd ai-listing-agent/frontend && npm run build`
+	- ai-listing-agent backend: `cd ai-listing-agent/backend-node && npm run build`
+	- product-management frontend: `cd product-management/frontend && npm run build`
+	- product-management backend: `cd product-management/backend-node && npm run build`
 	- Java: `cd services-java/listing-service && ./mvnw clean install -DskipTests`
+	- Java va-service: `cd services-java/va-service && ./mvnw clean install -DskipTests`
 - [ ] Tests run and passed for affected tiers
-	- Frontend: `cd ai-listing-agent/frontend && npm test`
-	- Backend: `cd ai-listing-agent/backend-node && npm test`
+	- ai-listing-agent frontend: `cd ai-listing-agent/frontend && npm test`
+	- ai-listing-agent backend: `cd ai-listing-agent/backend-node && npm test`
+	- product-management backend: `cd product-management/backend-node && npm test`
 	- Java: `cd services-java/listing-service && ./mvnw test`
+	- Java va-service: `cd services-java/va-service && ./mvnw test`
 - [ ] Coverage requirement satisfied for changed logic paths
-	- Backend coverage: `cd ai-listing-agent/backend-node && npm run coverage`
+	- ai-listing-agent backend: `cd ai-listing-agent/backend-node && npm run coverage`
+	- product-management backend: `cd product-management/backend-node && npm run test:coverage`
 - [ ] Security checklist reviewed (auth, tenant boundaries, input validation, sensitive logging)
 	- Security audit skills: `.claude/skills/security-audit/README.md`
 - [ ] Tech stack and conventions followed for touched tier(s)
+- [ ] If schema/query/index/migration changed: Rule 11 + `review-database-data-layer.md` applied
+- [ ] If proto/.proto/shared type/public route changed: Rule 12 + `review-contract-and-breaking-change.md` applied
+- [ ] If package.json/pom.xml dependency changed: `npm audit --audit-level=high` passed (Rule 13)
+- [ ] If podman-compose/startup script/port/env var changed: Rule 14 + `senior-devops-infra.md` applied
 - [ ] Plan output format followed (if plan was requested)
 - [ ] AI wiki/knowledge docs updated if behavior or architecture changed
 ```
@@ -129,6 +146,7 @@ Copy this into PRs when code is added or changed:
 podman-compose up -d                                        # MongoDB + Redis
 cd product-management/backend-node && npm run dev          # API (3001)
 cd product-management/frontend && npm run dev              # UI (5173)
+cd services-java/va-service && ./mvnw spring-boot:run      # VA Service (8136)
 cd services-python/whisper-server && python server.py      # Whisper (8000)
 cd services-python/vision-server && python server.py       # Vision (8001)
 ```

@@ -10,10 +10,12 @@ Sections:
 - [Service Notes: ai-listing-agent](services/ai-listing-agent.md)
 - [Service Notes: product-management](services/product-management.md)
 - [Service Notes: listing-service](services/listing-service.md)
+- [Service Notes: va-service](services/va-service.md)
 - [Runbooks](runbooks/README.md)
 - [Runbook: Repository Boundaries and Change Flow](runbooks/repo-boundaries-and-change-flow.md)
 - [Runbook: Listing Service Change Verification](runbooks/listing-service-change-verification.md)
 - [Runbook: Java gRPC Proto Sync and Runtime Checks](runbooks/java-grpc-proto-sync-and-runtime-checks.md)
+- [Runbook: MongoDB Operations — Connection Failures, Slow Queries, Index Maintenance](runbooks/mongodb-operations.md)
 - [Decisions](decisions/README.md)
 
 High-value rules to check from here:
@@ -23,6 +25,10 @@ High-value rules to check from here:
 - `../rules/06-testing-standards-by-tier.md` — required test expectations by tier
 - `../rules/09-ai-wiki-knowledge-rules.md` — knowledge ingestion and retrieval workflow
 - `../rules/10-repository-boundaries-and-change-scope.md` — repository ownership and git scope
+- `../rules/11-database-data-layer-standards.md` — MongoDB schema, index, migration, and tenant isolation standards
+- `../rules/12-breaking-change-and-contract-checks.md` — proto, REST route, and shared type breaking-change gate
+- `../rules/13-dependency-audit.md` — npm audit and pom.xml dependency security gate
+- `../rules/14-infrastructure-change-standards.md` — Podman, ports, env vars, and startup script standards
 
 Session startup path:
 

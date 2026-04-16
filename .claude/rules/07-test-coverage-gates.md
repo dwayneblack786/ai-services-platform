@@ -19,7 +19,7 @@ Tier-specific enforcement:
 - Backend (`ai-listing-agent/backend-node`):
   - Required command: `Set-Location ai-listing-agent/backend-node; npm run coverage`
   - New or materially changed backend logic must include success and edge/failure path coverage.
-- Java (`services-java/listing-service`):
+- Java (`services-java/listing-service` and `services-java/va-service`):
   - Use `./mvnw test` for now.
   - If JaCoCo is added later, enforce coverage thresholds in Maven build.
 

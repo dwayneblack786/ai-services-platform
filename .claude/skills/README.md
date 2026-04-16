@@ -49,6 +49,8 @@ This index helps select the right skill quickly.
   - `code-review/review-observability-and-errors.md`
 - Web quality audits (Core Web Vitals, accessibility, SEO):
   - `code-review/review-web-quality-audits.md`
+- MongoDB/Mongoose schema, query, index, migration, and multi-tenant data layer review:
+  - `code-review/review-database-data-layer.md`
 
 - Implementing senior frontend UI + React + Node integration changes:
   - `code-changes/senior-frontend-react-ui-node.md`
@@ -60,6 +62,8 @@ This index helps select the right skill quickly.
   - `code-changes/senior-ai-agentic-implementation.md`
 - MongoDB schema design, query optimization, indexing, migrations, multi-tenant isolation, and relational database interoperability:
   - `code-changes/senior-data-engineer-database.md`
+- Podman, Redis, MongoDB infra, service startup, port config, environment variables, and platform tooling:
+  - `code-changes/senior-devops-infra.md`
 - Test-Driven Development (Red-Green-Refactor cycle):
   - `code-changes/senior-tdd-test-first.md`
 
@@ -76,8 +80,9 @@ This index helps select the right skill quickly.
 1. Identify the repository that owns the target files.
 2. Pull targeted context first: one `/memories/repo/` note, `wiki/index.md`, and one service page or runbook.
 3. Pick one implementation skill from `code-changes/` based on the tier.
-4. For any schema, query, index, migration, or data-pipeline change in any tier, also use `code-changes/senior-data-engineer-database.md`.
-4. If the change is AI-heavy, agentic, retrieval-based, or involves model/provider integration, use `code-changes/senior-ai-agentic-implementation.md`.
+4. For any schema, query, index, migration, or data-pipeline change in any tier, also use `code-changes/senior-data-engineer-database.md`. Pair with `code-review/review-database-data-layer.md` for review.
+5. For infra changes (Podman, Redis, MongoDB container ops, ports, envs), use `code-changes/senior-devops-infra.md`.
+6. If the change is AI-heavy, agentic, retrieval-based, or involves model/provider integration, use `code-changes/senior-ai-agentic-implementation.md`.
 5. If the change touches auth, input handling, secrets, data access, APIs, external calls, or AI/LLM behavior, run the matching skill from `security-audit/`.
 6. Run one or more focused review skills from `code-review/`, including `code-review/review-ai-agentic-systems.md` for AI features.
 7. Promote durable findings to repo memory or wiki pages before ending the task.

@@ -19,11 +19,12 @@ Backend (`ai-listing-agent/backend-node`):
 - Backend logic changes must include at least one deterministic automated test in the same change.
 - If an endpoint cannot be covered directly, document manual verification steps in addition to automated unit coverage.
 
-Java (`services-java/listing-service`):
+Java (`services-java/listing-service` and `services-java/va-service`):
 
 - Test framework: JUnit via Spring Boot test stack.
-- Required command:
+- Required commands:
   - `Set-Location services-java/listing-service; ./mvnw test`
+  - `Set-Location services-java/va-service; ./mvnw test`
 - New or changed service/pipeline logic must have unit tests under `src/test/java`.
 
 General testing standards:
