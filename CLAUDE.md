@@ -161,6 +161,16 @@ All platform utility and dev scripts are in `scripts/` (workspace root). See `sc
 
 Services-python helper scripts remain co-located in `services-python/` and are documented in `scripts/README.md`.
 
+## Hooks And Settings
+
+Claude settings in `.claude/settings.local.json` define tool permissions and local policy hints.
+
+Commit-time secret enforcement is implemented via Git pre-commit hooks:
+
+- Canonical hook source: `.claude/hooks/pre-commit`
+- Installed target per repo: `.git/hooks/pre-commit`
+- Install/update command: `./scripts/install-hooks.ps1`
+
 ## Plans
 - `plans/phase-1-dinov2-training-pipeline.md`
 - Master plan: `.claude/plans/curried-bouncing-dolphin.md`
