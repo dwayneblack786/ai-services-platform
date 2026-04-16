@@ -33,6 +33,8 @@ High-value rules to check from here:
 - `../rules/12-breaking-change-and-contract-checks.md` — proto, REST route, and shared type breaking-change gate
 - `../rules/13-dependency-audit.md` — npm audit and pom.xml dependency security gate
 - `../rules/14-infrastructure-change-standards.md` — Podman, ports, env vars, and startup script standards
+- `../rules/14-infrastructure-change-standards.md` — Podman, ports, env vars, and startup script standards
+- `../rules/15-no-secrets-in-git.md` — pre-commit hook, secret patterns, rotation procedure
 
 Session startup path:
 

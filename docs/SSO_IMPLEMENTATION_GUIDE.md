@@ -1,1398 +1,752 @@
-# Single Sign-On (SSO) Implementation Guide
+# Keycloak Multi-Tenant SSO Implementation Guide
 
 ## Overview
-
-This implementation provides OpenID Connect (OIDC) based Single Sign-On between:
-- **product-management** (acts as Identity Provider - IdP)
-- **prompt-management** (acts as Relying Party - Client)
-
-**Protocol**: OpenID Connect (OIDC) with Authorization Code Flow + PKCE (Proof Key for Code Exchange)
-
-### Key Features
-✅ **CSRF Protection**: State parameter validation  
-✅ **PKCE**: Protection against authorization code interception  
-✅ **Identity Mapping**: Stable user identity using `sub` claim  
-✅ **JIT Provisioning**: Automatic user creation on first SSO login  
-✅ **Token Validation**: Signature, issuer, audience, and expiration checks  
-✅ **Session Management**: Secure local sessions with HttpOnly cookies  
-✅ **Logout Propagation**: Token revocation support  
-✅ **Backward Compatibility**: Existing username/password login preserved  
-
----
+This guide documents the implementation of Keycloak-based multi-tenant authentication with tenant-first login flow. Each tenant has its own Keycloak realm, providing complete isolation.
 
 ## Architecture
 
-### Components
-
-1. **Identity Provider (IdP)** - `product-management` (port 5000)
-   - Central authentication service
-   - Issues JWT access tokens, ID tokens, and refresh tokens
-   - Manages authorization codes and PKCE challenges
-   - Provides OIDC-compliant endpoints
-
-2. **Relying Party (RP)** - `prompt-management` (port 3001)
-   - Consumes SSO tokens from IdP
-   - Performs Just-In-Time (JIT) user provisioning
-   - Validates tokens locally using shared JWT secret
-   - Maps IdP user identities to local accounts
-
-### Authentication Flow
-
 ```
-┌─────────────┐                                     ┌───────────────────────┐
-│             │  1. GET /sso/login                  │                       │
-│   Browser   │────────────────────────────────────▶│  Prompt Management    │
-│             │                                     │  (Relying Party)      │
-│             │  2. Redirect to IdP                 │                       │
-│             │◀────────────────────────────────────│  - Generate PKCE      │
-│             │  /oidc/authorize?                   │  - Generate state     │
-│             │    code_challenge=...               │  - Store temporarily  │
-│             │    &state=...                       └───────────────────────┘
-│             │
-│             │  3. Redirect to IdP
-│             │────────────────────────────────────┐
-│             │                                    │
-│             │                                    ▼
-│             │                             ┌───────────────────────┐
-│             │                             │                       │
-│             │  4. Show login (if needed)  │  Product Management   │
-│             │◀────────────────────────────│  (Identity Provider)  │
-│             │                             │                       │
-│             │  5. Submit credentials      │  - Verify user        │
-│             │────────────────────────────▶│  - Store auth code    │
-│             │                             │  - Bind PKCE          │
-│             │  6. Redirect with code      │                       │
-│             │◀────────────────────────────│                       │
-│             │  /sso/callback?             └───────────────────────┘
-│             │    code=...&state=...
-│             │
-│             │  7. POST /oidc/token
-│             │  { code, code_verifier }
-│             │────────────────────────────────────┐
-│             │                                    │
-│             │                                    ▼
-│             │                             ┌───────────────────────┐
-│             │                             │                       │
-│             │  8. Return tokens           │  Product Management   │
-│             │◀────────────────────────────│  (IdP)                │
-│             │  { access_token,            │                       │
-│             │    id_token,                │  - Verify PKCE        │
-│             │    refresh_token }          │  - Issue tokens       │
-│             │                             └───────────────────────┘
-│             │
-│             │  9. Callback handler
-│             │────────────────────────────────────┐
-│             │                                    │
-│             │                                    ▼
-│             │                             ┌───────────────────────┐
-│             │                             │                       │
-│             │  10. Set session cookie     │  Prompt Management    │
-│             │◀────────────────────────────│  (RP)                 │
-│             │                             │                       │
-│             │  11. Redirect to app        │  - Validate ID token  │
-│             │◀────────────────────────────│  - Map identity       │
-│             │                             │  - Create local user  │
-└─────────────┘                             └───────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      KEYCLOAK (IdP)                              │
+│                     localhost:9999                               │
+│                                                                   │
+│  Realms:                                                         │
+│  • tenant-default (default realm)                               │
+│  • tenant-acme-corp (Acme Corp users)                           │
+│  • tenant-globex (Globex users)                                 │
+│                                                                   │
+│  Features:                                                       │
+│  • Username/password authentication                             │
+│  • Social login (Google, Microsoft)                             │
+│  • JWT tokens (RSA256)                                          │
+│  • OIDC Authorization Code + PKCE                               │
+│  • Session management (SSO across realms)                       │
+│  • JWKS endpoint per realm                                      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ OIDC Authorization Code + PKCE
+                              │
+                ┌─────────────┴─────────────┐
+                │                           │
+                ▼                           ▼
+┌───────────────────────────┐ ┌───────────────────────────┐
+│ product-management (RP)   │ │ prompt-management (RP)    │
+│ localhost:5000            │ │ localhost:5001            │
+│                           │ │                           │
+│ - POST /auth/tenant/      │ │ - POST /auth/tenant/      │
+│   lookup                  │ │   lookup                  │
+│ - GET /auth/tenant/login  │ │ - GET /auth/tenant/login  │
+│ - GET /auth/tenant/       │ │ - GET /auth/tenant/       │
+│   callback                │ │   callback                │
+│ - GET /users/me (RBAC)    │ │ - GET /users/me (RBAC)    │
+│ - POST /usage/events      │ │ - POST /usage/events      │
+│ - Identity Mapping        │ │ - Identity Mapping        │
+│   (keycloakSub)           │ │   (keycloakSub)           │
+│ - Local Session           │ │ - Local Session           │
+│ - MongoDB (System of      │ │ - MongoDB (System of      │
+│   Record)                 │ │   Record)                 │
+└───────────────────────────┘ └───────────────────────────┘
+                              │
+                              │
+                              ▼
+                ┌─────────────────────────┐
+                │  MONGODB (ai_platform)  │
+                │                         │
+                │  • keycloak_tenants     │
+                │  • users (keycloakSub)  │
+                │  • usage_events         │
+                └─────────────────────────┘
 ```
 
----
+## Implementation Steps
 
-## OIDC Endpoints
+### ✅ Step 1: Install and Configure Keycloak - COMPLETED
+- [x] Download Keycloak 23.0.0+
+- [x] Start on port 9999: `kc.bat start-dev --http-port=9999`
+- [x] Access admin console: http://localhost:9999/admin (admin/admin)
 
-### Identity Provider (product-management)
+### ✅ Step 2: Create MongoDB Models - COMPLETED
+- [x] `KeycloakTenant.ts` - Tenant model with realm mapping
+- [x] `User.ts` - Updated with keycloakSub field
+- [x] `UsageEvent.ts` - Usage tracking schema
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/.well-known/openid-configuration` | GET | Discovery endpoint |
-| `/api/oidc/authorize` | GET | Authorization endpoint |
-| `/api/oidc/token` | POST | Token endpoint |
-| `/api/oidc/userinfo` | GET | User info endpoint |
-| `/api/oidc/introspect` | POST | Token introspection |
-| `/api/oidc/revoke` | POST | Token revocation |
-| `/api/oidc/logout` | POST | Logout endpoint |
-| `/api/oidc/jwks` | GET | JSON Web Key Set |
+### ✅ Step 3: Implement Tenant Service - COMPLETED
+**File**: `product-management/backend-node/src/services/tenant.service.ts`
 
-### SSO Client Endpoints (both services)
+Features implemented:
+- [x] `lookupTenant()` - Multi-strategy tenant lookup (ID, domain, aliases)
+- [x] `mapKeycloakIdentityToUser()` - 3-rule identity mapping:
+  1. Find by keycloakSub → Return user
+  2. Link by email + tenant → Update keycloakSub
+  3. Create new user → With Keycloak identity
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/auth/sso/login` | GET | Initiate SSO flow |
-| `/auth/sso/callback` | GET | Handle OAuth callback |
-| `/auth/sso/logout` | POST | SSO logout |
+### ✅ Step 4: Implement Tenant-First Auth Routes - COMPLETED
+**File**: `product-management/backend-node/src/routes/tenant-auth.ts`
 
----
+Routes implemented:
+- [x] POST `/api/auth/tenant/lookup` - Tenant lookup
+- [x] GET `/api/auth/tenant/login` - Initiate tenant-specific login
+- [x] GET `/api/auth/tenant/callback` - OAuth callback handler
 
-## Token Structure
+Flow:
+1. User enters tenant identifier
+2. Backend looks up Keycloak realm
+3. Redirects to realm-specific Keycloak login
+4. Keycloak redirects back with code
+5. Backend exchanges code for tokens (JWKS validation)
+6. Backend maps identity to MongoDB user
+7. Session created
 
-### ID Token (OIDC Standard)
+### ✅ Step 5: Implement User Profile API - COMPLETED
+**File**: `product-management/backend-node/src/routes/user-profile.ts`
 
-```json
-{
-  "iss": "http://localhost:5000",
-  "sub": "user-id-123",
-  "aud": "prompt-management-client",
-  "exp": 1738000000,
-  "iat": 1737996400,
-  "auth_time": 1737996400,
-  "nonce": "random-nonce",
-  "email": "user@example.com",
-  "email_verified": true,
-  "name": "John Doe",
-  "given_name": "John",
-  "family_name": "Doe",
-  "picture": "https://...",
-  "role": "ADMIN",
-  "tenant_id": "tenant-001"
-}
-```
+Route implemented:
+- [x] GET `/api/users/me` - Returns MongoDB-based RBAC data
 
-### Access Token
+Response includes:
+- user_id, tenant_id, email
+- role (from MongoDB)
+- permissions (computed from role)
+- subscriptions (from MongoDB)
+- feature_flags, usage_limits
 
-```json
-{
-  "iss": "http://localhost:5000",
-  "sub": "user-id-123",
-  "aud": "prompt-management-client",
-  "exp": 1738000000,
-  "iat": 1737996400,
-  "scope": "openid profile email",
-  "client_id": "prompt-management-client",
-  "jti": "unique-token-id"
-}
-```
+### ✅ Step 6: Implement Usage Collection - COMPLETED
+**File**: `product-management/backend-node/src/routes/usage.ts`
 
-### Refresh Token
+Routes implemented:
+- [x] POST `/api/usage/events` - Ingest usage events
+- [x] GET `/api/usage/summary` - Usage analytics
 
-```json
-{
-  "iss": "http://localhost:5000",
-  "sub": "user-id-123",
-  "aud": "prompt-management-client",
-  "exp": 1740588400,
-  "iat": 1737996400,
-  "jti": "unique-refresh-id",
-  "token_type": "refresh"
-}
-```
+Features:
+- Validates tenant and user existence
+- Stores in central MongoDB collection
+- Supports aggregation queries
 
----
+### ✅ Step 7: Implement Keycloak Auth Middleware - COMPLETED
+**File**: `product-management/backend-node/src/middleware/keycloak-auth.ts`
 
-## Detailed Flow Walkthrough
+Middleware implemented:
+- [x] `requireKeycloakAuth` - Validates Keycloak tokens via JWKS
+- [x] `optionalKeycloakAuth` - Optional authentication
+- [x] `trackUsage` - Usage tracking wrapper
+- [x] `trackRouteUsage` - Auto-track route usage
 
-### 1. User Initiates SSO Login
+Features:
+- JWKS-based token validation
+- Loads user from MongoDB by keycloakSub
+- Attaches user to request object
+- Automatic usage tracking
 
-**User Action**: Clicks "Login with Product Management" in prompt-management
+### ✅ Step 8: Migrate Routes to Keycloak Auth - COMPLETED
+**Files Updated:**
+- [x] `subscriptions-routes.ts` - Uses `requireKeycloakAuth` and `trackUsage`
 
-**Request**:
-```http
-GET http://localhost:3001/api/auth/sso/login
-```
-
-**Backend Process** (prompt-management):
-1. Generate PKCE challenge:
-   - `code_verifier`: Random 32-byte base64url string
-   - `code_challenge`: SHA256(code_verifier) in base64url
-2. Generate state: Random 32-byte base64url string (CSRF protection)
-3. Store state and code_verifier in memory (expires in 10 minutes)
-4. Build authorization URL
-
-**Redirect Response**:
-```http
-HTTP/1.1 302 Found
-Location: http://localhost:5000/api/oidc/authorize?
-  response_type=code
-  &client_id=prompt-management-client
-  &redirect_uri=http://localhost:3001/api/auth/sso/callback
-  &scope=openid profile email
-  &state=abc123xyz
-  &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
-  &code_challenge_method=S256
-```
-
-### 2. User Authenticates at IdP
-
-**Request**:
-```http
-GET http://localhost:5000/api/oidc/authorize?...
-```
-
-**Backend Process** (product-management):
-1. Check if user is authenticated:
-   - If NO: Redirect to login page (preserving OAuth params)
-   - If YES: Continue to authorization
-2. Validate OAuth parameters:
-   - `client_id` must be registered
-   - `redirect_uri` must match registered URI
-   - `response_type` must be `code`
-   - `code_challenge_method` must be `S256`
-3. Generate authorization code (10-minute expiry)
-4. Store authorization code with metadata:
-   ```json
-   {
-     "code": "auth-code-123",
-     "userId": "user-id-123",
-     "clientId": "prompt-management-client",
-     "redirectUri": "http://localhost:3001/api/auth/sso/callback",
-     "scope": "openid profile email",
-     "codeChallenge": "E9Melhoa...",
-     "codeChallengeMethod": "S256",
-     "expiresAt": 1737997000
-   }
-   ```
-5. Redirect to client callback with code
-
-**Redirect Response**:
-```http
-HTTP/1.1 302 Found
-Location: http://localhost:3001/api/auth/sso/callback?
-  code=auth-code-123
-  &state=abc123xyz
-```
-
-### 3. Token Exchange
-
-**Request** (prompt-management → product-management):
-```http
-POST http://localhost:5000/api/oidc/token
-Content-Type: application/json
-
-{
-  "grant_type": "authorization_code",
-  "code": "auth-code-123",
-  "redirect_uri": "http://localhost:3001/api/auth/sso/callback",
-  "client_id": "prompt-management-client",
-  "client_secret": "your-client-secret",
-  "code_verifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
-}
-```
-
-**Backend Process** (product-management):
-1. Validate authorization code:
-   - Code exists and not expired
-   - `client_id` matches
-   - `redirect_uri` matches
-2. Verify PKCE:
-   - Compute `SHA256(code_verifier)` in base64url
-   - Compare with stored `code_challenge`
-   - If mismatch: Reject with 400 error
-3. Validate client credentials:
-   - `client_id` and `client_secret` match
-4. Delete authorization code (one-time use)
-5. Generate tokens:
-   - Access token (1 hour expiry)
-   - ID token (1 hour expiry)
-   - Refresh token (30 days expiry)
-
-**Response**:
-```json
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "id_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "Bearer",
-  "expires_in": 3600,
-  "scope": "openid profile email"
-}
-```
-
-### 4. Identity Mapping & Session Creation
-
-**Backend Process** (prompt-management):
-
-1. **Validate ID Token**:
-   ```typescript
-   const payload = jwt.verify(id_token, JWT_SECRET, {
-     issuer: 'http://localhost:5000',
-     audience: 'prompt-management-client'
-   });
-   ```
-
-2. **Extract Claims**:
-   ```json
-   {
-     "sub": "user-id-123",
-     "email": "john@example.com",
-     "email_verified": true,
-     "name": "John Doe",
-     "given_name": "John",
-     "family_name": "Doe",
-     "role": "ADMIN",
-     "tenant_id": "tenant-001"
-   }
-   ```
-
-3. **Identity Mapping Strategy**:
-   ```typescript
-   // Try 1: Find by IdP subject identifier
-   let user = await User.findOne({
-     idpSub: payload.sub,
-     idpIssuer: 'http://localhost:5000'
-   });
-
-   // Try 2: Find by email (link existing account)
-   if (!user) {
-     user = await User.findOne({ email: payload.email });
-     if (user) {
-       // Link IdP identity to existing account
-       user.idpSub = payload.sub;
-       user.idpIssuer = 'http://localhost:5000';
-       user.ssoProvider = 'product-management';
-       await user.save();
-     }
-   }
-
-   // Try 3: Create new user (JIT Provisioning)
-   if (!user) {
-     user = await User.create({
-       email: payload.email,
-       firstName: payload.given_name,
-       lastName: payload.family_name,
-       idpSub: payload.sub,
-       idpIssuer: 'http://localhost:5000',
-       ssoProvider: 'product-management',
-       role: mapRole(payload.role),
-       emailVerified: payload.email_verified,
-       isActive: true
-     });
-   }
-   ```
-
-4. **Create Local Session**:
-   ```typescript
-   // Generate local JWT token
-   const localToken = jwt.sign(
-     {
-       userId: user._id,
-       email: user.email,
-       role: user.role
-     },
-     JWT_SECRET,
-     { expiresIn: '24h' }
-   );
-
-   // Set HttpOnly cookie
-   res.cookie('token', localToken, {
-     httpOnly: true,
-     secure: process.env.NODE_ENV === 'production',
-     sameSite: 'lax',
-     maxAge: 24 * 60 * 60 * 1000
-   });
-   ```
-
-5. **Redirect to Application**:
-   ```http
-   HTTP/1.1 302 Found
-   Location: http://localhost:5174/dashboard
-   ```
-
----
-
-## Role Mapping
-
-Roles from product-management are mapped to prompt-management roles:
-
-| Product-Mgmt Role | Prompt-Mgmt Role | Description |
-|------------------|------------------|-------------|
-| `ADMIN` | `admin` | Full system access |
-| `DEVELOPER` | `developer` | Can execute prompts, read workflows |
-| `EDITOR` | `editor` | Can create/edit prompts |
-| `USER` | `editor` | Same as editor |
-| `VIEWER` | `viewer` | Read-only access |
-| (default) | `viewer` | Fallback for unknown roles |
-
+Pattern:
 ```typescript
-function mapRole(idpRole: string): string {
-  const roleMap: Record<string, string> = {
-    'ADMIN': 'admin',
-    'DEVELOPER': 'developer',
-    'EDITOR': 'editor',
-    'USER': 'editor',
-    'VIEWER': 'viewer'
-  };
-  return roleMap[idpRole] || 'viewer';
-}
+router.get('/active', requireKeycloakAuth, trackUsage('subscription', 'read'), async (req, res) => {
+  // Route handler
+});
 ```
 
----
+### ✅ Step 9: Create Setup Scripts - COMPLETED
+- [x] `product-management/scripts/keycloak/seed-tenants.ts` - Seeds sample tenants
+- [x] `product-management/scripts/keycloak/setup-keycloak.ps1` - Creates Keycloak realms
+
+### ✅ Step 10: Update Startup Scripts - COMPLETED
+- [x] `start-sso-services.ps1` - Updated to check Keycloak
+- [x] `start-sso-system.ps1` - Updated to Keycloak architecture
 
 ## Configuration
 
-### 1. Product Management (.env)
+### Keycloak Setup
 
+#### 1. Create Realm
+```powershell
+.\product-management\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-acme-corp"
+```
+
+#### 2. Create OIDC Client
+In Keycloak Admin Console:
+- Client ID: `product-management`
+- Client Protocol: `openid-connect`
+- Access Type: `confidential`
+- Valid Redirect URIs: `http://localhost:5000/api/auth/tenant/callback`
+- Web Origins: `http://localhost:5173`
+
+#### 3. Get Client Secret
+- Go to Credentials tab
+- Copy Client Secret
+
+### Environment Configuration
+
+#### Product Management (.env)
 ```bash
-# OIDC Issuer (this server)
-OIDC_ISSUER=http://localhost:5000
+# Keycloak
+KEYCLOAK_URL=http://localhost:9999
+KEYCLOAK_DEFAULT_REALM=tenant-default
 
-# Client Secrets (min 32 characters)
-OIDC_CLIENT_SECRET_PROMPT_MGMT=your-secure-secret-min-32-chars-12345678
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/ai_platform
 
-# Redirect URIs (whitelist)
-PROMPT_MGMT_REDIRECT_URI=http://localhost:3001/api/auth/sso/callback
+# Session
+SESSION_SECRET=your-session-secret-change-in-production
+SESSION_NAME=connect.sid
 
-# JWT Secret (MUST be shared with all services)
-JWT_SECRET=your-super-secret-jwt-key-min-64-chars-abcdefghijk123456789
-
-# Session Secret
-SESSION_SECRET=your-session-secret-min-32-chars-xyz
-
-# Token Expiry
-ACCESS_TOKEN_EXPIRY=1h
-REFRESH_TOKEN_EXPIRY=30d
-
-# Security Settings
-COOKIE_SECURE=false  # Set to true in production
-COOKIE_SAME_SITE=lax
-
-# Production Settings
-# ALGORITHM=RS256  # Use asymmetric keys in production
-# REDIS_URL=redis://localhost:6379  # For distributed state storage
+# CORS
+APP_URL=http://localhost:5173
 ```
 
-### 2. Prompt Management (.env)
-
+#### Prompt Management (.env)
 ```bash
-# SSO Configuration
-SSO_ENABLED=true
-SSO_ISSUER=http://localhost:5000
-SSO_CLIENT_ID=prompt-management-client
-SSO_CLIENT_SECRET=your-secure-secret-min-32-chars-12345678
-SSO_REDIRECT_URI=http://localhost:3001/api/auth/sso/callback
+# Keycloak
+KEYCLOAK_URL=http://localhost:9999
+KEYCLOAK_DEFAULT_REALM=tenant-default
 
-# JWT Secret (MUST match product-management)
-JWT_SECRET=your-super-secret-jwt-key-min-64-chars-abcdefghijk123456789
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/ai_platform
 
-# Frontend URL
-CLIENT_URL=http://localhost:5174
+# Session
+SESSION_SECRET=your-session-secret-change-in-production
+SESSION_NAME=connect.sid
 
-# Session Settings
-SESSION_SECRET=your-session-secret-xyz
-COOKIE_SECURE=false  # Set to true in production
-COOKIE_SAME_SITE=lax
-
-# Production Settings
-# REDIS_URL=redis://localhost:6379  # For session storage
+# CORS
+APP_URL=http://localhost:3001
 ```
 
----
+## Testing
 
-## Security Features
-
-### 1. CSRF Protection (State Parameter)
-
-- **Generation**: 32-byte cryptographically random string
-- **Storage**: Temporarily stored on server (10-minute expiry)
-- **Validation**: Must match between request and callback
-- **One-time use**: Deleted after validation
-
-```typescript
-const state = crypto.randomBytes(32).toString('base64url');
-pendingAuthRequests.set(state, {
-  codeVerifier,
-  expiresAt: Date.now() + 10 * 60 * 1000
-});
+### 1. Seed Tenants
+```powershell
+npx ts-node product-management/scripts/keycloak/seed-tenants.ts
 ```
 
-### 2. PKCE Protection
-
-**Purpose**: Protects against authorization code interception attacks
-
-**Flow**:
-1. Client generates `code_verifier` (random 32-byte string)
-2. Client computes `code_challenge = BASE64URL(SHA256(code_verifier))`
-3. Client sends `code_challenge` in authorization request
-4. Server stores `code_challenge` with authorization code
-5. Client sends `code_verifier` in token request
-6. Server computes `SHA256(code_verifier)` and compares with stored `code_challenge`
-
-```typescript
-// Client (prompt-management)
-function generatePKCEChallenge() {
-  const codeVerifier = crypto.randomBytes(32).toString('base64url');
-  const hash = crypto.createHash('sha256').update(codeVerifier).digest();
-  const codeChallenge = hash.toString('base64url');
-  return { codeVerifier, codeChallenge };
-}
-
-// Server (product-management)
-function verifyPKCE(codeVerifier: string, codeChallenge: string): boolean {
-  const hash = crypto.createHash('sha256').update(codeVerifier).digest();
-  const computedChallenge = hash.toString('base64url');
-  return computedChallenge === codeChallenge;
-}
+### 2. Create Keycloak Realms
+```powershell
+.\product-management\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-acme-corp"
+.\product-management\scripts\keycloak\setup-keycloak.ps1 -RealmName "tenant-globex"
 ```
 
-### 3. Token Security
-
-| Feature | Implementation |
-|---------|----------------|
-| **Algorithm** | HS256 (symmetric) - use RS256 in production |
-| **Signature** | JWT signed with `JWT_SECRET` |
-| **Expiration** | Access: 1h, Refresh: 30d |
-| **Audience** | Client-specific (`prompt-management-client`) |
-| **Issuer** | Fixed (`http://localhost:5000`) |
-| **Unique ID** | `jti` claim for revocation tracking |
-| **One-time codes** | Authorization codes deleted after use |
-
-### 4. Client Authentication
-
-- **Client ID**: Public identifier
-- **Client Secret**: Shared secret (min 32 characters)
-- **Redirect URI**: Whitelist validation
-- **Secret Storage**: Hashed in database (not implemented yet)
-
----
-
-## Testing the SSO Flow
-
-### Prerequisites
-
-1. **Install Dependencies**:
-   ```bash
-   cd product-management/backend-node
-   npm install pkce-challenge
-
-   cd ../prompt-management/backend
-   npm install pkce-challenge
-   ```
-
-2. **Configure Environment**:
-   - Copy `.env.oidc.example` to `.env`
-   - Set matching `JWT_SECRET` in both services
-   - Set `OIDC_CLIENT_SECRET_PROMPT_MGMT` and `SSO_CLIENT_SECRET` to same value
-
-3. **Start Services**:
-   ```bash
-   # Terminal 1
-   cd product-management/backend-node
-   npm run dev
-
-   # Terminal 2
-   cd prompt-management/backend
-   npm run dev
-
-   # Terminal 3 (if needed)
-   cd product-management/frontend
-   npm run dev
-
-   # Terminal 4 (if needed)
-   cd prompt-management/frontend
-   npm run dev
-   ```
-
-### Manual Testing
-
-#### Test 1: Discovery Endpoint
-
+### 3. Test Tenant Lookup
 ```bash
-curl http://localhost:5000/api/oidc/.well-known/openid-configuration | jq
-```
-
-**Expected**: OIDC configuration JSON with all endpoints
-
-#### Test 2: Complete SSO Flow
-
-1. Open browser: `http://localhost:3001/api/auth/sso/login`
-2. Should redirect to: `http://localhost:5000/api/oidc/authorize?...`
-3. If not logged in, should show login page
-4. After login, should redirect back to: `http://localhost:3001/api/auth/sso/callback?code=...&state=...`
-5. Should be logged into prompt-management
-
-#### Test 3: Identity Mapping - First Login
-
-**Setup**: User exists in product-management, not in prompt-management
-
-**Steps**:
-1. Complete SSO flow (Test 2)
-2. Check prompt-management database:
-   ```bash
-   # MongoDB
-   db.users.findOne({ email: "test@example.com" })
-   ```
-3. Verify user created with:
-   - `idpSub` set to product-management user ID
-   - `idpIssuer` set to `http://localhost:5000`
-   - `ssoProvider` set to `product-management`
-
-#### Test 4: Identity Mapping - Existing User
-
-**Setup**: User exists in both systems with same email
-
-**Steps**:
-1. Create user in prompt-management manually:
-   ```javascript
-   db.users.insertOne({
-     email: "existing@example.com",
-     firstName: "Existing",
-     lastName: "User",
-     role: "viewer"
-   })
-   ```
-2. Complete SSO flow
-3. Verify user record updated with:
-   - `idpSub` added
-   - `idpIssuer` added
-   - Role potentially updated
-
-#### Test 5: PKCE Validation
-
-**Test with tampered code_verifier**:
-
-```bash
-# Step 1: Start SSO flow and capture code_challenge
-curl -v http://localhost:3001/api/auth/sso/login 2>&1 | grep Location
-
-# Step 2: Complete authorization and get code
-# (manual browser login)
-
-# Step 3: Try token exchange with wrong code_verifier
-curl -X POST http://localhost:5000/api/oidc/token \
+curl -X POST http://localhost:5000/api/auth/tenant/lookup \
   -H "Content-Type: application/json" \
-  -d '{
-    "grant_type": "authorization_code",
-    "code": "captured_code",
-    "client_id": "prompt-management-client",
-    "client_secret": "your-secret",
-    "code_verifier": "wrong-verifier-abcdefghijk123456789",
-    "redirect_uri": "http://localhost:3001/api/auth/sso/callback"
-  }'
+  -d '{"identifier": "acme-corp"}'
 ```
 
-**Expected**: `400 Bad Request` with error `invalid_grant` (PKCE verification failed)
-
-#### Test 6: State Validation
-
-**Test with invalid state**:
-
-```bash
-# Manually construct callback URL with wrong state
-curl -v "http://localhost:3001/api/auth/sso/callback?code=some-code&state=invalid-state"
-```
-
-**Expected**: `400 Bad Request` with error `invalid_state`
-
-#### Test 7: Token Validation
-
-```bash
-# Get tokens from SSO flow
-TOKEN="<access_token_from_flow>"
-
-# Introspect token
-curl -X POST http://localhost:5000/api/oidc/introspect \
-  -H "Content-Type: application/json" \
-  -d "{\"token\": \"$TOKEN\"}" | jq
-
-# Get user info
-curl http://localhost:5000/api/oidc/userinfo \
-  -H "Authorization: Bearer $TOKEN" | jq
-```
-
-#### Test 8: Token Revocation
-
-```bash
-# Revoke token
-curl -X POST http://localhost:5000/api/oidc/revoke \
-  -H "Content-Type: application/json" \
-  -d "{\"token\": \"$TOKEN\"}"
-
-# Try introspecting revoked token
-curl -X POST http://localhost:5000/api/oidc/introspect \
-  -H "Content-Type: application/json" \
-  -d "{\"token\": \"$TOKEN\"}" | jq
-```
-
-**Expected**: `{"active": false}`
-
-#### Test 9: Refresh Token
-
-```bash
-REFRESH_TOKEN="<refresh_token_from_flow>"
-
-curl -X POST http://localhost:5000/api/oidc/token \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"grant_type\": \"refresh_token\",
-    \"refresh_token\": \"$REFRESH_TOKEN\",
-    \"client_id\": \"prompt-management-client\",
-    \"client_secret\": \"your-secret\"
-  }" | jq
-```
-
-**Expected**: New access token issued
-
----
-
-## Error Handling
-
-### Client-Side Errors (4xx)
-
-| Error Code | Error | Cause | User Message |
-|------------|-------|-------|--------------|
-| 400 | `invalid_request` | Missing required parameter | "Invalid login request. Please try again." |
-| 400 | `invalid_grant` | Authorization code invalid/expired | "Your login session expired. Please try again." |
-| 400 | `invalid_grant` | PKCE verification failed | "Security validation failed. Please try again." |
-| 400 | `invalid_state` | State mismatch/expired | "Your login session expired. Please try again." |
-| 401 | `invalid_client` | Client credentials invalid | "Authentication failed. Please contact support." |
-| 403 | `access_denied` | User denied authorization | "You must authorize access to continue." |
-
-### Server-Side Errors (5xx)
-
-| Error Code | Error | Cause | User Message |
-|------------|-------|-------|--------------|
-| 500 | `server_error` | Internal server error | "Something went wrong. Please try again later." |
-| 503 | `temporarily_unavailable` | Service temporarily down | "Service temporarily unavailable. Please try again later." |
-
-### Error Response Format
-
+Expected:
 ```json
 {
-  "error": "invalid_grant",
-  "error_description": "Authorization code has expired",
-  "error_uri": "https://docs.example.com/errors/invalid_grant"
+  "tenantId": "acme-corp",
+  "keycloakRealm": "tenant-acme-corp"
 }
 ```
 
-### Logging
+### 4. Test Login Flow
+1. Visit http://localhost:5173
+2. Enter tenant: "acme-corp"
+3. Redirects to Keycloak
+4. Login with: testuser@example.com / Test123!
+5. Redirects back, logged in
 
-**Security Events** (always logged):
-- Authentication attempts (success/failure)
-- Token issuance
-- Token revocation
-- PKCE verification failures
-- State validation failures
+### 5. Test User Profile
+```bash
+curl http://localhost:5000/api/users/me \
+  -H "Cookie: connect.sid=<session-cookie>"
+```
 
-**Debug Events** (development only):
-- Authorization request parameters
-- Token exchange details
-- Identity mapping decisions
+Expected:
+```json
+{
+  "user_id": "507f1f77bcf86cd799439011",
+  "tenant_id": "acme-corp",
+  "role": "user",
+  "permissions": ["read:products"],
+  "subscriptions": []
+}
+```
+
+### 6. Test Cross-Site SSO
+1. Login to Product Management
+2. Visit Prompt Management (http://localhost:3001)
+3. Enter tenant: "acme-corp"
+4. Should auto-login via Keycloak SSO
+
+## Identity Mapping Logic
+
+### Rule 1: Find by Keycloak Sub
+```typescript
+const user = await User.findOne({ keycloakSub: sub });
+if (user) return user;
+```
+
+### Rule 2: Link by Email + Tenant
+```typescript
+const existingUser = await User.findOne({ email, tenantId });
+if (existingUser) {
+  existingUser.keycloakSub = sub;
+  existingUser.firstName = given_name;
+  existingUser.lastName = family_name;
+  await existingUser.save();
+  return existingUser;
+}
+```
+
+### Rule 3: Create New User
+```typescript
+const newUser = await User.create({
+  email,
+  keycloakSub: sub,
+  tenantId,
+  firstName: given_name,
+  lastName: family_name,
+  role: 'user',
+  isActive: true
+});
+return newUser;
+```
+
+## Migration Path
+
+### For Existing Users
+Run migration script to link Keycloak identities:
 
 ```typescript
-logger.info('SSO authentication successful', {
-  userId: user._id,
-  email: user.email,
-  idpSub: payload.sub,
-  isNewUser: !existingUser
-});
+// scripts/keycloak/migrate-users.ts
+const users = await User.find({ keycloakSub: { $exists: false } });
 
-logger.warn('PKCE verification failed', {
-  clientId,
-  expectedChallenge: storedChallenge,
-  computedChallenge
-});
-```
-
----
-
-## Frontend Integration
-
-### Product-Management Frontend
-
-**Login Button** (if product-management wants to use SSO to itself):
-
-```tsx
-import React from 'react';
-
-function LoginPage() {
-  const handleSSOLogin = () => {
-    // Redirect to SSO login endpoint
-    window.location.href = 'http://localhost:5000/auth/sso/login';
-  };
-
-  return (
-    <div>
-      <h1>Login</h1>
-      
-      {/* Regular login form */}
-      <form>
-        <input type="email" placeholder="Email" />
-        <input type="password" placeholder="Password" />
-        <button type="submit">Login</button>
-      </form>
-
-      {/* OR divider */}
-      <div>OR</div>
-
-      {/* SSO login button */}
-      <button onClick={handleSSOLogin}>
-        Login with SSO
-      </button>
-    </div>
-  );
+for (const user of users) {
+  // Lookup user in Keycloak by email
+  const keycloakUser = await keycloakAdmin.users.find({ email: user.email });
+  
+  if (keycloakUser.length === 1) {
+    user.keycloakSub = keycloakUser[0].id;
+    await user.save();
+    console.log(`Linked user ${user.email} to Keycloak`);
+  }
 }
 ```
 
-### Prompt-Management Frontend
+## Next Steps
 
-**SSO Login Button**:
+### Remaining Work
+- [ ] Migrate all routes to `requireKeycloakAuth`
+- [ ] Implement frontend tenant selection UI
+- [ ] Add refresh token flow
+- [ ] Configure social login in Keycloak
+- [ ] Set up MFA in Keycloak
+- [ ] Implement advanced RBAC policies
+- [ ] Add user profile management UI
+- [ ] Set up Keycloak with PostgreSQL (production)
 
-```tsx
-import React from 'react';
+### Frontend Implementation
+1. **Tenant Selection Component:**
+   ```tsx
+   const [tenant, setTenant] = useState('');
+   
+   const handleLogin = async () => {
+     const response = await fetch('/api/auth/tenant/lookup', {
+       method: 'POST',
+       body: JSON.stringify({ identifier: tenant })
+     });
+     
+     if (response.ok) {
+       localStorage.setItem('tenantId', tenant);
+       window.location.href = `/api/auth/tenant/login?tenant=${tenant}`;
+     }
+   };
+   ```
 
-function LoginPage() {
-  const handleSSOLogin = () => {
-    // Redirect to SSO login endpoint
-    window.location.href = 'http://localhost:3001/api/auth/sso/login';
-  };
+2. **Auto-Login on Subsequent Visits:**
+   ```tsx
+   useEffect(() => {
+     const tenantId = localStorage.getItem('tenantId');
+     if (tenantId && !user) {
+       // Attempt SSO
+       window.location.href = `/api/auth/tenant/login?tenant=${tenantId}`;
+     }
+   }, [user]);
+   ```
 
-  return (
-    <div>
-      <h1>Login to Prompt Management</h1>
-      
-      {/* SSO login button */}
-      <button onClick={handleSSOLogin}>
-        Login with Product Management
-      </button>
+## Support
 
-      {/* OR divider */}
-      <div>OR</div>
-
-      {/* Local login form */}
-      <form>
-        <input type="email" placeholder="Email" />
-        <input type="password" placeholder="Password" />
-        <button type="submit">Login</button>
-      </form>
-    </div>
-  );
-}
+For implementation details, see:
+- [KEYCLOAK_INTEGRATION_COMPLETE.md](./docs/KEYCLOAK_INTEGRATION_COMPLETE.md)
+- [TENANT_FIRST_LOGIN_FLOW.md](./docs/TENANT_FIRST_LOGIN_FLOW.md)
+- [SSO_IMPLEMENTATION_COMPLETE.md](./SSO_IMPLEMENTATION_COMPLETE.md)
+│                     localhost:4000                               │
+│                                                                   │
+│  - User Authentication (local + OAuth)                           │
+│  - OIDC Endpoints (/authorize, /token, /userinfo)                │
+│  - Session Management (global cookie: auth_service.sid)          │
+│  - User Database (MongoDB - users collection)                    │
+│  - Sub-based identity (stable, unique identifier)                │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ OIDC Authorization Code + PKCE
+                              │
+                ┌─────────────┴─────────────┐
+                │                           │
+                ▼                           ▼
+┌───────────────────────────┐ ┌───────────────────────────┐
+│ product-management (RP)   │ │ prompt-management (RP)    │
+│ localhost:5000            │ │ localhost:5001            │
+│                           │ │                           │
+│ - /auth/sso/login         │ │ - /auth/sso/login         │
+│ - /auth/sso/callback      │ │ - /auth/sso/callback      │
+│ - Identity Mapping (sub)  │ │ - Identity Mapping (sub)  │
+│ - Local Session           │ │ - Local Session           │
+│ - Local User DB           │ │ - Local User DB           │
+└───────────────────────────┘ └───────────────────────────┘
 ```
 
-**Callback Handler**:
+## Implementation Steps
 
-The backend handles the callback automatically. Frontend just needs to handle post-login redirect:
+### ✅ Step 1: Create auth-service (IdP) - COMPLETED
+- [x] Project structure created
+- [x] User model with `sub` field
+- [x] OIDC endpoints implemented:
+  - [x] GET `/.well-known/openid-configuration`
+  - [x] GET `/.well-known/jwks.json`
+  - [x] GET `/authorize` (with `prompt=none` support)
+  - [x] POST `/token`
+  - [x] GET `/userinfo`
+- [x] Local authentication (username/password)
+- [x] OAuth integration (Google) - optional
+- [x] Session management with passport
+- [x] PKCE verification
+- [x] Client registration (product-management, prompt-management)
 
-```tsx
-// App.tsx or Router setup
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+### Step 2: Update Product Management to RP/SP
 
-function SSOCallbackPage() {
-  const navigate = useNavigate();
+#### 2.1: Add Sub-based Identity Mapping
+**File**: `product-management/backend-node/src/models/User.ts`
 
-  useEffect(() => {
-    // Backend sets cookie automatically
-    // Just check if user is authenticated
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/api/auth/me', {
-          credentials: 'include'
+Add field:
+```typescript
+oidcSub?: string; // Maps to IdP's sub claim for SSO users
+```
+
+Add index:
+```typescript
+UserSchema.index({ oidcSub: 1 }, { sparse: true, unique: true });
+```
+
+#### 2.2: Create SSO Routes
+**File**: `product-management/backend-node/src/routes/sso.ts` (NEW)
+
+```typescript
+import { Router } from 'express';
+import { initiateAuthorizationRequest, exchangeAuthorizationCode, validateIDToken } from '../services/oidc-client.service';
+import { User } from '../models/User';
+import { generateAccessToken, generateRefreshToken } from '../utils/token.utils';
+
+const router = Router();
+
+const OIDC_CONFIG = {
+  issuer: process.env.OIDC_ISSUER || 'http://localhost:4000',
+  clientId: process.env.OIDC_CLIENT_ID || 'product-management',
+  clientSecret: process.env.OIDC_CLIENT_SECRET || 'product-mgmt-secret',
+  redirectUri: process.env.OIDC_REDIRECT_URI || 'http://localhost:5000/api/auth/sso/callback',
+  scopes: ['openid', 'profile', 'email']
+};
+
+// GET /api/auth/sso/login
+router.get('/sso/login', (req, res) => {
+  const authRequest = initiateAuthorizationRequest(OIDC_CONFIG, 'none');
+  
+  // Store state and codeVerifier in session
+  req.session.oidcState = authRequest.state;
+  req.session.oidcCodeVerifier = authRequest.codeVerifier;
+  
+  res.redirect(authRequest.authorizationUrl);
+});
+
+// GET /api/auth/sso/callback
+router.get('/sso/callback', async (req, res) => {
+  const { code, state, error } = req.query;
+  
+  if (error) {
+    return res.redirect(`/login?error=${error}`);
+  }
+  
+  // Verify state
+  if (state !== req.session.oidcState) {
+    return res.redirect('/login?error=invalid_state');
+  }
+  
+  const codeVerifier = req.session.oidcCodeVerifier;
+  delete req.session.oidcState;
+  delete req.session.oidcCodeVerifier;
+  
+  try {
+    // Exchange code for tokens
+    const tokens = await exchangeAuthorizationCode(OIDC_CONFIG, code, codeVerifier);
+    
+    // Validate ID token
+    const idToken = validateIDToken(tokens.idToken, OIDC_CONFIG);
+    
+    // Find or create user based on sub
+    let user = await User.findOne({ oidcSub: idToken.sub });
+    
+    if (!user) {
+      // Check if user exists with same email (link accounts)
+      user = await User.findOne({ email: idToken.email });
+      
+      if (user) {
+        // Link IdP sub to existing user
+        user.oidcSub = idToken.sub;
+        await user.save();
+      } else {
+        // Create new user (just-in-time provisioning)
+        user = new User({
+          oidcSub: idToken.sub,
+          email: idToken.email,
+          name: idToken.name,
+          firstName: idToken.given_name,
+          lastName: idToken.family_name,
+          picture: idToken.picture,
+          role: 'user',
+          tenantId: 'default', // Assign default tenant
+          emailVerified: idToken.email_verified,
+          isActive: true
         });
-        
-        if (response.ok) {
-          // User is authenticated, redirect to dashboard
-          navigate('/dashboard');
-        } else {
-          // Authentication failed, redirect to login
-          navigate('/login');
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        navigate('/login');
+        await user.save();
       }
-    };
-
-    checkAuth();
-  }, [navigate]);
-
-  return <div>Logging you in...</div>;
-}
-```
-
-**API Client with Token**:
-
-```typescript
-// api-client.ts
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: 'http://localhost:3001/api',
-  withCredentials: true  // Important: Send cookies
-});
-
-// Optional: Handle 401 errors
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Redirect to login
-      window.location.href = '/login';
     }
-    return Promise.reject(error);
+    
+    // Create local session
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    
+    // Set refresh token cookie
+    res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions);
+    
+    // Redirect to frontend with token in URL fragment
+    res.redirect(`http://localhost:5173/login/callback#token=${accessToken}`);
+  } catch (error) {
+    console.error('SSO callback error:', error);
+    res.redirect('/login?error=sso_failed');
   }
+});
+
+export default router;
+```
+
+#### 2.3: Update auth.ts to Import SSO Routes
+**File**: `product-management/backend-node/src/routes/auth.ts`
+
+Add at top:
+```typescript
+import ssoRoutes from './sso';
+```
+
+Add before export:
+```typescript
+router.use(ssoRoutes);
+```
+
+#### 2.4: Update Environment Variables
+**File**: `product-management/backend-node/.env`
+
+Add:
+```env
+# OIDC Configuration (Relying Party)
+OIDC_ISSUER=http://localhost:4000
+OIDC_CLIENT_ID=product-management
+OIDC_CLIENT_SECRET=product-mgmt-secret
+OIDC_REDIRECT_URI=http://localhost:5000/api/auth/sso/callback
+```
+
+#### 2.5: Update OIDC Client Service
+**File**: `product-management/backend-node/src/services/oidc-client.service.ts`
+
+Change line 88-89:
+```typescript
+// OLD
+const authUrl = new URL(`${config.issuer}/api/oidc/authorize`);
+
+// NEW
+const authUrl = new URL(`${config.issuer}/authorize`);
+```
+
+Change line 127:
+```typescript
+// OLD
+const tokenUrl = `${config.issuer}/api/oidc/token`;
+
+// NEW
+const tokenUrl = `${config.issuer}/token`;
+```
+
+Change line 185:
+```typescript
+// OLD
+const userInfoUrl = `${config.issuer}/api/oidc/userinfo`;
+
+// NEW
+const userInfoUrl = `${config.issuer}/userinfo`;
+```
+
+#### 2.6: Remove Old IdP Code
+**Files to Remove/Modify**:
+- `product-management/backend-node/src/routes/oidc.ts` - DELETE (IdP functionality)
+- `product-management/backend-node/src/services/oidc-provider.service.ts` - DELETE
+- Update `src/index.ts` to remove OIDC route mounting
+
+### Step 3: Update Prompt Management Configuration
+
+#### 3.1: Update Environment Variables
+**File**: `prompt-management/backend/.env`
+
+Change:
+```env
+# OLD
+SSO_ISSUER=http://localhost:5000
+
+# NEW
+SSO_ISSUER=http://localhost:4000
+OIDC_CLIENT_ID=prompt-management
+OIDC_CLIENT_SECRET=prompt-mgmt-secret
+OIDC_REDIRECT_URI=http://localhost:5001/api/auth/sso/callback
+```
+
+#### 3.2: Update OIDC Client Service
+**File**: `prompt-management/backend/src/services/oidc-client.service.ts`
+
+Same changes as product-management - update endpoints to remove `/api/oidc` prefix.
+
+#### 3.3: Add Sub-based Identity Mapping
+**File**: `prompt-management/backend/src/models/User.ts`
+
+Add field:
+```typescript
+oidcSub?: string;
+```
+
+Update SSO callback to map based on `sub` instead of email.
+
+### Step 4: Database Migrations
+
+#### Migration Script
+**File**: `migrations/add-oidc-sub.js`
+
+```javascript
+// Run on both product-management and prompt-management databases
+
+db.users.updateMany(
+  { oidcSub: { $exists: false } },
+  { $set: { oidcSub: null } }
 );
 
-export default apiClient;
+db.users.createIndex({ oidcSub: 1 }, { sparse: true, unique: true });
+
+print('✅ Added oidcSub field and index to users collection');
 ```
 
-**Protected Route**:
+### Step 5: Frontend Updates
 
-```tsx
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from './hooks/useAuth';
+#### Product Management Frontend
+**File**: `product-management/frontend/.env`
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-}
+Add:
+```env
+VITE_SSO_ENABLED=true
+VITE_AUTH_SERVICE_URL=http://localhost:4000
 ```
 
----
+Update LoginPage to support SSO button that redirects to `/api/auth/sso/login`.
 
-## Production Deployment
+#### Prompt Management Frontend
+**File**: `prompt-management/frontend/.env`
 
-### Required Changes
-
-#### 1. Use RS256 Algorithm (Asymmetric Keys)
-
-**Why**: HS256 uses shared secrets. If any service is compromised, all tokens can be forged.
-
-**How**:
-
-```bash
-# Generate RSA key pair
-openssl genrsa -out private-key.pem 2048
-openssl rsa -in private-key.pem -pubout -out public-key.pem
+Update:
+```env
+VITE_SSO_ENABLED=true
+VITE_AUTH_SERVICE_URL=http://localhost:4000
 ```
 
-```typescript
-// product-management (IdP) - Sign tokens
-const privateKey = fs.readFileSync('private-key.pem');
-const token = jwt.sign(payload, privateKey, {
-  algorithm: 'RS256',
-  expiresIn: '1h'
-});
+### Step 6: Testing Scenarios
 
-// prompt-management (RP) - Verify tokens
-const publicKey = fs.readFileSync('public-key.pem');
-const payload = jwt.verify(token, publicKey, {
-  algorithms: ['RS256'],
-  issuer: 'https://auth.example.com',
-  audience: 'prompt-management-client'
-});
+#### Test 1: User logs into auth-service → Product Management detects it
+1. Visit http://localhost:4000/login
+2. Register/login as new user
+3. Note the session cookie `auth_service.sid`
+4. Visit http://localhost:5173 (Product Management)
+5. Click "Login with SSO"
+6. Should redirect to auth-service with `prompt=none`
+7. Auth-service detects session → returns code immediately
+8. Product Management exchanges code → creates local user with `oidcSub`
+9. User logged into Product Management ✅
+
+#### Test 2: User logs into Product Management → Prompt Management detects it
+Same flow as Test 1, but starting from Product Management login.
+
+#### Test 3: Bi-directional SSO
+1. Login to Product Management via SSO
+2. Visit Prompt Management → automatic SSO login
+3. Both apps now have local sessions linked to same IdP `sub`
+
+## Configuration Reference
+
+### auth-service (Port 4000)
+```env
+PORT=4000
+MONGODB_URI=mongodb://localhost:27017/auth-service
+SESSION_SECRET=auth-service-secret-change-in-production
+JWT_SECRET=shared-jwt-secret-all-services
+OIDC_ISSUER=http://localhost:4000
+
+CLIENT_PRODUCT_MANAGEMENT_ID=product-management
+CLIENT_PRODUCT_MANAGEMENT_SECRET=product-mgmt-secret
+CLIENT_PRODUCT_MANAGEMENT_REDIRECTS=http://localhost:5000/api/auth/sso/callback
+
+CLIENT_PROMPT_MANAGEMENT_ID=prompt-management
+CLIENT_PROMPT_MANAGEMENT_SECRET=prompt-mgmt-secret
+CLIENT_PROMPT_MANAGEMENT_REDIRECTS=http://localhost:5001/api/auth/sso/callback
 ```
 
-**JWKS Endpoint**:
-
-```typescript
-// Expose public key via JWKS endpoint
-app.get('/api/oidc/jwks', (req, res) => {
-  const jwks = {
-    keys: [{
-      kty: 'RSA',
-      use: 'sig',
-      kid: 'key-1',
-      n: '<modulus_base64url>',
-      e: '<exponent_base64url>'
-    }]
-  };
-  res.json(jwks);
-});
+### product-management (Port 5000)
+```env
+OIDC_ISSUER=http://localhost:4000
+OIDC_CLIENT_ID=product-management
+OIDC_CLIENT_SECRET=product-mgmt-secret
+OIDC_REDIRECT_URI=http://localhost:5000/api/auth/sso/callback
+JWT_SECRET=shared-jwt-secret-all-services
 ```
 
-#### 2. Use Redis for State Storage
-
-**Why**: In-memory storage doesn't work with multiple server instances (horizontal scaling)
-
-**How**:
-
-```typescript
-import Redis from 'ioredis';
-
-const redis = new Redis(process.env.REDIS_URL);
-
-// Store PKCE state
-await redis.setex(
-  `pkce:${state}`,
-  600,  // 10 minutes
-  JSON.stringify({ codeVerifier, expiresAt })
-);
-
-// Retrieve PKCE state
-const data = await redis.get(`pkce:${state}`);
-if (data) {
-  const { codeVerifier } = JSON.parse(data);
-  await redis.del(`pkce:${state}`);  // One-time use
-}
-
-// Store authorization code
-await redis.setex(
-  `authcode:${code}`,
-  600,
-  JSON.stringify({ userId, clientId, codeChallenge, ... })
-);
+### prompt-management (Port 5001)
+```env
+SSO_ISSUER=http://localhost:4000
+OIDC_CLIENT_ID=prompt-management
+OIDC_CLIENT_SECRET=prompt-mgmt-secret
+OIDC_REDIRECT_URI=http://localhost:5001/api/auth/sso/callback
+JWT_SECRET=shared-jwt-secret-all-services
 ```
 
-#### 3. Enable HTTPS
+## Startup Order
 
-```bash
-# .env
-COOKIE_SECURE=true
-OIDC_ISSUER=https://auth.example.com
-SSO_ISSUER=https://auth.example.com
-SSO_REDIRECT_URI=https://app.example.com/api/auth/sso/callback
+1. Start MongoDB: `mongod`
+2. Start auth-service: `cd auth-service && npm run dev`
+3. Start product-management backend: `cd product-management/backend-node && npm run dev`
+4. Start prompt-management backend: `cd prompt-management/backend && npm run dev`
+5. Start frontends: Product Management (5173), Prompt Management (3002)
+
+## Next Steps
+
+Run the following command to install auth-service dependencies:
+
+```powershell
+cd auth-service
+npm install
 ```
 
-#### 4. Rate Limiting
+Then copy `.env.example` to `.env` and configure MongoDB URI and secrets.
 
-```typescript
-import rateLimit from 'express-rate-limit';
-
-// Token endpoint rate limiting
-const tokenLimiter = rateLimit({
-  windowMs: 60 * 1000,  // 1 minute
-  max: 10,  // 10 requests per minute
-  message: 'Too many token requests, please try again later'
-});
-
-app.post('/api/oidc/token', tokenLimiter, tokenHandler);
-
-// Authorization endpoint rate limiting
-const authLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 20,  // 20 requests per minute
-  message: 'Too many authorization requests, please try again later'
-});
-
-app.get('/api/oidc/authorize', authLimiter, authorizeHandler);
-```
-
-#### 5. Token Revocation Database
-
-```typescript
-// Instead of in-memory Map
-const RevokedTokenSchema = new mongoose.Schema({
-  jti: { type: String, required: true, unique: true },
-  expiresAt: { type: Date, required: true, index: { expires: 0 } }
-});
-
-// Revoke token
-await RevokedToken.create({ jti, expiresAt });
-
-// Check if revoked
-const revoked = await RevokedToken.findOne({ jti });
-```
-
-#### 6. Monitoring & Logging
-
-```typescript
-// Structured logging
-logger.info('sso.authentication.success', {
-  userId,
-  clientId,
-  idpSub,
-  isNewUser,
-  timestamp: new Date().toISOString()
-});
-
-logger.warn('sso.pkce.verification.failed', {
-  clientId,
-  timestamp: new Date().toISOString()
-});
-
-// Metrics (Prometheus example)
-const authCounter = new promClient.Counter({
-  name: 'sso_authentications_total',
-  help: 'Total number of SSO authentications',
-  labelNames: ['client_id', 'status']
-});
-
-authCounter.inc({ client_id: 'prompt-management-client', status: 'success' });
-```
-
-#### 7. Security Headers
-
-```typescript
-import helmet from 'helmet';
-
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"]
-    }
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
-}));
+Start the auth-service and test OIDC discovery:
+```powershell
+curl http://localhost:4000/.well-known/openid-configuration
 ```
 
 ---
 
-## Production Checklist
-
-- [ ] Replace HS256 with RS256 algorithm
-- [ ] Generate and securely store RSA key pair
-- [ ] Implement JWKS endpoint
-- [ ] Set up Redis for state storage
-- [ ] Configure Redis persistence and backup
-- [ ] Enable HTTPS on all services
-- [ ] Set `COOKIE_SECURE=true`
-- [ ] Set `COOKIE_SAME_SITE=strict` or `lax`
-- [ ] Implement rate limiting on all endpoints
-- [ ] Set up MongoDB indexes for performance
-- [ ] Configure token revocation with TTL
-- [ ] Implement structured logging
-- [ ] Set up log aggregation (ELK, Datadog, etc.)
-- [ ] Configure monitoring and alerting
-- [ ] Set up health check endpoints
-- [ ] Implement automated token cleanup job
-- [ ] Document service registration process
-- [ ] Test disaster recovery (IdP down)
-- [ ] Implement MFA hooks (optional)
-- [ ] Set up audit logging for compliance
-- [ ] Configure CORS properly
-- [ ] Review and test error messages (no sensitive data)
-- [ ] Implement secret rotation strategy
-- [ ] Set up penetration testing schedule
-- [ ] Document incident response procedures
-
----
-
-## Troubleshooting
-
-### Issue: "Invalid state" error
-
-**Symptoms**: Callback fails with `400 Bad Request: Invalid state parameter`
-
-**Causes**:
-1. State expired (>10 minutes)
-2. State reused (already validated once)
-3. Clock skew between servers
-4. Lost state (server restart with in-memory storage)
-
-**Solutions**:
-1. Reduce time between steps (complete flow faster)
-2. Don't refresh/back button during flow
-3. Sync server clocks (NTP)
-4. Use Redis for state storage (production)
-
-**Debugging**:
-```bash
-# Check server logs
-grep "Invalid state" logs/app.log
-
-# Check state storage
-# In-memory: Restart flow
-# Redis: Check key exists
-redis-cli GET "pkce:<state>"
-```
-
-### Issue: "PKCE verification failed"
-
-**Symptoms**: Token exchange fails with `400 Bad Request: Invalid grant`
-
-**Causes**:
-1. `code_verifier` doesn't match `code_challenge`
-2. Wrong hashing algorithm (must be SHA-256)
-3. Wrong encoding (must be base64url, not base64)
-4. Tampered authorization code
-
-**Solutions**:
-1. Use `pkce-challenge` library (handles encoding correctly)
-2. Don't manually implement PKCE (easy to get wrong)
-3. Verify both client and server use same algorithm
-
-**Debugging**:
-```typescript
-// Server-side logging
-logger.debug('PKCE verification', {
-  codeVerifier,
-  storedChallenge,
-  computedChallenge: crypto.createHash('sha256')
-    .update(codeVerifier)
-    .digest()
-    .toString('base64url')
-});
-```
-
-### Issue: "Token signature verification failed"
-
-**Symptoms**: ID token validation fails in prompt-management
-
-**Causes**:
-1. `JWT_SECRET` mismatch between services
-2. Token tampered with
-3. Wrong algorithm (HS256 vs RS256)
-4. Token corrupted in transit
-
-**Solutions**:
-1. Ensure `JWT_SECRET` is identical in both `.env` files
-2. Restart all services after changing secret
-3. Clear all existing tokens/sessions
-4. Check for URL encoding issues (spaces, special characters)
-
-**Debugging**:
-```bash
-# Decode token without verification
-node -e "console.log(JSON.stringify(JSON.parse(Buffer.from('${TOKEN}'.split('.')[1], 'base64url').toString()), null, 2))"
-
-# Check JWT secret in both services
-grep JWT_SECRET product-management/backend-node/.env
-grep JWT_SECRET prompt-management/backend/.env
-```
-
-### Issue: "User not found after SSO"
-
-**Symptoms**: SSO completes but user not logged in
-
-**Causes**:
-1. JIT provisioning failed (database error)
-2. Identity mapping failed (wrong email/sub)
-3. User creation validation failed
-4. Missing required fields in ID token
-
-**Solutions**:
-1. Check database connection
-2. Verify ID token contains all required claims
-3. Check server logs for validation errors
-4. Manually create user and try again
-
-**Debugging**:
-```bash
-# Check MongoDB logs
-tail -f /var/log/mongodb/mongod.log
-
-# Check user creation logs
-grep "JIT provisioning" logs/app.log
-
-# Verify user in database
-mongo
-> use prompt_management
-> db.users.findOne({ email: "test@example.com" })
-```
-
-### Issue: "Clock skew" errors
-
-**Symptoms**: Tokens rejected with "Token used before valid" or similar
-
-**Causes**:
-1. System clocks out of sync between servers
-2. Timezone misconfiguration
-3. Virtual machine time drift
-
-**Solutions**:
-1. Install and configure NTP:
-   ```bash
-   # Linux
-   sudo apt-get install ntp
-   sudo systemctl enable ntp
-   sudo systemctl start ntp
-
-   # Check time sync status
-   timedatectl status
-   ```
-2. Add clock skew tolerance:
-   ```typescript
-   jwt.verify(token, secret, {
-     clockTolerance: 60  // Allow 60 seconds skew
-   });
-   ```
-
----
-
-## Maintenance
-
-### Token Cleanup Job
-
-**Purpose**: Remove expired authorization codes and revoked tokens
-
-```typescript
-// Cron job (runs every hour)
-import cron from 'node-cron';
-
-cron.schedule('0 * * * *', async () => {
-  // Clean expired authorization codes
-  const deletedCodes = await AuthorizationCode.deleteMany({
-    expiresAt: { $lt: new Date() }
-  });
-
-  // Clean expired revoked tokens
-  // (TTL index handles this automatically, but manual cleanup is good practice)
-  const deletedTokens = await RevokedToken.deleteMany({
-    expiresAt: { $lt: new Date() }
-  });
-
-  logger.info('Token cleanup completed', {
-    deletedCodes: deletedCodes.deletedCount,
-    deletedTokens: deletedTokens.deletedCount
-  });
-});
-```
-
-### Secret Rotation
-
-**When**: Every 90 days or after security incident
-
-**Process**:
-1. Generate new secret
-2. Update both IdP and RP configurations
-3. Restart all services simultaneously
-4. Invalidate all existing tokens
-5. Users must re-authenticate
-
-```bash
-# Generate new secret
-openssl rand -base64 48
-
-# Update .env files
-vim product-management/backend-node/.env
-vim prompt-management/backend/.env
-
-# Restart services
-pm2 restart product-management-backend
-pm2 restart prompt-management-backend
-
-# Revoke all tokens (optional)
-mongo
-> use product_management
-> db.revoked_tokens.insertMany(
-    db.users.find({}, { sessions: 1 })
-      .flatMap(u => u.sessions.map(s => ({ jti: s.jti, expiresAt: new Date(s.exp * 1000) })))
-  )
-```
-
----
-
-## Future Enhancements
-
-1. **Multiple Client Support**: Register more clients dynamically
-2. **OAuth Scopes**: Fine-grained permissions (`read:prompts`, `write:workflows`)
-3. **Consent Screen**: User approves permissions before redirect
-4. **Dynamic Client Registration**: Clients self-register via API
-5. **Device Flow**: Support for CLI/IoT devices
-6. **Multi-Factor Authentication**: TOTP/SMS before issuing tokens
-7. **Session Management API**: View and revoke active sessions
-8. **Admin Dashboard**: Manage clients, users, tokens
-9. **SAML Support**: Enterprise SSO integration
-10. **Passwordless Login**: WebAuthn/FIDO2 support
-
----
-
-## References
-
-- **OpenID Connect Core 1.0**: https://openid.net/specs/openid-connect-core-1_0.html
-- **OAuth 2.0 RFC 6749**: https://tools.ietf.org/html/rfc6749
-- **PKCE RFC 7636**: https://tools.ietf.org/html/rfc7636
-- **Token Introspection RFC 7662**: https://tools.ietf.org/html/rfc7662
-- **Token Revocation RFC 7009**: https://tools.ietf.org/html/rfc7009
-- **JWKS RFC 7517**: https://tools.ietf.org/html/rfc7517
-- **JWT RFC 7519**: https://tools.ietf.org/html/rfc7519
-
----
-
-**Last Updated**: January 27, 2025  
-**Version**: 2.0.0 (OIDC Implementation)  
-**Author**: AI Services Platform Team
+**Status**: Implementation guide complete. Ready to execute step-by-step.

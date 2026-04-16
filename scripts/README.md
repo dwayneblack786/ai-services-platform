@@ -15,6 +15,8 @@ All scripts live under `scripts/` (workspace root). The former `product-manageme
 | `install-workspace.ps1` | Windows: clone repos, create env files from examples, install Java/Node deps |
 | `install-workspace.sh` | macOS/Linux: same as above |
 | `install_mongodb_tools.py` | Interactive MongoDB Community Server + Compass installer |
+| `install-hooks.ps1` | Install the pre-commit secrets-check hook into all repos |
+| `hooks/pre-commit` | Pre-commit hook (bash) — blocks commits containing secrets (Rule 15) |
 
 ---
 

@@ -120,6 +120,8 @@ Copy this into PRs when code is added or changed:
 - [ ] If proto/.proto/shared type/public route changed: Rule 12 + `review-contract-and-breaking-change.md` applied
 - [ ] If package.json/pom.xml dependency changed: `npm audit --audit-level=high` passed (Rule 13)
 - [ ] If podman-compose/startup script/port/env var changed: Rule 14 + `senior-devops-infra.md` applied
+- [ ] If podman-compose/startup script/port/env var changed: Rule 14 + `senior-devops-infra.md` applied
+- [ ] No secrets in staged files; pre-commit hook passed; `.env` not committed (Rule 15)
 - [ ] Plan output format followed (if plan was requested)
 - [ ] AI wiki/knowledge docs updated if behavior or architecture changed
 ```
