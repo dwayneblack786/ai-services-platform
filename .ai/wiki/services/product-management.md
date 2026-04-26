@@ -86,3 +86,8 @@ Actionable notes:
 - Canonical scripts are in `scripts/` at workspace root; `ai-product-management/scripts/` has been removed.
 - Canonical docs are in `docs/` at workspace root; `ai-product-management/docs/` has been consolidated.
 
+
+PostgreSQL-first initiative note:
+- The AI cost optimization and compliance product is designated as the first PostgreSQL-first implementation.
+- Runtime dependency intent for this product excludes MongoDB and Redis.
+- Outputs of this rollout define migration patterns for subsequent platform products.

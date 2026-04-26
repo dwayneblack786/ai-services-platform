@@ -10,3 +10,5 @@ Entry template:
 - Source file/path
 - Last verified date
 - Actionable notes
+
+- [PostgreSQL-First Datastore Strategy](postgresql-first-datastore-strategy.md)

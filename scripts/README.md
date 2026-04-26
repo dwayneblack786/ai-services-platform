@@ -29,6 +29,13 @@ All scripts live under `scripts/` (workspace root). The former `ai-product-manag
 | `cleanup-localstorage.html` | Browser tool to clear localStorage for dev/test sessions |
 | `check-user.js` | Check a MongoDB user document by email or ID |
 
+## MCP / Local LLM
+
+| Script | Purpose |
+|--------|---------|
+| `mcp/local-llm-mcp-server.py` | Canonical local MCP stdio server for the workspace; forwards `local_llm_chat` tool calls to the local OpenAI-compatible endpoint configured in `.vscode/mcp.json` |
+| `mcp/local-llm-mcp-server.js` | Older Node.js prototype kept as reference; the active workspace MCP configuration uses the Python server instead |
+
 ---
 
 ## Auth / SSO / Keycloak

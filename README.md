@@ -43,6 +43,8 @@ Each folder is part of one end-to-end system:
 - `services-java/`: Java Spring Boot agent workflow services (listing, CV, IDP, voice)
 - `services-python/`: Python model/inference services (speech, vision, and agent support)
 - `shared/`: shared contracts/types
+- `.ai/`: model-agnostic governance root for agents, commands, hooks, rules, skills, and wiki knowledge
+- `.vscode/mcp.json`: workspace MCP configuration, currently wired to the Python local LLM MCP server under `scripts/mcp/`
 - `ai-product-starter-template/`: internal starter template for new product modules that need the same baseline look, shell, and frontend/backend structure
 - `docs/` and `plans/`: architecture, decisions, and migration planning
 
@@ -355,6 +357,13 @@ What this script does:
 - prints infrastructure startup commands for Docker and Podman
 
 The installer also prepares template environment files and dependencies for `ai-product-starter-template` when present or cloned.
+
+Governance note:
+
+- the canonical shared governance assets live under `.ai/`
+- the canonical pre-commit hook is `.ai/hooks/pre-commit`
+- install repo hooks after clone with `./scripts/install-hooks.ps1` so secret scanning and governance sync checks run before commits
+- the workspace MCP integration is configured in `.vscode/mcp.json` and currently runs the Python implementation at `scripts/mcp/local-llm-mcp-server.py` rather than the older JavaScript variant
 
 3. Start infrastructure with one of the compose files printed by the installer.
 

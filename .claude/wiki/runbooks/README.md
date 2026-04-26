@@ -38,3 +38,5 @@ Do not use runbooks for:
 - Full conversation logs
 - Unverified guesses or partial debugging notes
 - One-off task plans that belong in session memory
+
+- [PostgreSQL Migration Blueprint](postgresql-migration-blueprint.md)

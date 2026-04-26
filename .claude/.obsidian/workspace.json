@@ -182,10 +182,19 @@
   },
   "active": "3107fb2785d45f8d",
   "lastOpenFiles": [
+    "agents/platform-governance-coder.agent.md",
+    "settings.local.json.tmp.35488.1776875301169",
+    "settings.local.json.tmp.35488.1776875285286",
+    "settings.local.json.tmp.15592.1776868326711",
+    "settings.local.json.tmp.15592.1776866299362",
+    "settings.local.json.tmp.15592.1776863740125",
+    "settings.local.json.tmp.15592.1776863719424",
+    "settings.local.json.tmp.42840.1776860812805",
+    "settings.local.json.tmp.42840.1776860802930",
+    "settings.local.json.tmp.42840.1776860785024",
+    "settings.local.json.tmp.12876.1776859973740",
     "wiki/runbooks/governance-sync-by-change.md",
     "skills/knowledge-management/governance-sync-by-change.md",
-    "hooks/pre-commit",
-    "hooks",
     "rules/15-no-secrets-in-git.md",
     "wiki/services/va-service.md",
     "rules/14-infrastructure-change-standards.md",
@@ -198,7 +207,6 @@
     "skills/code-changes/senior-data-engineer-database.md",
     "wiki/runbooks/java-grpc-proto-sync-and-runtime-checks.md",
     "wiki/runbooks/listing-service-change-verification.md",
-    "ai-services-platform-claude/Welcome.md",
-    "ai-services-platform-claude"
+    "ai-services-platform-claude/Welcome.md"
   ]
 }

@@ -60,6 +60,7 @@ Model-agnostic governance workflow:
 All plans use the conductor init format defined in `.ai/rules/08-plan-output-rules.md`.
 
 - Master plan: `plans/curried-bouncing-dolphin.md`
+- **Active (Next):** `plans/phase-0-ai-cost-optimization-tool-postgresql-v1.md` — AI cost optimization + compliance initiative; starting project is ai-cost-optimization-tool frontend + backend-node, PostgreSQL-first runtime
 - **Active:** `plans/phase-a-java-grpc-agents-v2.md` — Java gRPC server + live agent wiring (listing-service)
 - `plans/phase-1-dinov2-training-pipeline.md` — PropVision DINOv2 training (on hold)
 - `plans/phase-b-node-grpc-socketio.md` — Node gRPC client + Socket.io (next after Phase A)

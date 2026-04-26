@@ -65,3 +65,5 @@ Usage:
 Last verified date:
 
 - 2026-04-16
+- [Runbook: PostgreSQL Migration Blueprint](runbooks/postgresql-migration-blueprint.md)
+- [Decision: PostgreSQL-First Datastore Strategy](decisions/postgresql-first-datastore-strategy.md)
