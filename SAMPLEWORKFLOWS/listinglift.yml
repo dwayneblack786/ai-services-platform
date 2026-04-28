@@ -1,0 +1,36 @@
+# ListingLift workflow pipeline topology.
+#
+# This file lives outside the JAR so pipelines can be updated without rebuilding.
+# Drop new product YAML files alongside this one — the harness picks them up on reload.
+#
+# To update without restarting the server:
+#   POST /api/v1/workflow/reload   (with X-Tenant-ID header)
+#
+# Step ids must match WorkflowStep.getName() on a registered Spring bean.
+# humanGate: true pauses execution until POST /api/v1/workflow/run/{runId}/resume
+
+product: listinglift
+
+workflows:
+
+  # Full pipeline — vision analysis, two human review gates
+  - id: listinglift-pipeline
+    steps:
+      - id: ingest
+      - id: vision-analysis
+      - id: auto-fill
+      - id: fields-review
+        humanGate: true
+      - id: copywriter
+      - id: compliance-review
+      - id: final-review
+        humanGate: true
+      - id: accept-store
+
+  # Quick pipeline — no vision, no compliance gate (internal/trusted tenants)
+  - id: listinglift-quick
+    steps:
+      - id: ingest
+      - id: auto-fill
+      - id: copywriter
+      - id: accept-store

@@ -107,6 +107,19 @@ All scripts live under `scripts/` (workspace root). The former `ai-product-manag
 
 ---
 
+## services-java Agent Harness Scripts (co-located with service)
+
+These scripts live in `services-java/agent-harness/` and are tightly coupled to the service runtime.
+
+| Script | Location | Purpose |
+|--------|----------|---------|
+| `start-server.ps1` | `services-java/agent-harness/` | Start API server on port 8138 (Windows) |
+| `start-server.sh`  | `services-java/agent-harness/` | Start API server on port 8138 (Linux/macOS) |
+| `run-cli.ps1`      | `services-java/agent-harness/` | Run one-shot CLI agent commands (Windows) |
+| `run-cli.sh`       | `services-java/agent-harness/` | Run one-shot CLI agent commands (Linux/macOS) |
+
+---
+
 ## services-python Helper Scripts (co-located with service)
 
 These scripts live with their service and are not moved here because they are tightly coupled to the service runtime.
