@@ -6,8 +6,8 @@
 # To update without restarting the server:
 #   POST /api/v1/workflow/reload   (with X-Tenant-ID header)
 #
-# Step ids must match WorkflowStep.getName() on a registered Spring bean.
-# humanGate: true pauses execution until POST /api/v1/workflow/run/{runId}/resume
+# Step types: validate | llm | http | store | humanGate: true
+# No Java changes needed to add or modify a workflow — edit this file and reload.
 
 product: listinglift
 
@@ -17,20 +17,62 @@ workflows:
   - id: listinglift-pipeline
     steps:
       - id: ingest
+        type: validate
+        required:
+          - address
+
       - id: vision-analysis
+        type: http
+        url: http://localhost:8001/analyze
+        outputKey: visionSummary
+        optional: true        # skips gracefully when vision service is unavailable
+
       - id: auto-fill
+        type: llm
+        skillId: copywriting
+        outputKey: autoFilledFields
+
       - id: fields-review
-        humanGate: true
+        humanGate: true       # pauses here; resume via POST /api/v1/workflow/run/{runId}/resume
+
       - id: copywriter
+        type: llm
+        skillId: copywriting
+        outputKey: listingCopy
+        requiredInput: autoFilledFields
+
       - id: compliance-review
+        type: llm
+        skillId: compliance
+        outputKey: complianceResult
+        requiredInput: listingCopy
+
       - id: final-review
         humanGate: true
+
       - id: accept-store
+        type: store
+        statusValue: accepted
 
   # Quick pipeline — no vision, no compliance gate (internal/trusted tenants)
   - id: listinglift-quick
     steps:
       - id: ingest
+        type: validate
+        required:
+          - address
+
       - id: auto-fill
+        type: llm
+        skillId: copywriting
+        outputKey: autoFilledFields
+
       - id: copywriter
+        type: llm
+        skillId: copywriting
+        outputKey: listingCopy
+        requiredInput: autoFilledFields
+
       - id: accept-store
+        type: store
+        statusValue: accepted
